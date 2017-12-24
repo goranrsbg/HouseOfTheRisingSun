@@ -12,12 +12,19 @@ import javafx.stage.Stage;
  */
 public class LocatorApp extends Application {
     
+    public static final String TITLE = "BB-BB-locator";
+    
     @Override
     public void start(Stage stage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("locatorApp.fxml"));
         
+        Parent root = FXMLLoader.load(getClass().getResource("ui/main/main.fxml"));
+        
+        final String uri = getClass().getResource("locatorapp.css").toExternalForm();
         Scene scene = new Scene(root);
+        scene.getStylesheets().add(uri);
         
+        stage.setFullScreen(true);
+        stage.setTitle(TITLE);
         stage.setScene(scene);
         stage.show();
     }
