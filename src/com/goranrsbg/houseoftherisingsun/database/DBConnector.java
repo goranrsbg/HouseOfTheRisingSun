@@ -150,9 +150,9 @@ public class DBConnector {
             for(String q : sb.toString().split(";")) {
                 boolean res = execute(q);
                 if(res) 
-                    DBConnector.LOGGER.info("Done.");
+                    info("Created.");
                 else 
-                    DBConnector.LOGGER.info("Fail.");
+                    info("Creation failed.");
             }
         } catch (FileNotFoundException ex) {
             DBConnector.LOGGER.log(Level.SEVERE, null, ex);
@@ -160,4 +160,9 @@ public class DBConnector {
             DBConnector.LOGGER.log(Level.SEVERE, null, ex);
         }
     }
+    
+    private void info(String msg) {
+        DBConnector.LOGGER.info(msg);
+    }
+    
 }

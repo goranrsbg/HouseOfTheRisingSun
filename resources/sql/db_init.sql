@@ -1,30 +1,111 @@
 CREATE TABLE SETTLEMENTS (
     ID INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY(START WITH 1, INCREMENT BY 1),
-    SNAME varchar(23));
+    SNAME VARCHAR(23) UNIQUE
+);
+INSERT INTO SETTLEMENTS VALUES
+(DEFAULT, 'Kolari'),
+(DEFAULT, 'Landol'),
+(DEFAULT, 'Binovac'),
+(DEFAULT, 'Suvodol'),
+(DEFAULT, 'Lunjevac');
 CREATE TABLE STREETS (
     PAK INTEGER PRIMARY KEY CONSTRAINT PAK_CH CHECK(PAK < 10000000),
     SNAME VARCHAR(47) NOT NULL,
     SETTLEMENT_ID INTEGER,
     CONSTRAINT SET_ID_FK
     FOREIGN KEY (SETTLEMENT_ID)
-    REFERENCES SETTLEMENTS (ID));
+    REFERENCES SETTLEMENTS (ID)
+);
+INSERT INTO STREETS VALUES
+(234432, 'Gornja Livada', 1),
+(234450, 'Grobljanska', 1),
+(234403, 'Kepinac', 1),
+(234401, 'Kolarčeva - istok parna strana', 1),
+(234427, 'Kolarčeva - zapad parna strana', 1),
+(234483, 'Kolarčeva - istok neparna strana', 1),
+(234484, 'Kolarčeva - zapad neparna strana', 1),
+(234438, 'Ljubavno sokače', 1),
+(234451, 'Mlinska', 1),
+(234413, 'Narodnog Fronta', 1),
+(234405, 'Prvog Maja', 1),
+(234416, 'Save Grujića', 1),
+(234408, 'Sedamnaestog Oktobra', 1),
+(234424, 'Smederevska', 1),
+(234406, 'Vašarska', 1),
+(234415, 'Vojvode Vuleta', 1),
+(234404, 'Železnička', 1),
+(234480, 'Branislava Nušića', 2),
+(234434, 'Branka Radičevića - druga', 2),
+(234435, 'Jeremije Jeremića - treća', 2),
+(234439, 'Karabinovo sokače', 2),
+(234433, 'Karađorđeva - prva', 2),
+(234442, 'Kolarski put', 2),
+(234481, 'Mileta Kostadinovića Žutog', 2),
+(234479, 'Miloša Obilića', 2),
+(234478, 'Nikole Tesle', 2),
+(234482, 'Selište', 2),
+(234436, 'Svetog Save - četvrta', 2),
+(234440, 'Tanjino sokače', 2),
+(234441, 'Veljino sokače', 2),
+(234437, 'Vuka Karadžića', 2),
+(234461, 'Bogosava Stepanovića Boleta', 3),
+(234458, 'Čuburska', 3),
+(234466, 'Dobrivoja Jankovića Lake', 3),
+(234460, 'Dragoljuba Pajića', 3),
+(234456, 'Drajinačka', 3),
+(234463, 'Đurđa Lukića Đure', 3),
+(234457, 'Kostadina Dimitrijevića Koce', 3),
+(234467, 'Kostadina Mijailovića Koje', 3),
+(234459, 'Mitra Gajića', 3),
+(234419, 'Nastasa Nikolića', 3),
+(234465, 'Omladinska', 3),
+(234464, 'Radomira Matejića Rače', 3),
+(234418, 'Šumadijska', 3),
+(234462, 'Tanasija Ilića Tane', 3),
+(234475, 'Balkanska', 4),
+(234417, 'Binovački put', 4),
+(234468, 'Despota Đurđa', 4),
+(234472, 'Dositeja Obradovića', 4),
+(234473, 'Karađorđeva', 4),
+(234476, 'Knez Mihajlova', 4),
+(234422, 'Nikole Tesle', 4),
+(234423, 'Palanački put', 4),
+(234420, 'Pilota Đorđa Stevanovića', 4),
+(234470, 'Solunskih Ratnika', 4),
+(234474, 'Šumadijska', 4),
+(234421, 'Svetog Save', 4),
+(234477, 'Vojvode Stepe', 4),
+(234471, 'Vuka Karadžića', 4),
+(234469, 'Živojina Mišića', 4),
+(234449, 'Karađorđeva', 5),
+(234444, 'Lunjevačka - zapadna strana', 5),
+(234485, 'Lunjevačka - istočna strana', 5),
+(234448, 'Omladinska', 5),
+(234443, 'Palanački put - Konjska', 5),
+(234447, 'Stanoja Glavaša', 5),
+(234446, 'Vojvode Putnika', 5),
+(234445, 'Vojvode Stepe', 5);
 CREATE TABLE LOCATIONS (
     ID INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY(START WITH 1, INCREMENT BY 1),
-    X FLOAT DEFAULT 0,
-    Y FLOAT DEFAULT 0,
+    X DOUBLE NOT NULL,
+    Y DOUBLE NOT NULL,
     CODE VARCHAR(10) DEFAULT NULL,
     STREET_PAK INTEGER,
     NOTE VARCHAR(1024) DEFAULT NULL,
     CONSTRAINT SPAK_FK
     FOREIGN KEY(STREET_PAK)
-    REFERENCES STREETS(PAK));
+    REFERENCES STREETS(PAK)
+);
 CREATE TABLE RECIPIENTS (
     ID INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY(START WITH 1, INCREMENT BY 1),
-    RNAME VARCHAR(51) NOT NULL,
+    SNAME VARCHAR(51) NOT NULL,
+    FNAME VARCHAR(51) NOT NULL,
     LOCATION_ID INTEGER,
     REG_NO BIGINT DEFAULT NULL,
-    IS_RETIREE BOOLEAN DEFAULT FALSE,
+    RETIREE BOOLEAN DEFAULT FALSE,
     CONSTRAINT LOC_FK
     FOREIGN KEY(LOCATION_ID)
-    REFERENCES LOCATIONS(ID));
-CREATE INDEX RNAME_IND on RECIPIENTS(RNAME)
+    REFERENCES LOCATIONS(ID)
+);
+CREATE INDEX SNAME_IND on RECIPIENTS(SNAME);
+CREATE INDEX FNAME_IND on RECIPIENTS(FNAME)

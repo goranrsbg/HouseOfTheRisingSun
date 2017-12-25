@@ -76,7 +76,7 @@ public class MainController implements Initializable {
             double h = theMapPane.getHeight();
 
             output.setText("X: " + x + " Y: " + y + " H: " + theMapPane.getHvalue() + " V: " + theMapPane.getVvalue() + " W: " + w + " H: "+ h);
-
+            // move right click point to center of the screen if possible
             theMapPane.setHvalue((x - w / 2) / (imgWidth - w));
             theMapPane.setVvalue((y - h / 2) / (imgHeight - h));
         }
