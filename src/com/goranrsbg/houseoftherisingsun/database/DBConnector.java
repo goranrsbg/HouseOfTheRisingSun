@@ -25,6 +25,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Properties;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,12 +36,7 @@ import java.util.logging.SimpleFormatter;
  * @author Goran
  */
 public class DBConnector {
-    
-    private static final String DRIVER = "org.apache.derby.jdbc.EmbeddedDriver";
-    private static final String URL = "jdbc:derby:db/data";
-    private static final String USER = "posta";
-    private static final String PASSWORD = "11431";
-    
+
     private static final Logger LOGGER = Logger.getLogger("locator");
     
     private static DBConnector instance;
@@ -70,30 +66,41 @@ public class DBConnector {
     }
     
     private void setLog() {
-        String uri = System.getProperty("user.dir") + File.separator + "locator.log";
+        String uri = System.getProperty("user.dir") + File.separator + "locator%u.log";
         try {    
-            FileHandler fh = new FileHandler(uri);
+            FileHandler fh = new FileHandler(uri, 50000, 1, true);
             fh.setFormatter(new SimpleFormatter());
             DBConnector.LOGGER.addHandler(fh);
             DBConnector.LOGGER.setUseParentHandlers(false);
         } catch (IOException | SecurityException ex) {
             DBConnector.LOGGER.log(Level.SEVERE, null, ex);
         }
-        DBConnector.LOGGER.info("Started.");
+        info("Started.");
     }
     
     private void connect() {
+        Properties props = new Properties();
+        String url = null;
+        String username = null;
+        String password = null;
         try {
-            Class.forName(DBConnector.DRIVER).newInstance();
-            conn = DriverManager.getConnection(DBConnector.URL, DBConnector.USER, DBConnector.PASSWORD);
+            props.load(getClass().getResourceAsStream("database.properties"));
+            String driver = props.getProperty("jdbc.drivers");
+            url = props.getProperty("jdbc.url");
+            username = props.getProperty("jdbc.username");
+            password = props.getProperty("jdbc.password");
+            if(driver != null) {
+                System.setProperty("jdbc.drivers", driver);
+            }
+            // Class.forName(DBConnector.DRIVER).newInstance();
+            conn = DriverManager.getConnection(url, username, password);
             conn.setSchema("APP");
         } catch (SQLException e) {
             if(e.getSQLState().equals("XJ004")) {
                 try {
-                    conn = DriverManager.getConnection(DBConnector.URL + ";create=true", DBConnector.USER, DBConnector.PASSWORD);
+                    conn = DriverManager.getConnection(url + ";create=true", username, password);
                     conn.setSchema("APP");
-                    
-                    // Prepare statement for create tables, insert into tables
+
                     loadSetupDefaults();
                     
                 } catch (SQLException ex) {
@@ -102,7 +109,7 @@ public class DBConnector {
             } else {
                 DBConnector.LOGGER.info(e.getSQLState());
             }
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
+        } catch (IOException ex) {
             DBConnector.LOGGER.log(Level.SEVERE, null, ex);
         }
     }
@@ -136,12 +143,14 @@ public class DBConnector {
     }
 
     private void loadSetupDefaults() {
-        String fname = "db_init.sql";
-        String nl = System.getProperty("line.separator");
-        String uri = System.getProperty("user.dir") + File.separator + "res" + File.separator + "sql" + File.separator + fname;
-        File f = new File(uri);
-        StringBuilder sb = new StringBuilder();
         try {
+            Properties props = new Properties();
+            props.load(getClass().getResourceAsStream("database.properties"));
+            String fname = props.getProperty("jdbc.default.sql");
+            String nl = System.getProperty("line.separator");
+            String uri = System.getProperty("user.dir") + File.separator + "res" + File.separator + "sql" + File.separator + fname;
+            File f = new File(uri);
+            StringBuilder sb = new StringBuilder();
             BufferedReader reader = new BufferedReader(new FileReader(f));
             String s;
             while((s = reader.readLine()) != null) {
@@ -151,7 +160,7 @@ public class DBConnector {
                 boolean res = execute(q);
                 if(res) 
                     info("Created.");
-                else 
+                else
                     info("Creation failed.");
             }
         } catch (FileNotFoundException ex) {

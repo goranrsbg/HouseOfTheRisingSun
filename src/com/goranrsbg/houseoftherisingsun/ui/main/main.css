@@ -30,6 +30,38 @@ limitations under the License.
  * Created on : Dec 17, 2017, 9:47:16 PM
  * Author     : Goran
  */
-#out {
-    -fx-vpos: bottom;
+.theMap {
+    -fx-background-color: white;
+}
+
+.theMap > .corner {
+    -fx-background-color: lawngreen;
+}
+
+.theMap .scroll-bar:horizontal, .theMap .scroll-bar:vertical {
+    -fx-background-color: yellowgreen;
+}
+
+.theMap .increment-button, .theMap .decrement-button {
+    -fx-background-color: lime;
+    -fx-border-color: white;
+}
+
+.theMap .increment-button:hover, .theMap .decrement-button:hover {
+    -fx-background-color: forestgreen;
+}
+
+.theMap .scroll-bar:horizontal .track,.theMap .scroll-bar:vertical .track {
+    -fx-border-color: white;
+    -fx-background-color: lawngreen;
+    -fx-background-radius: 5em;
+}
+
+.theMap .scroll-bar:horizontal .thumb, .theMap .scroll-bar:vertical .thumb {
+    -fx-background-color: forestgreen;
+    -fx-background-radius: 5em;
+}
+
+.theMap .increment-arrow, .theMap .decrement-arrow {
+    -fx-shape: " ";
 }

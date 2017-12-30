@@ -1,4 +1,5 @@
 /nbproject/
 /dist/
 /build/
-/resources/maps/Suvodol.bmp
+/resources/maps/
+!/resources/maps/default.jpg

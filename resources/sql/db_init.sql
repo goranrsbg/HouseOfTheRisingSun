@@ -17,7 +17,7 @@ CREATE TABLE STREETS (
     REFERENCES SETTLEMENTS (ID)
 );
 INSERT INTO STREETS VALUES
-(234432, 'Gornja Livada', 1),
+(234432, 'Gornja livada', 1),
 (234450, 'Grobljanska', 1),
 (234403, 'Kepinac', 1),
 (234401, 'Kolarčeva - istok parna strana', 1),
@@ -26,10 +26,10 @@ INSERT INTO STREETS VALUES
 (234484, 'Kolarčeva - zapad neparna strana', 1),
 (234438, 'Ljubavno sokače', 1),
 (234451, 'Mlinska', 1),
-(234413, 'Narodnog Fronta', 1),
-(234405, 'Prvog Maja', 1),
+(234413, 'Narodnog fronta', 1),
+(234405, '1. maja', 1),
 (234416, 'Save Grujića', 1),
-(234408, 'Sedamnaestog Oktobra', 1),
+(234408, '17. oktobra', 1),
 (234424, 'Smederevska', 1),
 (234406, 'Vašarska', 1),
 (234415, 'Vojvode Vuleta', 1),
@@ -71,7 +71,7 @@ INSERT INTO STREETS VALUES
 (234422, 'Nikole Tesle', 4),
 (234423, 'Palanački put', 4),
 (234420, 'Pilota Đorđa Stevanovića', 4),
-(234470, 'Solunskih Ratnika', 4),
+(234470, 'Solunskih ratnika', 4),
 (234474, 'Šumadijska', 4),
 (234421, 'Svetog Save', 4),
 (234477, 'Vojvode Stepe', 4),
@@ -99,7 +99,7 @@ CREATE TABLE LOCATIONS (
 CREATE TABLE RECIPIENTS (
     ID INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY(START WITH 1, INCREMENT BY 1),
     SNAME VARCHAR(51) NOT NULL,
-    FNAME VARCHAR(51) NOT NULL,
+    FNAME VARCHAR(51) DEFAULT NULL,
     LOCATION_ID INTEGER,
     REG_NO BIGINT DEFAULT NULL,
     RETIREE BOOLEAN DEFAULT FALSE,

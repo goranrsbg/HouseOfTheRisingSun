@@ -50,7 +50,7 @@ public class MainController implements Initializable {
         pathToTheMaps = Paths.get("", "res", "maps");
         theMapPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         theMapPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        loadTheMap("Suvodol.bmp");
+        loadTheMap("Kolari.bmp");
     }
     
     public void loadTheMap(String mapName) {
@@ -70,15 +70,17 @@ public class MainController implements Initializable {
     @FXML
     private void mouseClicked(MouseEvent event) {
         if(event.getButton() == MouseButton.SECONDARY) {
-            double x = event.getX();
-            double y = event.getY();
-            double w = theMapPane.getWidth();
-            double h = theMapPane.getHeight();
-
-            output.setText("X: " + x + " Y: " + y + " H: " + theMapPane.getHvalue() + " V: " + theMapPane.getVvalue() + " W: " + w + " H: "+ h);
+            final double x = event.getX();
+            final double y = event.getY();
+            final double w = theMapPane.getWidth();
+            final double h = theMapPane.getHeight();
+               
+            output.setText("X: " + x + " Y: " + y + " W: " + w + " H: "+ h + "iW: " + imgWidth + "iH: " + imgHeight);
             // move right click point to center of the screen if possible
-            theMapPane.setHvalue((x - w / 2) / (imgWidth - w));
-            theMapPane.setVvalue((y - h / 2) / (imgHeight - h));
+            if(imgWidth > w) 
+                theMapPane.setHvalue((x - w / 2) / (imgWidth - w));
+            if(imgHeight > h) 
+                theMapPane.setVvalue((y - h / 2) / (imgHeight - h));
         }
     }
     
