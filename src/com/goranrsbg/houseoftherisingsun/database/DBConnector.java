@@ -38,36 +38,37 @@ import java.util.logging.SimpleFormatter;
 public class DBConnector {
 
     private static final Logger LOGGER = Logger.getLogger("locator");
-    
+
     private static DBConnector instance;
-    
+
     private static Connection conn;
-    
+
     private Statement statement;
-    
-    private DBConnector() {}
-    
+
+    private DBConnector() {
+    }
+
     public static void ceateInstance() {
-        if(instance == null) {
+        if (instance == null) {
             instance = new DBConnector();
             instance.init();
         }
     }
-    
-    public DBConnector getInstance() {
+
+    public static DBConnector getInstance() {
         return instance;
     }
-    
+
     private void init() {
         new Thread(() -> {
             setLog();
             connect();
         }).start();
     }
-    
+
     private void setLog() {
         String uri = System.getProperty("user.dir") + File.separator + "locator%u.log";
-        try {    
+        try {
             FileHandler fh = new FileHandler(uri, 50000, 1, true);
             fh.setFormatter(new SimpleFormatter());
             DBConnector.LOGGER.addHandler(fh);
@@ -77,7 +78,7 @@ public class DBConnector {
         }
         info("Started.");
     }
-    
+
     private void connect() {
         Properties props = new Properties();
         String url = null;
@@ -89,20 +90,17 @@ public class DBConnector {
             url = props.getProperty("jdbc.url");
             username = props.getProperty("jdbc.username");
             password = props.getProperty("jdbc.password");
-            if(driver != null) {
+            if (driver != null) {
                 System.setProperty("jdbc.drivers", driver);
             }
-            // Class.forName(DBConnector.DRIVER).newInstance();
             conn = DriverManager.getConnection(url, username, password);
             conn.setSchema("APP");
         } catch (SQLException e) {
-            if(e.getSQLState().equals("XJ004")) {
+            if (e.getSQLState().equals("XJ004")) {
                 try {
                     conn = DriverManager.getConnection(url + ";create=true", username, password);
                     conn.setSchema("APP");
-
                     loadSetupDefaults();
-                    
                 } catch (SQLException ex) {
                     DBConnector.LOGGER.log(Level.SEVERE, null, ex);
                 }
@@ -113,33 +111,31 @@ public class DBConnector {
             DBConnector.LOGGER.log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public boolean isConnected() {
         return conn != null;
     }
-    
+
     public ResultSet executeQuery(String query) {
-        ResultSet rs;
+        ResultSet rs = null;
         try {
             statement = conn.createStatement();
             rs = statement.executeQuery(query);
         } catch (SQLException ex) {
             DBConnector.LOGGER.log(Level.SEVERE, null, ex);
-            rs = null;
         }
         return rs;
     }
-    
-    public boolean execute(String query) {
+
+    public int executeUpdate(String query) {
+        int updated = 0;
         try {
             statement = conn.createStatement();
-            System.out.println(query);
-            statement.execute(query);
-            return true;
+            updated = statement.executeUpdate(query);
         } catch (SQLException ex) {
             DBConnector.LOGGER.log(Level.SEVERE, null, ex);
         }
-        return false;
+        return updated;
     }
 
     private void loadSetupDefaults() {
@@ -149,19 +145,29 @@ public class DBConnector {
             String fname = props.getProperty("jdbc.default.sql");
             String nl = System.getProperty("line.separator");
             String uri = System.getProperty("user.dir") + File.separator + "res" + File.separator + "sql" + File.separator + fname;
-            File f = new File(uri);
+            File file = new File(uri);
             StringBuilder sb = new StringBuilder();
-            BufferedReader reader = new BufferedReader(new FileReader(f));
+            BufferedReader reader = new BufferedReader(new FileReader(file));
             String s;
-            while((s = reader.readLine()) != null) {
-                sb.append(s).append(nl);
-            }
-            for(String q : sb.toString().split(";")) {
-                boolean res = execute(q);
-                if(res) 
-                    info("Created.");
-                else
-                    info("Creation failed.");
+            int pom;
+            int res;
+            while ((s = reader.readLine()) != null) {
+                if (!s.equals("")) {
+                    sb.append(s);
+                    pom = sb.lastIndexOf(";");
+                    if (pom > 0) {
+                        sb.setLength(pom);
+                        s = sb.toString();
+                        res = executeUpdate(s);
+                        sb.setLength(0);
+                        int ind = s.indexOf("\n");
+                        if (res >= 0) {
+                            info(((ind > 0) ? s.substring(0, s.indexOf("\n")) : s) + ((res == 0) ? " Created. " : " Updated. ") + res);
+                        }
+                    } else {
+                        sb.append(nl);
+                    }
+                }
             }
         } catch (FileNotFoundException ex) {
             DBConnector.LOGGER.log(Level.SEVERE, null, ex);
@@ -169,9 +175,22 @@ public class DBConnector {
             DBConnector.LOGGER.log(Level.SEVERE, null, ex);
         }
     }
-    
+
     private void info(String msg) {
         DBConnector.LOGGER.info(msg);
     }
-    
+
+    public void closeConnection() {
+        try {
+            if (statement != null) {
+                statement.close();
+            }
+            if (conn != null) {
+                conn.close();
+            }
+        } catch (SQLException ex) {
+            DBConnector.LOGGER.log(Level.SEVERE, null, ex);
+        }
+    }
+
 }

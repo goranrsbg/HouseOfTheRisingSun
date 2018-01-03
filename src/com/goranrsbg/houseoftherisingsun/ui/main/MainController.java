@@ -44,7 +44,7 @@ public class MainController implements Initializable {
     private ScrollPane theMapPane;
     @FXML
     private ImageView theMapImage;
-    
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         pathToTheMaps = Paths.get("", "res", "maps");
@@ -52,36 +52,38 @@ public class MainController implements Initializable {
         theMapPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         loadTheMap("Kolari.bmp");
     }
-    
+
     public void loadTheMap(String mapName) {
         String uri = pathToTheMaps.resolve(mapName).toUri().toString();
-        
+
         Image img = new Image(uri);
         imgHeight = img.getHeight();
         imgWidth = img.getWidth();
-        
+
         theMapImage.setImage(img);
-        
+
         theMapPane.setContent(theMapImage);
-            
+
         output.setText(uri);
     }
 
     @FXML
     private void mouseClicked(MouseEvent event) {
-        if(event.getButton() == MouseButton.SECONDARY) {
+        if (event.getButton() == MouseButton.SECONDARY) {
             final double x = event.getX();
             final double y = event.getY();
             final double w = theMapPane.getWidth();
             final double h = theMapPane.getHeight();
-               
-            output.setText("X: " + x + " Y: " + y + " W: " + w + " H: "+ h + "iW: " + imgWidth + "iH: " + imgHeight);
+
+            output.setText("X: " + x + " Y: " + y + " W: " + w + " H: " + h + "iW: " + imgWidth + "iH: " + imgHeight);
             // move right click point to center of the screen if possible
-            if(imgWidth > w) 
+            if (imgWidth > w) {
                 theMapPane.setHvalue((x - w / 2) / (imgWidth - w));
-            if(imgHeight > h) 
+            }
+            if (imgHeight > h) {
                 theMapPane.setVvalue((y - h / 2) / (imgHeight - h));
+            }
         }
     }
-    
+
 }

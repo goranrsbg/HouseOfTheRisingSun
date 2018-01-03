@@ -13,30 +13,34 @@ import javafx.stage.Stage;
  * @author Goran
  */
 public class LocatorApp extends Application {
-    
+
     public static final String TITLE = "BB-BB-locator";
-    
+
+    @Override
+    public void init() {
+        DBConnector.ceateInstance();
+    }
+
     @Override
     public void start(Stage primaryStage) throws Exception {
-        
-        DBConnector.ceateInstance();
-        
         Parent root = FXMLLoader.load(getClass().getResource("ui/main/main.fxml"));
-        
         root.setOnKeyPressed((event) -> {
-            if(event.isAltDown() && event.getCode() == KeyCode.ENTER) {
+            if (event.isAltDown() && event.getCode() == KeyCode.ENTER) {
                 primaryStage.setFullScreen(true);
             }
         });
-        
         final String uri = getClass().getResource("locatorapp.css").toExternalForm();
         Scene scene = new Scene(root);
         scene.getStylesheets().add(uri);
-        
         primaryStage.setFullScreen(true);
         primaryStage.setTitle(TITLE);
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    @Override
+    public void stop() {
+        DBConnector.getInstance().closeConnection();
     }
 
     /**
@@ -45,5 +49,5 @@ public class LocatorApp extends Application {
     public static void main(String[] args) {
         launch(args);
     }
-    
+
 }
