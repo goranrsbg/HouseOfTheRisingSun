@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -144,8 +145,7 @@ public class DBConnector {
             props.load(getClass().getResourceAsStream("database.properties"));
             String fname = props.getProperty("jdbc.default.sql");
             String nl = System.getProperty("line.separator");
-            String uri = System.getProperty("user.dir") + File.separator + "res" + File.separator + "sql" + File.separator + fname;
-            File file = new File(uri);
+            File file = new File(Paths.get("", "res", "sql", fname).toUri());
             StringBuilder sb = new StringBuilder();
             BufferedReader reader = new BufferedReader(new FileReader(file));
             String s;

@@ -21,6 +21,6 @@ limitations under the License.
     src: local("file:res/fonts/Oxygen-Regular.ttf");
 }
 
-.root *{
+.root {
     -fx-font-family: "Oxygen";
 }

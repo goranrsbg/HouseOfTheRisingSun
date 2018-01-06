@@ -15,8 +15,12 @@
  */
 package com.goranrsbg.houseoftherisingsun.ui.addAddress;
 
+import com.jfoenix.controls.JFXButton;
+import com.jfoenix.controls.JFXTextArea;
+import com.jfoenix.controls.JFXTextField;
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 
 /**
@@ -25,11 +29,21 @@ import javafx.fxml.Initializable;
  */
 public class AddAddressController implements Initializable {
 
-    private ResourceBundle resources = null;
+    @FXML
+    private JFXTextField jFXtfX;
+    @FXML
+    private JFXTextField jFXtfY;
+    @FXML
+    private JFXTextField jFXtfBR;
+    @FXML
+    private JFXTextArea jFXtaNote;
+    @FXML
+    private JFXButton jFXbtSave;
+
     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        this.resources = resources;
+        
     }
     
 }

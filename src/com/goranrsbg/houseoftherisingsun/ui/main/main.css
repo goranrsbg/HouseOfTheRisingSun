@@ -30,38 +30,93 @@ limitations under the License.
  * Created on : Dec 17, 2017, 9:47:16 PM
  * Author     : Goran
  */
-.theMap {
+.root{
+    -icons-color: black;
+}
+
+.theMap{
     -fx-background-color: white;
 }
 
-.theMap > .corner {
+.theMap > .corner{
     -fx-background-color: lawngreen;
 }
 
-.theMap .scroll-bar:horizontal, .theMap .scroll-bar:vertical {
+.theMap .scroll-bar:horizontal, .theMap .scroll-bar:vertical{
     -fx-background-color: yellowgreen;
 }
 
-.theMap .increment-button, .theMap .decrement-button {
+.theMap .increment-button, .theMap .decrement-button{
     -fx-background-color: lime;
     -fx-border-color: white;
+    -fx-background-radius: 5em;
+    -fx-border-radius: 5em;
 }
 
-.theMap .increment-button:hover, .theMap .decrement-button:hover {
+.theMap .increment-button:hover, .theMap .decrement-button:hover{
     -fx-background-color: forestgreen;
 }
 
-.theMap .scroll-bar:horizontal .track,.theMap .scroll-bar:vertical .track {
+.theMap .scroll-bar:horizontal .track,.theMap .scroll-bar:vertical .track{
     -fx-border-color: white;
     -fx-background-color: lawngreen;
-    -fx-background-radius: 5em;
+    -fx-border-radius: 5em;
 }
 
-.theMap .scroll-bar:horizontal .thumb, .theMap .scroll-bar:vertical .thumb {
+.theMap .scroll-bar:horizontal .thumb, .theMap .scroll-bar:vertical .thumb{
     -fx-background-color: forestgreen;
     -fx-background-radius: 5em;
 }
 
-.theMap .increment-arrow, .theMap .decrement-arrow {
+.theMap .increment-arrow, .theMap .decrement-arrow{
     -fx-shape: " ";
+}
+
+.label{
+    -fx-text-fill: white;
+    -fx-font-size: 23px bold;
+}
+
+.label:hover{
+    -fx-text-fill: black;
+}
+
+.animated-option-button{
+    -fx-pref-width: 50px;
+    -fx-background-color: orange;
+    -fx-background-radius: 50px;
+    -fx-pref-height: 50px;
+    -fx-border-color: white;
+    -fx-border-radius: 50px;
+    -fx-border-width: 4px;
+    -fx-opacity: 0.5;
+}
+
+.animated-option-button:hover{
+    -fx-opacity: 1;
+}
+
+.animated-option-sub-button1{
+    -fx-background-color: orangered;
+}
+
+.animated-option-sub-button2{
+    -fx-background-color: greenyellow;
+}
+
+.animated-option-sub-button3{
+    -fx-background-color: olivedrab;
+}
+
+.glyph-icon{
+    -fx-fill: -icons-color;
+    -glyph-size: 12px;
+}
+.glyph-icon:hover{
+    
+}
+.start-icon{
+    -glyph-name: "THUMBS_UP";
+    -icons-color: yellowgreen;
+    -fx-rotate: -90;
 }

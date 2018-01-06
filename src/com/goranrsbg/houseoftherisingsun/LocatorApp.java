@@ -14,7 +14,7 @@ import javafx.stage.Stage;
  */
 public class LocatorApp extends Application {
 
-    public static final String TITLE = "BB-BB-locator";
+    public static final String TITLE = "BB-BB-lokator";
 
     @Override
     public void init() {
@@ -29,7 +29,7 @@ public class LocatorApp extends Application {
                 primaryStage.setFullScreen(true);
             }
         });
-        final String uri = getClass().getResource("locatorapp.css").toExternalForm();
+        final String uri = getClass().getResource("locator.css").toExternalForm();
         Scene scene = new Scene(root);
         scene.getStylesheets().add(uri);
         primaryStage.setFullScreen(true);
@@ -37,7 +37,7 @@ public class LocatorApp extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
     }
-
+    
     @Override
     public void stop() {
         DBConnector.getInstance().closeConnection();
