@@ -15,9 +15,9 @@
  */
 package com.goranrsbg.houseoftherisingsun.ui.main;
 
+import com.goranrsbg.houseoftherisingsun.database.DBConnector;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXNodesList;
-import com.jfoenix.controls.JFXRippler;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import java.net.URL;
 import java.nio.file.Path;
@@ -25,9 +25,9 @@ import java.nio.file.Paths;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
@@ -38,7 +38,9 @@ import javafx.scene.input.MouseEvent;
  * @author Goran
  */
 public class MainController implements Initializable {
-
+    
+    private DBConnector db;
+    
     private Path pathToTheMaps;
     private double imgHeight;
     private double imgWidth;
@@ -54,40 +56,68 @@ public class MainController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        
+        db = DBConnector.getInstance();
+        
         pathToTheMaps = Paths.get("", "res", "maps");
         theMapPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         theMapPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
         loadTheMap("Kolari.bmp");
+        
+        jFXNodeList.addAnimatedNode(createJFXButton(0, "start-icon", null));
 
-        FontAwesomeIconView icoStart = new FontAwesomeIconView();
-        icoStart.setStyleClass("start-icon");
+        JFXNodesList recipientsJFXNodesList = new JFXNodesList();
+        recipientsJFXNodesList.addAnimatedNode(createJFXButton(1, "recip-icon", "Primaoci:"));
+        recipientsJFXNodesList.addAnimatedNode(createJFXButton(1, "addrecip-icon", "Dodaj primaoca."));
         
-        JFXButton btStart = new JFXButton(null, icoStart);
-        JFXButton btFirst = new JFXButton("A1");
-        JFXButton btSecond = new JFXButton("A2");
-        JFXButton btThird = new JFXButton("A3");
+        JFXNodesList locationsJFXNodesList = new JFXNodesList();
+        locationsJFXNodesList.addAnimatedNode(createJFXButton(2, "loc-icon", "Lokacije:"));
+        locationsJFXNodesList.addAnimatedNode(createJFXButton(2, "marker-icon", "Dadaj lokaciju."));
         
-        btStart.getStyleClass().add("animated-option-button");
-        btFirst.getStyleClass().addAll("animated-option-button", "animated-option-sub-button2");
-        btSecond.getStyleClass().addAll("animated-option-button", "animated-option-sub-button2");
-        btThird.getStyleClass().addAll("animated-option-button", "animated-option-sub-button2");
+        JFXNodesList streetsJFXNodesList = new JFXNodesList();
+        streetsJFXNodesList.addAnimatedNode(createJFXButton(3, "road-icon", "Ulice:"));
+        streetsJFXNodesList.addAnimatedNode(createJFXButton(3, "roadt-icon", "Prikaži spisak ulica."));
         
-        jFXNodeList.addAnimatedNode(btStart);
-        jFXNodeList.addAnimatedNode(btFirst);
-        jFXNodeList.addAnimatedNode(btSecond);
-        jFXNodeList.addAnimatedNode(btThird);
+        JFXNodesList settlementsJFXNodesList = new JFXNodesList();
+        settlementsJFXNodesList.addAnimatedNode(createJFXButton(3, "map-icon", "Naselja:"));
+        settlementsJFXNodesList.addAnimatedNode(createJFXButton(3, "listol-icon", "Prikaži spisak naselja."));
+        
+        jFXNodeList.addAnimatedNode(recipientsJFXNodesList);
+        jFXNodeList.addAnimatedNode(locationsJFXNodesList);
+        jFXNodeList.addAnimatedNode(streetsJFXNodesList);
+        jFXNodeList.addAnimatedNode(settlementsJFXNodesList);
 
     }
 
+    private JFXButton createJFXButton(int buttonCssClass, String glyphIconCssClass, String toolTip) {
+        String defaultButtonCssClass = "animated-option-button";
+        String buttonClass = "animated-option-sub-button";
+        String defaultToolTipStyle = "-fx-font: normal bold 15px 'Oxygen'; -fx-base: #AE3522; -fx-text-fill: orange;";
+        FontAwesomeIconView icon = new FontAwesomeIconView();
+        icon.setStyleClass(glyphIconCssClass);
+        JFXButton button = new JFXButton(null, icon);
+        button.getStyleClass().add(defaultButtonCssClass);
+        if (buttonCssClass != 0) {
+            button.getStyleClass().add(buttonClass + buttonCssClass);
+        }
+        if (toolTip != null) {
+            Tooltip tt = new Tooltip();
+            tt.setText(toolTip);
+            tt.setStyle(defaultToolTipStyle);
+            button.setTooltip(tt);
+        }
+        return button;
+    }
+
     public void loadTheMap(String mapName) {
-        String uri = pathToTheMaps.resolve(mapName).toUri().toString();
+        final String uri = pathToTheMaps.resolve(mapName).toUri().toString();
         Image img = new Image(uri);
         imgHeight = img.getHeight();
         imgWidth = img.getWidth();
         theMapImage.setImage(img);
         theMapPane.setContent(theMapImage);
-        output.setText(uri);
+        output.setText("Connection established: " + db.isConnected());
     }
 
     @FXML

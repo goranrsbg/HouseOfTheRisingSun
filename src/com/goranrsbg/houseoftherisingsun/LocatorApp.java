@@ -1,10 +1,12 @@
 package com.goranrsbg.houseoftherisingsun;
 
 import com.goranrsbg.houseoftherisingsun.database.DBConnector;
+import java.nio.file.Paths;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 
@@ -29,15 +31,18 @@ public class LocatorApp extends Application {
                 primaryStage.setFullScreen(true);
             }
         });
-        final String uri = getClass().getResource("locator.css").toExternalForm();
+        final String uriCss = getClass().getResource("locator.css").toExternalForm();
+        final String uriIco = Paths.get("", "res", "img").resolve("three.png").toUri().toString();
+        System.out.println(uriIco);
         Scene scene = new Scene(root);
-        scene.getStylesheets().add(uri);
+        scene.getStylesheets().add(uriCss);
+        primaryStage.getIcons().add(new Image(uriIco));
         primaryStage.setFullScreen(true);
         primaryStage.setTitle(TITLE);
         primaryStage.setScene(scene);
         primaryStage.show();
     }
-    
+
     @Override
     public void stop() {
         DBConnector.getInstance().closeConnection();

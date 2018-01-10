@@ -62,8 +62,8 @@ public class DBConnector {
 
     private void init() {
         new Thread(() -> {
-            setLog();
             connect();
+            setLog();
         }).start();
     }
 
@@ -110,6 +110,10 @@ public class DBConnector {
             }
         } catch (IOException ex) {
             DBConnector.LOGGER.log(Level.SEVERE, null, ex);
+        } finally {
+            url = null;
+            username = null;
+            password = null;
         }
     }
 

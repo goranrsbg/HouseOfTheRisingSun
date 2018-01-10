@@ -43,7 +43,7 @@ limitations under the License.
 }
 
 .theMap .scroll-bar:horizontal, .theMap .scroll-bar:vertical{
-    -fx-background-color: yellowgreen;
+    -fx-background-color: white;
 }
 
 .theMap .increment-button, .theMap .decrement-button{
@@ -74,7 +74,7 @@ limitations under the License.
 
 .label{
     -fx-text-fill: white;
-    -fx-font-size: 23px bold;
+    -fx-font: normal bold 23px "Oxygen";
 }
 
 .label:hover{
@@ -83,7 +83,7 @@ limitations under the License.
 
 .animated-option-button{
     -fx-pref-width: 50px;
-    -fx-background-color: orange;
+    -fx-background-color: #cccccc;
     -fx-background-radius: 50px;
     -fx-pref-height: 50px;
     -fx-border-color: white;
@@ -97,26 +97,89 @@ limitations under the License.
 }
 
 .animated-option-sub-button1{
-    -fx-background-color: orangered;
+    -fx-background-color: #fff200;
 }
-
 .animated-option-sub-button2{
-    -fx-background-color: greenyellow;
+    -fx-background-color: #b3ff00;
 }
-
 .animated-option-sub-button3{
-    -fx-background-color: olivedrab;
+    -fx-background-color: #ffa600;
 }
 
 .glyph-icon{
+    -fx-text-fill: -icons-color;
     -fx-fill: -icons-color;
-    -glyph-size: 12px;
+    -glyph-size: 23px;
 }
-.glyph-icon:hover{
-    
-}
+
 .start-icon{
-    -glyph-name: "THUMBS_UP";
-    -icons-color: yellowgreen;
-    -fx-rotate: -90;
+    -glyph-name: "TH";
+    -icons-color: white;
+}
+.animated-option-button:hover .start-icon{
+    -icons-color: black;
+}
+
+.recip-icon{
+    -glyph-name: "USERS";
+    -icons-color: #26ff05;
+}
+.animated-option-button:hover .recip-icon{
+    -icons-color: #149c02;
+}
+
+.addrecip-icon{
+    -glyph-name: "USER_PLUS";
+    -icons-color: #ff8102;
+}
+.animated-option-button:hover .addrecip-icon{
+    -icons-color: #de6f00;
+}
+
+.loc-icon{
+    -glyph-name: "HOME";
+    -icons-color: #ff1500;
+}
+.animated-option-button:hover .loc-icon{
+    -icons-color: #db1200;
+}
+
+.marker-icon{
+    -glyph-name: "MAP_MARKER";
+    -icons-color: #bab2ff;
+}
+.animated-option-button:hover .marker-icon{
+    -icons-color: #1003ff;
+}
+
+.road-icon{
+    -glyph-name: "ROAD";
+    -icons-color: #a89b94;
+}
+.animated-option-button:hover .road-icon{
+    -icons-color: #665952;
+}
+
+.roadt-icon{
+    -glyph-name: "LIST_ALT";
+    -icons-color: #03db4b;
+}
+.animated-option-button:hover .roadt-icon{
+    -icons-color: #1ba602;
+}
+
+.map-icon{
+    -glyph-name: "MAP";
+    -icons-color: #ff45e9;
+}
+.animated-option-button:hover .map-icon{
+    -icons-color: #cf38bb;
+}
+
+.listol-icon{
+    -glyph-name: "LIST_OL";
+    -icons-color: #03db4b;
+}
+.animated-option-button:hover .listol-icon{
+    -icons-color: #1ba602;
 }
