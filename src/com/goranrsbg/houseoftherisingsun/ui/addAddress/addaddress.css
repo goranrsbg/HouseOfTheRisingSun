@@ -30,3 +30,24 @@ limitations under the License.
  * Created on : Dec 17, 2017, 10:36:14 PM
  * Author     : Goran
  */
+.root {
+    -fx-font-family: 'Oxygen';
+    -fx-font-size: 16px;
+    -fx-background-color: transparent;
+}
+
+.button-save{
+    -fx-background-color: greenyellow;
+    -fx-border-radius: 17px;
+    -fx-background-radius: 17px;
+}
+.button-save:hover{
+    -fx-border-color: green;
+}
+
+.textfield-number{
+    -fx-font-weight: bold;
+}
+.textfield-no{
+    -fx-text-fill: #003399;
+}

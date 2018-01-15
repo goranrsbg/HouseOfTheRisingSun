@@ -139,14 +139,16 @@ limitations under the License.
 .loc-icon{
     -glyph-name: "HOME";
     -icons-color: #ff1500;
+    -glyph-size: 29px;
 }
 .animated-option-button:hover .loc-icon{
     -icons-color: #db1200;
 }
 
 .marker-icon{
-    -glyph-name: "MAP_MARKER";
+    -glyph-name: "CROSSHAIRS";
     -icons-color: #bab2ff;
+    -glyph-size: 29px;
 }
 .animated-option-button:hover .marker-icon{
     -icons-color: #1003ff;
@@ -155,6 +157,7 @@ limitations under the License.
 .road-icon{
     -glyph-name: "ROAD";
     -icons-color: #a89b94;
+    -glyph-size: 25px;
 }
 .animated-option-button:hover .road-icon{
     -icons-color: #665952;
@@ -174,6 +177,28 @@ limitations under the License.
 }
 .animated-option-button:hover .map-icon{
     -icons-color: #cf38bb;
+}
+
+.settlement{
+    -fx-background-color: white;
+    -fx-font-family: 'Oxygen';
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: green;
+    -fx-border-color: black;
+}
+.settlement:hover{
+    -fx-text-fill: black;
+    -fx-border-color: green;
+}
+
+.settchooser-icon{
+    -glyph-name: "EERCAST";
+    -icons-color: #813dff;
+    -glyph-size: 27px;
+}
+.animated-option-button:hover .settchooser-icon{
+    -icons-color: #4d00ff;
 }
 
 .listol-icon{

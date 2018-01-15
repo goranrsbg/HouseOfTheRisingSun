@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXComboBox?>
 <?import com.jfoenix.controls.JFXTextArea?>
 <?import com.jfoenix.controls.JFXTextField?>
 <?import java.net.URL?>
@@ -9,30 +10,45 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-
-<AnchorPane xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.goranrsbg.houseoftherisingsun.ui.addAddress.AddAddressController">
+<AnchorPane styleClass="anchorpane-root" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.goranrsbg.houseoftherisingsun.ui.addAddress.AddAddressController">
     <stylesheets>
         <URL value="@addaddress.css" />
     </stylesheets>
     <children>
-      <VBox layoutX="2.0" layoutY="2.0" spacing="20.0">
+      <VBox layoutY="1.0" prefHeight="399.0" prefWidth="428.0" spacing="20.0">
          <children>
             <HBox spacing="20.0">
                <children>
-                  <VBox alignment="TOP_CENTER" spacing="20.0">
-                     <children>
-                        <JFXTextField fx:id="jFXtfX" labelFloat="true" promptText="X" />
-                        <JFXTextField fx:id="jFXtfY" labelFloat="true" promptText="Y" />
-                        <JFXTextField fx:id="jFXtfBR" labelFloat="true" promptText="br." />
-                     </children>
-                  </VBox>
-                  <JFXTextArea fx:id="jFXtaNote" labelFloat="true" prefHeight="107.0" prefWidth="311.0" promptText="Napomena" />
+                  <JFXTextField labelFloat="true" promptText="X" styleClass="textfield-number" fx:id="xTextField" />
+                  <JFXTextField fx:id="yTextField" labelFloat="true" promptText="Y" styleClass="textfield-number" />
                </children>
                <padding>
-                  <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                  <Insets left="20.0" right="20.0" top="20.0" />
                </padding>
             </HBox>
-            <JFXButton fx:id="jFXbtSave" defaultButton="true" maxWidth="1.7976931348623157E308" text="Sačuvaj" />
+            <JFXComboBox fx:id="streetCombo" labelFloat="true" promptText="Ulica" visibleRowCount="17">
+               <VBox.margin>
+                  <Insets left="20.0" right="20.0" top="10.0" />
+               </VBox.margin>
+            </JFXComboBox>
+            <JFXTextField fx:id="brTextField" labelFloat="true" promptText="br." styleClass="textfield-no">
+               <VBox.margin>
+                  <Insets left="20.0" right="20.0" top="10.0" />
+               </VBox.margin>
+            </JFXTextField>
+            <JFXTextArea fx:id="noteAreaField" labelFloat="true" prefColumnCount="4" prefHeight="85.0" prefWidth="406.0" promptText="Napomena">
+               <VBox.margin>
+                  <Insets bottom="20.0" left="20.0" right="20.0" top="10.0" />
+               </VBox.margin>
+            </JFXTextArea>
+            <JFXButton buttonType="RAISED" defaultButton="true" maxWidth="1.7976931348623157E308" onAction="#saveButtonAction" styleClass="button-save" text="Sačuvaj">
+               <VBox.margin>
+                  <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+               </VBox.margin>
+               <padding>
+                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+               </padding>
+            </JFXButton>
          </children>
       </VBox>
    </children>

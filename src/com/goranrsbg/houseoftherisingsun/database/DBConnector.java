@@ -15,6 +15,7 @@
  */
 package com.goranrsbg.houseoftherisingsun.database;
 
+import com.goranrsbg.houseoftherisingsun.ui.main.MainController;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -23,6 +24,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -37,16 +39,30 @@ import java.util.logging.SimpleFormatter;
  * @author Goran
  */
 public class DBConnector {
-
+    
+    private static final String TITLE = "Izveštaj iz baze";
+    
     private static final Logger LOGGER = Logger.getLogger("locator");
 
     private static DBConnector instance;
 
-    private static Connection conn;
+    private MainController mc;
+
+    private Connection connection;
 
     private Statement statement;
 
+    private PreparedStatement insertLocation;
+
     private DBConnector() {
+    }
+
+    public void setMc(MainController mc) {
+        this.mc = mc;
+    }
+    
+    public boolean isConnected() {
+        return connection != null;
     }
 
     public static void ceateInstance() {
@@ -61,10 +77,8 @@ public class DBConnector {
     }
 
     private void init() {
-        new Thread(() -> {
-            connect();
-            setLog();
-        }).start();
+        setLog();
+        connect();
     }
 
     private void setLog() {
@@ -77,7 +91,7 @@ public class DBConnector {
         } catch (IOException | SecurityException ex) {
             DBConnector.LOGGER.log(Level.SEVERE, null, ex);
         }
-        info("Started.");
+        DBConnector.LOGGER.info("Started.");
     }
 
     private void connect() {
@@ -94,13 +108,13 @@ public class DBConnector {
             if (driver != null) {
                 System.setProperty("jdbc.drivers", driver);
             }
-            conn = DriverManager.getConnection(url, username, password);
-            conn.setSchema("APP");
+            connection = DriverManager.getConnection(url, username, password);
+            connection.setSchema("APP");
         } catch (SQLException e) {
             if (e.getSQLState().equals("XJ004")) {
                 try {
-                    conn = DriverManager.getConnection(url + ";create=true", username, password);
-                    conn.setSchema("APP");
+                    connection = DriverManager.getConnection(url + ";create=true", username, password);
+                    connection.setSchema("APP");
                     loadSetupDefaults();
                 } catch (SQLException ex) {
                     DBConnector.LOGGER.log(Level.SEVERE, null, ex);
@@ -114,35 +128,12 @@ public class DBConnector {
             url = null;
             username = null;
             password = null;
+            if (isConnected()) {
+                prepareStatements();
+            }
         }
     }
-
-    public boolean isConnected() {
-        return conn != null;
-    }
-
-    public ResultSet executeQuery(String query) {
-        ResultSet rs = null;
-        try {
-            statement = conn.createStatement();
-            rs = statement.executeQuery(query);
-        } catch (SQLException ex) {
-            DBConnector.LOGGER.log(Level.SEVERE, null, ex);
-        }
-        return rs;
-    }
-
-    public int executeUpdate(String query) {
-        int updated = 0;
-        try {
-            statement = conn.createStatement();
-            updated = statement.executeUpdate(query);
-        } catch (SQLException ex) {
-            DBConnector.LOGGER.log(Level.SEVERE, null, ex);
-        }
-        return updated;
-    }
-
+    
     private void loadSetupDefaults() {
         try {
             Properties props = new Properties();
@@ -166,7 +157,7 @@ public class DBConnector {
                         sb.setLength(0);
                         int ind = s.indexOf("\n");
                         if (res >= 0) {
-                            info(((ind > 0) ? s.substring(0, s.indexOf("\n")) : s) + ((res == 0) ? " Created. " : " Updated. ") + res);
+                            DBConnector.LOGGER.info(((ind > 0) ? s.substring(0, s.indexOf("\n")) : s) + ((res == 0) ? " Created. " : " Updated. ") + res);
                         }
                     } else {
                         sb.append(nl);
@@ -180,8 +171,57 @@ public class DBConnector {
         }
     }
 
-    private void info(String msg) {
-        DBConnector.LOGGER.info(msg);
+    private void prepareStatements() {
+        try {
+            insertLocation = connection.prepareStatement("INSERT INTO LOCATIONS VALUES(DEFAULT,?,?,?,?,?)");
+        } catch (SQLException ex) {
+            DBConnector.LOGGER.log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public ResultSet executeQuery(String query) {
+        ResultSet rs = null;
+        try {
+            statement = connection.createStatement();
+            rs = statement.executeQuery(query);
+        } catch (SQLException ex) {
+            DBConnector.LOGGER.log(Level.SEVERE, null, ex);
+        }
+        return rs;
+    }
+
+    public int executeUpdate(String query) {
+        int updated = 0;
+        try {
+            statement = connection.createStatement();
+            updated = statement.executeUpdate(query);
+        } catch (SQLException ex) {
+            DBConnector.LOGGER.log(Level.SEVERE, null, ex);
+        } finally {
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException ex) {
+                    DBConnector.LOGGER.log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+        return updated;
+    }
+    // INSERT INTO LOCATIONS VALUES(DEFAULT, 14.12, 13.12, '10A', 234432, 'NEMA NOTE...');
+    public void executeInsertLocation(double x, double y, String houseNo, int pak, String note) {
+        try {
+            insertLocation.setDouble(2, x);
+            insertLocation.setDouble(3, y);
+            insertLocation.setString(4, houseNo);
+            insertLocation.setInt(5, pak);
+            insertLocation.setString(6, note);
+            insertLocation.executeUpdate();
+            mc.notifyWithMsg(DBConnector.TITLE, "Podatak uspešno dodat.");
+        } catch (SQLException ex) {
+            DBConnector.LOGGER.log(Level.SEVERE, null, ex);
+            mc.notifyWithMsg(DBConnector.TITLE, "Dodavalje podatka nije uspelo.\n" + ex.getMessage());
+        }
     }
 
     public void closeConnection() {
@@ -189,8 +229,8 @@ public class DBConnector {
             if (statement != null) {
                 statement.close();
             }
-            if (conn != null) {
-                conn.close();
+            if (connection != null) {
+                connection.close();
             }
         } catch (SQLException ex) {
             DBConnector.LOGGER.log(Level.SEVERE, null, ex);
