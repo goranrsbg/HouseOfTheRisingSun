@@ -1,13 +1,14 @@
 CREATE TABLE SETTLEMENTS (
     ID INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
-    NAME VARCHAR(23) UNIQUE
+    NAME VARCHAR(23) UNIQUE,
+	INITIAL CHAR(2) NOT NULL
 );
 INSERT INTO SETTLEMENTS VALUES
-(DEFAULT, 'Kolari'),
-(DEFAULT, 'Landol'),
-(DEFAULT, 'Binovac'),
-(DEFAULT, 'Suvodol'),
-(DEFAULT, 'Lunjevac');
+(DEFAULT, 'Kolari', 'KL'),
+(DEFAULT, 'Landol', 'LA'),
+(DEFAULT, 'Binovac', 'BI'),
+(DEFAULT, 'Suvodol', 'SU'),
+(DEFAULT, 'Lunjevac', 'LU');
 CREATE TABLE STREETS (
     PAK INTEGER PRIMARY KEY CONSTRAINT PAK_CH CHECK (PAK < 10000000),
     NAME VARCHAR(47) NOT NULL,
@@ -48,6 +49,7 @@ INSERT INTO STREETS VALUES
 (234440, 'Tanjino sokače', 2),
 (234441, 'Veljino sokače', 2),
 (234437, 'Vuka Karadžića', 2),
+(234417, 'Binovački put', 3),
 (234461, 'Bogosava Stepanovića Boleta', 3),
 (234458, 'Čuburska', 3),
 (234466, 'Dobrivoja Jankovića Lake', 3),
@@ -63,7 +65,6 @@ INSERT INTO STREETS VALUES
 (234418, 'Šumadijska', 3),
 (234462, 'Tanasija Ilića Tane', 3),
 (234475, 'Balkanska', 4),
-(234417, 'Binovački put', 4),
 (234468, 'Despota Đurđa', 4),
 (234472, 'Dositeja Obradovića', 4),
 (234473, 'Karađorđeva', 4),

@@ -24,6 +24,10 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -52,6 +56,7 @@ import org.controlsfx.control.Notifications;
 public class MainController implements Initializable {
 
     private static MainController instance;
+    private AddAddressController addAddressController;
 
     private final DBConnector db;
 
@@ -59,8 +64,16 @@ public class MainController implements Initializable {
     private double imgHeight;
     private double imgWidth;
 
-    private Settlements currentMap;
+    private int currentMap;
 
+    private final List<Settlement> settlements;
+    
+    // stages buttons
+    JFXButton buttonAddRecipient;
+    JFXButton buttonAddLocation;
+    JFXButton buttonShowStreets;
+    JFXButton buttonShowSettlements;
+    
     @FXML
     private Label output;
     @FXML
@@ -70,33 +83,32 @@ public class MainController implements Initializable {
     @FXML
     private JFXNodesList jFXNodeList;
 
-    private JFXButton buttonAddRecipient;
-    private JFXButton buttonAddLocation;
-    private JFXButton buttonShowStreets;
-    private JFXButton buttonKL;
-    private JFXButton buttonLA;
-    private JFXButton buttonBI;
-    private JFXButton buttonSU;
-    private JFXButton buttonLU;
-    private JFXButton buttonShowSettlements;
-    private AddAddressController addAddressController;
-
     public MainController() {
         db = DBConnector.getInstance();
+        settlements = new ArrayList<>();
+        collectSettlements();
         pathToTheMaps = Paths.get("", "res", "maps");
         instance = this;
+    }
+
+    private void collectSettlements() {
+        final String query = "SELECT * FROM SETTLEMENTS";
+        ResultSet rs = db.executeQuery(query);
+        try {
+            while (rs.next()) {
+                settlements.add(new Settlement(rs.getInt("ID"), rs.getString("NAME"), rs.getString("INITIAL")));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public static MainController getInstance() {
         return instance;
     }
 
-    public Settlements getCurrentMap() {
-        return currentMap;
-    }
-
-    public void setCurrentMap(Settlements currentMap) {
-        this.currentMap = currentMap;
+    public Settlement getCurrentMap() {
+        return settlements.get(currentMap);
     }
 
     @Override
@@ -104,27 +116,19 @@ public class MainController implements Initializable {
         db.setMc(this);
         theMapPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         theMapPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        setCurrentMap(Settlements.Kolari);
+        
+        currentMap = 0;
 
         loadTheMap();
 
-        buttonAddRecipient = createGlyphJFXButton(1, "addrecip-icon", "Dodaj primaoca.");
+       
         buttonAddLocation = createGlyphJFXButton(2, "marker-icon", "Dadaj lokaciju.");
         buttonAddLocation.setOnAction(this::addWindowLoadOnActionEvent);
         buttonAddLocation.setUserData(StagesNames.ADD_LOCATION);
+        
+        buttonAddRecipient = createGlyphJFXButton(1, "addrecip-icon", "Dodaj primaoca.");
         buttonShowStreets = createGlyphJFXButton(3, "roadt-icon", "Prikaži spisak ulica.");
         buttonShowSettlements = createGlyphJFXButton(3, "listol-icon", "Prikaži spisak naselja.");
-        buttonKL = createTextJFXButton("KL", "Kolari", "settlement");
-        buttonLA = createTextJFXButton("LA", "Landol", "settlement");
-        buttonBI = createTextJFXButton("BI", "Binovac", "settlement");
-        buttonSU = createTextJFXButton("SU", "Suvodol", "settlement");
-        buttonLU = createTextJFXButton("LU", "Lunjevac", "settlement");
-        buttonKL.setOnAction(this::addMapChangeOnActionEvent);
-        buttonLA.setOnAction(this::addMapChangeOnActionEvent);
-        buttonBI.setOnAction(this::addMapChangeOnActionEvent);
-        buttonSU.setOnAction(this::addMapChangeOnActionEvent);
-        buttonLU.setOnAction(this::addMapChangeOnActionEvent);
-        
         
         jFXNodeList.addAnimatedNode(createGlyphJFXButton(0, "start-icon", null));
 
@@ -145,11 +149,13 @@ public class MainController implements Initializable {
         JFXNodesList settlementsMapChooserList = new JFXNodesList();
         settlementsMapChooserList.setRotate(90d);
         settlementsMapChooserList.addAnimatedNode(createGlyphJFXButton(3, "settchooser-icon", "Izaberi mapu naselja."));
-        settlementsMapChooserList.addAnimatedNode(buttonKL);
-        settlementsMapChooserList.addAnimatedNode(buttonLA);
-        settlementsMapChooserList.addAnimatedNode(buttonBI);
-        settlementsMapChooserList.addAnimatedNode(buttonSU);
-        settlementsMapChooserList.addAnimatedNode(buttonLU);
+        for(int i = 0; i < settlements.size(); i++) {
+            Settlement s = settlements.get(i);
+            JFXButton button = createTextJFXButton(s.getINITIALS(), s.getNAME(), "settlement");
+            button.setOnAction(this::addMapChangeOnActionEvent);
+            button.setUserData(i);
+            settlementsMapChooserList.addAnimatedNode(button);
+        }
         settlementsJFXNodesList.addAnimatedNode(settlementsMapChooserList);
         settlementsJFXNodesList.addAnimatedNode(buttonShowSettlements);
 
@@ -187,7 +193,8 @@ public class MainController implements Initializable {
     }
 
     public void loadTheMap() {
-        final String uri = pathToTheMaps.resolve(currentMap + ".bmp").toUri().toString();
+        String mapName = settlements.get(currentMap).getNAME();
+        String uri = pathToTheMaps.resolve(mapName + ".bmp").toUri().toString();
         Image img = new Image(uri);
         imgHeight = img.getHeight();
         imgWidth = img.getWidth();
@@ -200,6 +207,15 @@ public class MainController implements Initializable {
                 .title(title)
                 .text(message)
                 .showInformation();
+    }
+    
+    private void addWindowLoadOnActionEvent(ActionEvent event) {
+        switch ((StagesNames) ((JFXButton) event.getSource()).getUserData()) {
+            case ADD_LOCATION:
+                loadWindow("/com/goranrsbg/houseoftherisingsun/ui/addAddress/addaddress.fxml", "Dodaj lokaciju", ((JFXButton) event.getSource()).getUserData());
+                buttonAddLocation.setDisable(true);
+                break;
+        }
     }
 
     private void loadWindow(String location, String title, Object userData) {
@@ -229,30 +245,11 @@ public class MainController implements Initializable {
         }
     }
 
-    private void addWindowLoadOnActionEvent(ActionEvent event) {
-        switch ((StagesNames) ((JFXButton) event.getSource()).getUserData()) {
-            case ADD_LOCATION:
-                loadWindow("/com/goranrsbg/houseoftherisingsun/ui/addAddress/addaddress.fxml", "Dodaj lokaciju", ((JFXButton) event.getSource()).getUserData());
-                buttonAddLocation.setDisable(true);
-                break;
-        }
-    }
-
     private void addMapChangeOnActionEvent(ActionEvent event) {
-        String text = ((JFXButton) event.getSource()).getText();
-        switch (text) {
-            case "KL":
-                if (currentMap != Settlements.Kolari) {
-                    currentMap = Settlements.Kolari;
-                    loadTheMap();
-                }
-                break;
-            case "LA":
-                if (currentMap != Settlements.Landol) {
-                    currentMap = Settlements.Landol;
-                    loadTheMap();
-                }
-                break;
+        int id = (int)((JFXButton) event.getSource()).getUserData();
+        if(currentMap != id) {
+            currentMap = id;
+            loadTheMap();
         }
     }
 

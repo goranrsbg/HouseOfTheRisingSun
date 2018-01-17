@@ -19,17 +19,33 @@ package com.goranrsbg.houseoftherisingsun.ui.main;
  *
  * @author Goran
  */
-public enum Settlements {
-    Default(0),
-    Kolari(1),
-    Landol(2),
-    Binovac(3),
-    Suvodol(4),
-    Luljevac(5);
+public class Settlement {
 
-    Settlements(int id) {
-        this.ID= id;
+    private final int ID;
+    private final String NAME;
+    private final String INITIALS;
+
+    public Settlement(int ID, String NAME, String INITIALS) {
+        this.ID = ID;
+        this.NAME = NAME;
+        this.INITIALS = INITIALS;
+    }
+
+    public int getID() {
+        return ID;
+    }
+
+    public String getNAME() {
+        return NAME;
+    }
+
+    public String getINITIALS() {
+        return INITIALS;
+    }
+
+    @Override
+    public String toString() {
+        return "Settlement{" + "ID=" + ID + ", NAME=" + NAME + ", INITIALS=" + INITIALS + '}';
     }
     
-    public final int ID;
 }

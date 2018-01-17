@@ -39,9 +39,9 @@ import java.util.logging.SimpleFormatter;
  * @author Goran
  */
 public class DBConnector {
-    
+
     private static final String TITLE = "Izveštaj iz baze";
-    
+
     private static final Logger LOGGER = Logger.getLogger("locator");
 
     private static DBConnector instance;
@@ -52,7 +52,8 @@ public class DBConnector {
 
     private Statement statement;
 
-    private PreparedStatement insertLocation;
+    private PreparedStatement ps_insertLocation;
+    private PreparedStatement ps_selectStreetsFromSettlement;
 
     private DBConnector() {
     }
@@ -60,7 +61,7 @@ public class DBConnector {
     public void setMc(MainController mc) {
         this.mc = mc;
     }
-    
+
     public boolean isConnected() {
         return connection != null;
     }
@@ -125,15 +126,12 @@ public class DBConnector {
         } catch (IOException ex) {
             DBConnector.LOGGER.log(Level.SEVERE, null, ex);
         } finally {
-            url = null;
-            username = null;
-            password = null;
             if (isConnected()) {
                 prepareStatements();
             }
         }
     }
-    
+
     private void loadSetupDefaults() {
         try {
             Properties props = new Properties();
@@ -173,7 +171,9 @@ public class DBConnector {
 
     private void prepareStatements() {
         try {
-            insertLocation = connection.prepareStatement("INSERT INTO LOCATIONS VALUES(DEFAULT,?,?,?,?,?)");
+            statement = connection.createStatement();
+            ps_insertLocation = connection.prepareStatement("INSERT INTO LOCATIONS VALUES(DEFAULT,?,?,?,?,?)");
+            ps_selectStreetsFromSettlement = connection.prepareStatement("SELECT * FROM STREETS WHERE SETTLEMENT_ID = ?");
         } catch (SQLException ex) {
             DBConnector.LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -182,7 +182,6 @@ public class DBConnector {
     public ResultSet executeQuery(String query) {
         ResultSet rs = null;
         try {
-            statement = connection.createStatement();
             rs = statement.executeQuery(query);
         } catch (SQLException ex) {
             DBConnector.LOGGER.log(Level.SEVERE, null, ex);
@@ -193,35 +192,39 @@ public class DBConnector {
     public int executeUpdate(String query) {
         int updated = 0;
         try {
-            statement = connection.createStatement();
             updated = statement.executeUpdate(query);
         } catch (SQLException ex) {
             DBConnector.LOGGER.log(Level.SEVERE, null, ex);
-        } finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                } catch (SQLException ex) {
-                    DBConnector.LOGGER.log(Level.SEVERE, null, ex);
-                }
-            }
         }
         return updated;
     }
+
     // INSERT INTO LOCATIONS VALUES(DEFAULT, 14.12, 13.12, '10A', 234432, 'NEMA NOTE...');
     public void executeInsertLocation(double x, double y, String houseNo, int pak, String note) {
         try {
-            insertLocation.setDouble(2, x);
-            insertLocation.setDouble(3, y);
-            insertLocation.setString(4, houseNo);
-            insertLocation.setInt(5, pak);
-            insertLocation.setString(6, note);
-            insertLocation.executeUpdate();
+            ps_insertLocation.setDouble(2, x);
+            ps_insertLocation.setDouble(3, y);
+            ps_insertLocation.setString(4, houseNo);
+            ps_insertLocation.setInt(5, pak);
+            ps_insertLocation.setString(6, note);
+            ps_insertLocation.executeUpdate();
             mc.notifyWithMsg(DBConnector.TITLE, "Podatak uspešno dodat.");
         } catch (SQLException ex) {
             DBConnector.LOGGER.log(Level.SEVERE, null, ex);
             mc.notifyWithMsg(DBConnector.TITLE, "Dodavalje podatka nije uspelo.\n" + ex.getMessage());
         }
+    }
+
+    public ResultSet executeSelectStreets(int settlementId) {
+        ResultSet rs = null;
+        try {
+            ps_selectStreetsFromSettlement.setInt(1, settlementId);
+            rs = ps_selectStreetsFromSettlement.executeQuery();
+            ps_selectStreetsFromSettlement.clearParameters();
+        } catch (SQLException ex) {
+            DBConnector.LOGGER.log(Level.SEVERE, null, ex);
+        }
+        return rs;
     }
 
     public void closeConnection() {

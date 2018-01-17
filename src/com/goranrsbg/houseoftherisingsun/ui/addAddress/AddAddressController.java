@@ -40,11 +40,9 @@ public class AddAddressController implements Initializable {
     
     private static final String TITLE = "Dodaj adresu";
     
-    private final String QU = "SELECT * FROM STREETS WHERE SETTLEMENT_ID = ";
-    
     private final DBConnector db;
     
-    private MainController mc;
+    private final MainController mc;
 
     @FXML
     private JFXTextField xTextField;
@@ -120,12 +118,14 @@ public class AddAddressController implements Initializable {
     }
     
     public void comboBoxAddStreets() {
-        ResultSet streetsRS = db.executeQuery(QU + mc.getCurrentMap().ID);
+        int mapId = mc.getCurrentMap().getID();
+        ResultSet streetsRS = db.executeSelectStreets(mapId);
         streets.clear();
         try {
             while(streetsRS.next()) {
                 streets.add(streetsRS.getInt(1) + " ~ " + streetsRS.getString(2));
             }
+            streetsRS.close();
         } catch (SQLException ex) {
             mc.notifyWithMsg(TITLE, "Rezultat upita sa greškom: " + ex.getErrorCode());
         }
