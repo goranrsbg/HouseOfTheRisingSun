@@ -67,13 +67,13 @@ public class MainController implements Initializable {
     private int currentMap;
 
     private final List<Settlement> settlements;
-    
+
     // stages buttons
     JFXButton buttonAddRecipient;
     JFXButton buttonAddLocation;
     JFXButton buttonShowStreets;
     JFXButton buttonShowSettlements;
-    
+
     @FXML
     private Label output;
     @FXML
@@ -116,21 +116,20 @@ public class MainController implements Initializable {
         db.setMc(this);
         theMapPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         theMapPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        
+
         currentMap = 0;
 
         loadTheMap();
 
-       
         buttonAddLocation = createGlyphJFXButton(2, "marker-icon", "Dadaj lokaciju.");
         buttonAddLocation.setOnAction(this::addWindowLoadOnActionEvent);
         buttonAddLocation.setUserData(StagesNames.ADD_LOCATION);
-        
+
         buttonAddRecipient = createGlyphJFXButton(1, "addrecip-icon", "Dodaj primaoca.");
         buttonShowStreets = createGlyphJFXButton(3, "roadt-icon", "Prikaži spisak ulica.");
         buttonShowSettlements = createGlyphJFXButton(3, "listol-icon", "Prikaži spisak naselja.");
-        
-        jFXNodeList.addAnimatedNode(createGlyphJFXButton(0, "start-icon", null));
+
+        jFXNodeList.addAnimatedNode(createGlyphJFXButton(0, "start-icon", "Start"));
 
         JFXNodesList recipientsJFXNodesList = new JFXNodesList();
         recipientsJFXNodesList.addAnimatedNode(createGlyphJFXButton(1, "recip-icon", "Primaoci:"));
@@ -149,7 +148,7 @@ public class MainController implements Initializable {
         JFXNodesList settlementsMapChooserList = new JFXNodesList();
         settlementsMapChooserList.setRotate(90d);
         settlementsMapChooserList.addAnimatedNode(createGlyphJFXButton(3, "settchooser-icon", "Izaberi mapu naselja."));
-        for(int i = 0; i < settlements.size(); i++) {
+        for (int i = 0; i < settlements.size(); i++) {
             Settlement s = settlements.get(i);
             JFXButton button = createTextJFXButton(s.getINITIALS(), s.getNAME(), "settlement");
             button.setOnAction(this::addMapChangeOnActionEvent);
@@ -208,7 +207,7 @@ public class MainController implements Initializable {
                 .text(message)
                 .showInformation();
     }
-    
+
     private void addWindowLoadOnActionEvent(ActionEvent event) {
         switch ((StagesNames) ((JFXButton) event.getSource()).getUserData()) {
             case ADD_LOCATION:
@@ -246,21 +245,25 @@ public class MainController implements Initializable {
     }
 
     private void addMapChangeOnActionEvent(ActionEvent event) {
-        int id = (int)((JFXButton) event.getSource()).getUserData();
-        if(currentMap != id) {
+        int id = (int) ((JFXButton) event.getSource()).getUserData();
+        if (currentMap != id) {
             currentMap = id;
             loadTheMap();
+            if (buttonAddLocation.isDisabled()) {
+                addAddressController.comboBoxAddStreets();
+                addAddressController.clearLocationXY();
+            }
         }
     }
 
     @FXML
     private void mouseClicked(MouseEvent event) {
-        if (event.getButton() == MouseButton.SECONDARY) {
-            final double x = event.getX();
-            final double y = event.getY();
+        MouseButton mb = event.getButton();
+        final double x = event.getX();
+        final double y = event.getY();
+        if (mb == MouseButton.SECONDARY) {
             final double w = theMapPane.getWidth();
             final double h = theMapPane.getHeight();
-
             output.setText("X: " + x + " Y: " + y + "      W: " + w + " H: " + h + " iW: " + imgWidth + " iH: " + imgHeight);
             // move right click point to center of the screen if possible
             if (imgWidth > w) {
@@ -268,6 +271,10 @@ public class MainController implements Initializable {
             }
             if (imgHeight > h) {
                 theMapPane.setVvalue((y - h / 2) / (imgHeight - h));
+            }
+        } else if (mb == MouseButton.PRIMARY) {
+            if (buttonAddLocation.isDisabled()) {
+                addAddressController.setLocationXY(x, y);
             }
         }
     }

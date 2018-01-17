@@ -32,8 +32,7 @@ limitations under the License.
  */
 .root {
     -fx-font-family: 'Oxygen';
-    -fx-font-size: 16px;
-    -fx-background-color: transparent;
+    -fx-font-size: 14px;
 }
 
 .button-save{

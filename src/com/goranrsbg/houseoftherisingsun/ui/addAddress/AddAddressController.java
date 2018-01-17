@@ -55,7 +55,7 @@ public class AddAddressController implements Initializable {
     @FXML
     private JFXComboBox<String> streetCombo;
     
-    List<String> streets;
+    private final List<String> streets;
     
     public AddAddressController() {
         db = DBConnector.getInstance();
@@ -132,6 +132,16 @@ public class AddAddressController implements Initializable {
         if(!streets.isEmpty()) {
             streetCombo.setItems(FXCollections.observableList(streets));
         }
+    }
+    
+    public void clearLocationXY() {
+        xTextField.clear();
+        yTextField.clear();
+    }
+    
+    public void setLocationXY(double x, double y) {
+        xTextField.setText(Double.toString(x));
+        yTextField.setText(Double.toString(y));
     }
 
     @FXML

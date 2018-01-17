@@ -111,11 +111,13 @@ public class DBConnector {
             }
             connection = DriverManager.getConnection(url, username, password);
             connection.setSchema("APP");
+            statement = connection.createStatement();
         } catch (SQLException e) {
             if (e.getSQLState().equals("XJ004")) {
                 try {
                     connection = DriverManager.getConnection(url + ";create=true", username, password);
                     connection.setSchema("APP");
+                    statement = connection.createStatement();
                     loadSetupDefaults();
                 } catch (SQLException ex) {
                     DBConnector.LOGGER.log(Level.SEVERE, null, ex);
@@ -171,7 +173,6 @@ public class DBConnector {
 
     private void prepareStatements() {
         try {
-            statement = connection.createStatement();
             ps_insertLocation = connection.prepareStatement("INSERT INTO LOCATIONS VALUES(DEFAULT,?,?,?,?,?)");
             ps_selectStreetsFromSettlement = connection.prepareStatement("SELECT * FROM STREETS WHERE SETTLEMENT_ID = ?");
         } catch (SQLException ex) {
