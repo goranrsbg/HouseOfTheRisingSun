@@ -15,11 +15,15 @@
  */
 package com.goranrsbg.houseoftherisingsun.ui.main;
 
+import com.goranrsbg.houseoftherisingsun.LocatorApp;
 import com.goranrsbg.houseoftherisingsun.database.DBConnector;
 import com.goranrsbg.houseoftherisingsun.ui.addAddress.AddAddressController;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXNodesList;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
@@ -31,6 +35,7 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -44,6 +49,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
@@ -55,6 +61,10 @@ import org.controlsfx.control.Notifications;
  */
 public class MainController implements Initializable {
 
+    private final String MAP_EXTENSION = ".bmp";
+    private final String DEFAULT_MAP_NAME = "default";
+    private final String DEFAULT_TOOLTIP_STYLE = "-fx-font: normal bold 15px 'Oxygen'; -fx-base: #AE3522; -fx-text-fill: orange;";
+
     private static MainController instance;
     private AddAddressController addAddressController;
 
@@ -64,24 +74,25 @@ public class MainController implements Initializable {
     private double imgHeight;
     private double imgWidth;
 
-    private int currentMap;
+    private int currentMapIndex;
 
     private final List<Settlement> settlements;
 
     // stages buttons
-    JFXButton buttonAddRecipient;
-    JFXButton buttonAddLocation;
-    JFXButton buttonShowStreets;
-    JFXButton buttonShowSettlements;
+    private JFXButton buttonAddRecipient;
+    private JFXButton buttonAddLocation;
+    private JFXButton buttonShowStreets;
 
     @FXML
-    private Label output;
+    private Label outputLabel;
     @FXML
     private ScrollPane theMapPane;
     @FXML
-    private ImageView theMapImage;
+    private ImageView theMapImageView;
     @FXML
     private JFXNodesList jFXNodeList;
+    @FXML
+    private StackPane rootPane;
 
     public MainController() {
         db = DBConnector.getInstance();
@@ -108,7 +119,7 @@ public class MainController implements Initializable {
     }
 
     public Settlement getCurrentMap() {
-        return settlements.get(currentMap);
+        return settlements.get(currentMapIndex);
     }
 
     @Override
@@ -117,9 +128,7 @@ public class MainController implements Initializable {
         theMapPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         theMapPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
-        currentMap = 0;
-
-        loadTheMap();
+        currentMapIndex = 0;
 
         buttonAddLocation = createGlyphJFXButton(2, "marker-icon", "Dadaj lokaciju.");
         buttonAddLocation.setOnAction(this::addWindowLoadOnActionEvent);
@@ -127,7 +136,6 @@ public class MainController implements Initializable {
 
         buttonAddRecipient = createGlyphJFXButton(1, "addrecip-icon", "Dodaj primaoca.");
         buttonShowStreets = createGlyphJFXButton(3, "roadt-icon", "Prikaži spisak ulica.");
-        buttonShowSettlements = createGlyphJFXButton(3, "listol-icon", "Prikaži spisak naselja.");
 
         jFXNodeList.addAnimatedNode(createGlyphJFXButton(0, "start-icon", "Start"));
 
@@ -156,12 +164,13 @@ public class MainController implements Initializable {
             settlementsMapChooserList.addAnimatedNode(button);
         }
         settlementsJFXNodesList.addAnimatedNode(settlementsMapChooserList);
-        settlementsJFXNodesList.addAnimatedNode(buttonShowSettlements);
 
         jFXNodeList.addAnimatedNode(recipientsJFXNodesList);
         jFXNodeList.addAnimatedNode(locationsJFXNodesList);
         jFXNodeList.addAnimatedNode(streetsJFXNodesList);
         jFXNodeList.addAnimatedNode(settlementsJFXNodesList);
+
+        loadTheMap();
     }
 
     private JFXButton createTextJFXButton(String text, String toolTip, String cssClass) {
@@ -184,28 +193,10 @@ public class MainController implements Initializable {
     }
 
     private Tooltip createTooltip(String text) {
-        String defaultToolTipStyle = "-fx-font: normal bold 15px 'Oxygen'; -fx-base: #AE3522; -fx-text-fill: orange;";
         Tooltip tt = new Tooltip();
         tt.setText(text);
-        tt.setStyle(defaultToolTipStyle);
+        tt.setStyle(DEFAULT_TOOLTIP_STYLE);
         return tt;
-    }
-
-    public void loadTheMap() {
-        String mapName = settlements.get(currentMap).getNAME();
-        String uri = pathToTheMaps.resolve(mapName + ".bmp").toUri().toString();
-        Image img = new Image(uri);
-        imgHeight = img.getHeight();
-        imgWidth = img.getWidth();
-        theMapImage.setImage(img);
-        theMapPane.setContent(theMapImage);
-    }
-
-    public void notifyWithMsg(String title, String message) {
-        Notifications.create()
-                .title(title)
-                .text(message)
-                .showInformation();
     }
 
     private void addWindowLoadOnActionEvent(ActionEvent event) {
@@ -246,8 +237,8 @@ public class MainController implements Initializable {
 
     private void addMapChangeOnActionEvent(ActionEvent event) {
         int id = (int) ((JFXButton) event.getSource()).getUserData();
-        if (currentMap != id) {
-            currentMap = id;
+        if (currentMapIndex != id) {
+            currentMapIndex = id;
             loadTheMap();
             if (buttonAddLocation.isDisabled()) {
                 addAddressController.comboBoxAddStreets();
@@ -264,7 +255,7 @@ public class MainController implements Initializable {
         if (mb == MouseButton.SECONDARY) {
             final double w = theMapPane.getWidth();
             final double h = theMapPane.getHeight();
-            output.setText("X: " + x + " Y: " + y + "      W: " + w + " H: " + h + " iW: " + imgWidth + " iH: " + imgHeight);
+            outputLabel.setText("X: " + x + " Y: " + y + "      W: " + w + " H: " + h + " iW: " + imgWidth + " iH: " + imgHeight);
             // move right click point to center of the screen if possible
             if (imgWidth > w) {
                 theMapPane.setHvalue((x - w / 2) / (imgWidth - w));
@@ -277,6 +268,36 @@ public class MainController implements Initializable {
                 addAddressController.setLocationXY(x, y);
             }
         }
+    }
+
+    public void loadTheMap() {
+        String mapName = settlements.get(currentMapIndex).getNAME() + MAP_EXTENSION;
+        File f = new File(pathToTheMaps.resolve(mapName).toUri());
+        if (!f.isFile()) {
+            f = new File(pathToTheMaps.resolve(DEFAULT_MAP_NAME + MAP_EXTENSION).toUri());
+            mapName = DEFAULT_MAP_NAME + MAP_EXTENSION;
+        }
+        Image img;
+        try {
+            img = new Image(new FileInputStream(f));
+            imgHeight = img.getHeight();
+            imgWidth = img.getWidth();
+            theMapImageView.setImage(img);
+            theMapPane.setContent(theMapImageView);
+            Platform.runLater(() -> {
+                LocatorApp.setSubTitle(mapName);
+                notifyWithMsg(mapName, "Karta je učitana.");
+            });
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void notifyWithMsg(String title, String message) {
+        Notifications.create()
+                .title(title)
+                .text(message)
+                .showInformation();
     }
 
 }

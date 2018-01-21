@@ -8,25 +8,25 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.StackPane?>
 
-<StackPane id="StackPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.goranrsbg.houseoftherisingsun.ui.main.MainController">
+<StackPane id="StackPane" fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.goranrsbg.houseoftherisingsun.ui.main.MainController">
     <stylesheets>
         <URL value="@main.css" />
     </stylesheets>
-   <children>
-      <ScrollPane fx:id="theMapPane" prefHeight="400.0" prefWidth="600.0" styleClass="theMap">
-         <content>
-            <ImageView fx:id="theMapImage" onMouseClicked="#mouseClicked" pickOnBounds="true" preserveRatio="true" />
-         </content>
-      </ScrollPane>
-      <Label id="out" fx:id="output" styleClass="label" StackPane.alignment="BOTTOM_CENTER">
-         <StackPane.margin>
-            <Insets bottom="16.0" />
-         </StackPane.margin>
-      </Label>
-      <JFXNodesList fx:id="jFXNodeList" rotate="90.0" StackPane.alignment="TOP_RIGHT">
-         <StackPane.margin>
-            <Insets right="17.0" top="1.0" />
-         </StackPane.margin>
-      </JFXNodesList>
-   </children>
+    <children>
+        <ScrollPane fx:id="theMapPane" prefHeight="400.0" prefWidth="600.0" styleClass="theMap">
+            <content>
+                <ImageView fx:id="theMapImageView" onMouseClicked="#mouseClicked" pickOnBounds="true" preserveRatio="true" />
+            </content>
+        </ScrollPane>
+        <Label id="out" fx:id="outputLabel" styleClass="label" StackPane.alignment="BOTTOM_CENTER">
+            <StackPane.margin>
+                <Insets bottom="16.0" />
+            </StackPane.margin>
+        </Label>
+        <JFXNodesList fx:id="jFXNodeList" rotate="90.0" StackPane.alignment="TOP_RIGHT">
+            <StackPane.margin>
+                <Insets right="17.0" top="1.0" />
+            </StackPane.margin>
+        </JFXNodesList>
+    </children>
 </StackPane>

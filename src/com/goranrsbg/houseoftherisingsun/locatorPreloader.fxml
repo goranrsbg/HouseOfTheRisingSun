@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXSpinner?>
+<?import java.net.URL?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.StackPane?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="151.0" prefWidth="151.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1">
+    <stylesheets>
+        <URL value="@locatorpreloader.css" />
+    </stylesheets>
+    <children>
+        <StackPane prefHeight="393.0" prefWidth="601.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <children>
+                <JFXSpinner maxWidth="101.0" startingAngle="17.0" />
+                <JFXSpinner maxWidth="89.0" startingAngle="43.0" />
+                <JFXSpinner maxWidth="79.0" startingAngle="73.0" />
+                <JFXSpinner maxWidth="67.0" startingAngle="107.0" />
+                <JFXSpinner maxWidth="53.0" startingAngle="149.0" />
+            </children>
+        </StackPane>
+    </children>
+</AnchorPane>

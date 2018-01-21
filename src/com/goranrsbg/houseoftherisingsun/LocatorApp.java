@@ -1,6 +1,7 @@
 package com.goranrsbg.houseoftherisingsun;
 
 import com.goranrsbg.houseoftherisingsun.database.DBConnector;
+import com.sun.javafx.application.LauncherImpl;
 import java.nio.file.Paths;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -17,6 +18,12 @@ public class LocatorApp extends Application {
 
     public static final String TITLE = "BB-BB-lokator";
     
+    private static Stage primaryStage;
+    
+    public static void setSubTitle(String subtitle) {
+        primaryStage.setTitle(TITLE + " - " + subtitle);
+    }
+    
     @Override
     public void init() {
         DBConnector.ceateInstance();
@@ -24,6 +31,7 @@ public class LocatorApp extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        LocatorApp.primaryStage = primaryStage;
         Parent root = FXMLLoader.load(getClass().getResource("ui/main/main.fxml"));
         final String uriCss = getClass().getResource("locator.css").toExternalForm();
         final String uriIco = Paths.get("", "res", "img").resolve("three.png").toUri().toString();
@@ -45,7 +53,7 @@ public class LocatorApp extends Application {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        launch(args);
+        LauncherImpl.launchApplication(LocatorApp.class, LocatorPreloader.class, args);
     }
 
 }

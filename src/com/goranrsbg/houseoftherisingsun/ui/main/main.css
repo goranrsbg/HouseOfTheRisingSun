@@ -200,11 +200,3 @@ limitations under the License.
 .animated-option-button:hover .settchooser-icon{
     -icons-color: #4d00ff;
 }
-
-.listol-icon{
-    -glyph-name: "LIST_OL";
-    -icons-color: #03db4b;
-}
-.animated-option-button:hover .listol-icon{
-    -icons-color: #1ba602;
-}
