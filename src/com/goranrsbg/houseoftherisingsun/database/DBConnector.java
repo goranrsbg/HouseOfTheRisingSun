@@ -28,6 +28,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.Properties;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
@@ -54,6 +55,8 @@ public class DBConnector {
 
     private PreparedStatement ps_insertLocation;
     private PreparedStatement ps_selectStreetsFromSettlement;
+    private PreparedStatement ps_selectLocationsWithSettlementId;
+    private PreparedStatement ps_selectLocationsWithPak;
 
     private DBConnector() {
     }
@@ -175,6 +178,14 @@ public class DBConnector {
         try {
             ps_insertLocation = connection.prepareStatement("INSERT INTO LOCATIONS VALUES(DEFAULT,?,?,?,?,?)");
             ps_selectStreetsFromSettlement = connection.prepareStatement("SELECT * FROM STREETS WHERE SETTLEMENT_ID = ?");
+            ps_selectLocationsWithSettlementId = connection.prepareStatement(
+                    "SELECT L.ID, L.X, L.Y, S.NAME, L.HOUSE_NUMBER, L.NOTE FROM LOCATIONS AS L\n"
+                    + "JOIN STREETS AS S ON L.STREET_PAK = S.PAK\n"
+                    + "WHERE S.SETTLEMENT_ID = ?");
+            ps_selectLocationsWithPak = connection.prepareStatement(
+                    "SELECT L.ID, L.X, L.Y, S.NAME ,L.HOUSE_NUMBER, L.NOTE FROM LOCATIONS AS L\n"
+                    + "JOIN STREETS AS S ON L.STREET_PAK = S.PAK\n"
+                    + "WHERE L.STREET_PAK = ?");
         } catch (SQLException ex) {
             DBConnector.LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -203,16 +214,26 @@ public class DBConnector {
     // INSERT INTO LOCATIONS VALUES(DEFAULT, 14.12, 13.12, '10A', 234432, 'NEMA NOTE...');
     public void executeInsertLocation(double x, double y, String houseNo, int pak, String note) {
         try {
-            ps_insertLocation.setDouble(2, x);
-            ps_insertLocation.setDouble(3, y);
-            ps_insertLocation.setString(4, houseNo);
-            ps_insertLocation.setInt(5, pak);
-            ps_insertLocation.setString(6, note);
+            ps_insertLocation.setDouble(1, x);
+            ps_insertLocation.setDouble(2, y);
+            ps_insertLocation.setString(3, houseNo);
+            ps_insertLocation.setInt(4, pak);
+            if (note.isEmpty()) {
+                ps_insertLocation.setNull(5, Types.VARCHAR);
+            } else {
+                ps_insertLocation.setString(5, note);
+            }
             ps_insertLocation.executeUpdate();
-            mc.notifyWithMsg(DBConnector.TITLE, "Podatak uspešno dodat.");
+            ps_insertLocation.clearParameters();
+            mc.notifyWithMsg(DBConnector.TITLE, "Podatak uspešno dodat.", false);
         } catch (SQLException ex) {
-            DBConnector.LOGGER.log(Level.SEVERE, null, ex);
-            mc.notifyWithMsg(DBConnector.TITLE, "Dodavalje podatka nije uspelo.\n" + ex.getMessage());
+            int ec = ex.getErrorCode();
+            if (ec == 30000) {
+                mc.notifyWithMsg(DBConnector.TITLE, "Dodavalje podatka nije uspelo.\nLokacija već postoji.", true);
+            } else {
+                DBConnector.LOGGER.log(Level.SEVERE, null, ex);
+                mc.notifyWithMsg(DBConnector.TITLE, "Dodavalje podatka nije uspelo.\nGreška: " + ec, true);
+            }
         }
     }
 
@@ -224,6 +245,30 @@ public class DBConnector {
             ps_selectStreetsFromSettlement.clearParameters();
         } catch (SQLException ex) {
             DBConnector.LOGGER.log(Level.SEVERE, null, ex);
+        }
+        return rs;
+    }
+
+    public ResultSet execugeSelectLocationsByID(int id) {
+        ResultSet rs = null;
+        try {
+            ps_selectLocationsWithSettlementId.setInt(1, id);
+            rs = ps_selectLocationsWithSettlementId.executeQuery();
+            ps_selectLocationsWithSettlementId.clearParameters();
+        } catch (SQLException e) {
+            DBConnector.LOGGER.log(Level.SEVERE, null, e);
+        }
+        return rs;
+    }
+
+    public ResultSet executeSelectLocatonsByPak(int pak) {
+        ResultSet rs = null;
+        try {
+            ps_selectLocationsWithPak.setInt(1, pak);
+            rs = ps_selectLocationsWithPak.executeQuery();
+            ps_selectLocationsWithPak.clearParameters();
+        } catch (SQLException e) {
+            DBConnector.LOGGER.log(Level.SEVERE, null, e);
         }
         return rs;
     }

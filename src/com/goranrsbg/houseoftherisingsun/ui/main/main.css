@@ -179,6 +179,15 @@ limitations under the License.
     -icons-color: #cf38bb;
 }
 
+.streetview-icon{
+    -glyph-name: "STREET_VIEW";
+    -icons-color: #03ddff;
+}
+
+.animated-option-button:hover .streetview-icon{
+    -icons-color: #04a6bf;
+}
+
 .settlement{
     -fx-background-color: white;
     -fx-font-family: 'Oxygen';

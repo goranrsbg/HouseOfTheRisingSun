@@ -1,0 +1,17 @@
+/*
+ * Empty Stylesheet file.
+ */
+.root {
+    -fx-font-family: 'Oxygen';
+}
+.mainFxmlClass {
+
+}
+
+.pak-column {
+    -fx-alignment: CENTER;
+}
+
+.initial-column {
+    -fx-alignment: CENTER;
+}

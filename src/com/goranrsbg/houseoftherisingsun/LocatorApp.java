@@ -4,6 +4,7 @@ import com.goranrsbg.houseoftherisingsun.database.DBConnector;
 import com.sun.javafx.application.LauncherImpl;
 import java.nio.file.Paths;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -33,7 +34,7 @@ public class LocatorApp extends Application {
     public void start(Stage primaryStage) throws Exception {
         LocatorApp.primaryStage = primaryStage;
         Parent root = FXMLLoader.load(getClass().getResource("ui/main/main.fxml"));
-        final String uriCss = getClass().getResource("locator.css").toExternalForm();
+        final String uriCss = getClass().getResource("locatorapp.css").toExternalForm();
         final String uriIco = Paths.get("", "res", "img").resolve("three.png").toUri().toString();
         Scene scene = new Scene(root);
         scene.getStylesheets().add(uriCss);
@@ -41,12 +42,16 @@ public class LocatorApp extends Application {
         primaryStage.setMaximized(true);
         primaryStage.setTitle(TITLE);
         primaryStage.setScene(scene);
+        primaryStage.setOnHidden((e) -> {
+            Platform.exit();
+        });
         primaryStage.show();
     }
 
     @Override
     public void stop() {
         DBConnector.getInstance().closeConnection();
+        
     }
 
     /**
