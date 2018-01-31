@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView?>
+<?import java.net.URL?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane id="AnchorPane" fx:id="rootPane" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.goranrsbg.houseoftherisingsun.ui.location.LocationController">
+    <stylesheets>
+        <URL value="@location.css" />
+    </stylesheets>
+   <children>
+      <FontAwesomeIconView glyphName="STREET_VIEW" layoutY="22.0" styleClass="image" />
+   </children>
+</AnchorPane>

@@ -22,8 +22,7 @@ import com.jfoenix.controls.JFXComboBox;
 import com.jfoenix.controls.JFXTextArea;
 import com.jfoenix.controls.JFXTextField;
 import java.net.URL;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.List;
 import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -121,16 +120,9 @@ public class AddAddressController implements Initializable {
 
     public void comboBoxAddStreets() {
         int mapId = mc.getCurrentMap().getID();
-        ResultSet streetsRS = db.executeSelectStreets(mapId);
         streetsData.clear();
-        try {
-            while (streetsRS.next()) {
-                streetsData.add(new Street(streetsRS.getInt("PAK"), streetsRS.getString("NAME")));
-            }
-            streetsRS.close();
-        } catch (SQLException ex) {
-            mc.notifyWithMsg(TITLE, "Rezultat upita sa greškom: " + ex.getErrorCode(), true);
-        }
+        List<Street> list = db.executeSelectStreets(mapId);
+        streetsData.addAll(list);
     }
 
     public void clearLocationXY() {
@@ -145,11 +137,17 @@ public class AddAddressController implements Initializable {
 
     @FXML
     private void saveButtonAction(ActionEvent event) {
-        Street s = streetCombo.getValue();
+        final Street s = streetCombo.getValue();
         String x = xTextField.getText().trim();
         String y = yTextField.getText().trim();
-        String br = brTextField.getText().trim();
+        String houseNumber = brTextField.getText().trim();
         String note = noteAreaField.getText().trim();
+        if (validateFields(s, x, y, houseNumber)) {
+            db.executeInsertLocation(Double.parseDouble(x) - WIDTH_HALF, Double.parseDouble(y) - HEIGHT_HALF, houseNumber, s, note);
+        }
+    }
+    
+    private boolean validateFields(final Street s, String x, String y, String houseNumber) {
         boolean valid;
         valid = true;
         if (s == null) {
@@ -157,16 +155,17 @@ public class AddAddressController implements Initializable {
             valid = false;
         }
         if (x.isEmpty() || y.isEmpty()) {
-            mc.notifyWithMsg(TITLE, "Koordinate nisu validne.", true);
+            mc.notifyWithMsg(TITLE, "Koordinate nisu definisane.", true);
             valid = false;
         }
-        if (br.isEmpty()) {
+        if (houseNumber.isEmpty()) {
             mc.notifyWithMsg(TITLE, "Broj nije odabran.", true);
             valid = false;
         }
-        if (valid) {
-            db.executeInsertLocation(Double.parseDouble(x), Double.parseDouble(y), br, s.getPak(), note);
-        }
+        return valid;
     }
+
+    private static final double WIDTH_HALF = 11.5714282989502;
+    private static final double HEIGHT_HALF = 14.52099609375;
 
 }

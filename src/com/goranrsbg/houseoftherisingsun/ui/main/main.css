@@ -187,6 +187,15 @@ limitations under the License.
 .animated-option-button:hover .streetview-icon{
     -icons-color: #04a6bf;
 }
+/*TODO toggle clear locations button class*/
+.streetview2-icon{ 
+    -glyph-name: "STREET_VIEW";
+    -icons-color: #03ddff;
+}
+
+.animated-option-button:hover .streetview2-icon{
+    -icons-color: #04a6bf;
+}
 
 .settlement{
     -fx-background-color: white;
@@ -208,4 +217,15 @@ limitations under the License.
 }
 .animated-option-button:hover .settchooser-icon{
     -icons-color: #4d00ff;
+}
+
+.location-icon{
+    -glyph-name: "STREET_VIEW";
+    -icons-color: yellow;
+    -glyph-size: 27px;
+    -fx-stroke: red;
+    -fx-stroke-width: 1;
+}
+.location-icon:hover{
+    -icons-color: blue;
 }

@@ -1,26 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import com.jfoenix.controls.JFXNodesList?>
-<?import java.net.URL?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.StackPane?>
 
-<StackPane id="StackPane" fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.goranrsbg.houseoftherisingsun.ui.main.MainController">
-    <stylesheets>
-        <URL value="@main.css" />
-    </stylesheets>
-    <children>
-        <ScrollPane fx:id="theMapPane" pannable="true" prefHeight="400.0" prefWidth="600.0" styleClass="theMap">
-            <content>
-                <ImageView fx:id="theMapImageView" onMouseClicked="#mouseClicked" pickOnBounds="true" preserveRatio="true" />
-            </content>
-        </ScrollPane>
-        <JFXNodesList fx:id="rootButtonList" rotate="90.0" StackPane.alignment="TOP_RIGHT">
-            <StackPane.margin>
-                <Insets right="17.0" top="1.0" />
-            </StackPane.margin>
-        </JFXNodesList>
-    </children>
+<StackPane stylesheets="@main.css" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.goranrsbg.houseoftherisingsun.ui.main.MainController">
+   <children>
+      <ScrollPane fx:id="rootScrollPane" pannable="true" prefHeight="400.0" prefWidth="600.0" styleClass="theMap">
+         <content>
+            <StackPane>
+               <children>
+                  <ImageView fx:id="theMapImageView" pickOnBounds="true" preserveRatio="true" />
+                  <Pane fx:id="locationsPane" onMouseClicked="#mouseClicked" />
+               </children>
+            </StackPane>
+         </content>
+      </ScrollPane>
+      <JFXNodesList fx:id="rootButtonList" alignment="CENTER" rotate="90.0" StackPane.alignment="TOP_RIGHT">
+         <StackPane.margin>
+            <Insets right="17.0" top="2.0" />
+         </StackPane.margin>
+      </JFXNodesList>
+   </children>
 </StackPane>

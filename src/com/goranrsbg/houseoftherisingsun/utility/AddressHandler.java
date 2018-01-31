@@ -17,92 +17,81 @@ package com.goranrsbg.houseoftherisingsun.utility;
 
 import com.goranrsbg.houseoftherisingsun.database.DBConnector;
 import com.goranrsbg.houseoftherisingsun.ui.main.MainController;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+import javafx.scene.layout.Pane;
 
 /**
  *
  * @author Goran
  */
-public class AddressHandler implements Iterable<Address> {
-    
-    public static final String TITLE = "AddtessHandler";
-    
+public class AddressHandler {
+
+    public static final String TITLE = "AddressHandler";
+
     private static AddressHandler instance;
     private DBConnector db;
     private MainController mc;
-    
-    private final List<Address> data;
-    
+    private Pane locationsPane;
+
+    private boolean onFlag;
+
     private AddressHandler() {
-        data = new ArrayList<>();
+        onFlag = false;
     }
-    
+
     public static AddressHandler getInstance() {
         if (instance == null) {
             instance = new AddressHandler();
             instance.db = DBConnector.getInstance();
+            instance.db.setAh(instance);
             instance.mc = MainController.getInstance();
+            instance.locationsPane = instance.mc.getLocationsPane();
         }
         return instance;
     }
-    
-    public AddressHandler fetchDataByID(int settlementID) {
-        ResultSet rs = db.execugeSelectLocationsByID(settlementID);
-        readResultSet(rs);
-        return this;
+
+    public boolean addLocationsByID(int settlementID) {
+        List<Address> list = db.execugeSelectLocationsByID(settlementID);
+        addLocationsToThePane(list);
+        return onFlag;
     }
-    
-    public AddressHandler fetchDataByPAK(int streetPAK) {
-        ResultSet rs = db.executeSelectLocatonsByPak(streetPAK);
-        readResultSet(rs);
-        return this;
+
+    public boolean addLocationsByPAK(int streetPAK) {
+        List<Address> list = db.executeSelectLocatonsByPak(streetPAK);
+        addLocationsToThePane(list);
+        return onFlag;
     }
-    
-    private void readResultSet(ResultSet rs) {
-        try {
-            data.clear();
-            Address adr;
-            while (rs.next()) {
-                int id = rs.getInt("ID");
-                double x = rs.getDouble("X");
-                double y = rs.getDouble("Y");
-                String nameStreet = rs.getString("NAME");
-                String houseNo = rs.getString("HOUSE_NUMBER");
-                String note = rs.getString("NOTE");
-                adr = new Address(id, x, y, nameStreet, houseNo, note);
-                data.add(adr);
-            }
-            rs.close();
-        } catch (SQLException ex) {
-            mc.notifyWithMsg(TITLE, "Greška: " + ex.getErrorCode(), true);
+
+    public void addLocation(Address address) {
+        locationsPane.getChildren().add(address);
+        mc.notifyWithMsg(TITLE, "Učitana " + address.getBr() + " lokacija.", false);
+    }
+
+    private void addLocationsToThePane(List<Address> list) {
+        if (list.isEmpty()) {
+            mc.notifyWithMsg(TITLE, "Nema memorisanih lokacija.", false);
+        } else {
+            locationsPane.getChildren().addAll(list);
+            mc.notifyWithMsg(TITLE, "Učitano " + list.size() + " lokacija.", false);
+            onFlag = true;
+            printList(list);
         }
     }
-    
-    @Override
-    public Iterator<Address> iterator() {
-        return new Iterator<Address>() {
-            
-            private final Iterator<Address> iter = data.iterator();
-            
-            @Override
-            public boolean hasNext() {
-                return iter.hasNext();
-            }
-            
-            @Override
-            public Address next() {
-                return iter.next();
-            }
-            
-            @Override
-            public void remove() {
-                throw new UnsupportedOperationException("Not supported.");
-            }
-        };
+
+    public AddressHandler clearLocatons() {
+        locationsPane.getChildren().clear();
+        onFlag = false;
+        return this;
     }
-    
+
+    public boolean isOnFlagOn() {
+        return onFlag;
+    }
+
+    private void printList(List list) {
+        list.forEach((a) -> {
+            System.out.println(a);
+        });
+    }
+
 }

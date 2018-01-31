@@ -1,0 +1,13 @@
+Extract res.rar into current directory so that BB-BB-locator.jar have access to all its static resources.
+Directory structure should look like this:
+
+/root/
+     /db - will be created after fist application run (derby database with all tables and default data)
+     /lib
+     /res/
+         /fonts
+         /img
+         /maps
+         /sql
+
+Jar will be updated as application grows.
