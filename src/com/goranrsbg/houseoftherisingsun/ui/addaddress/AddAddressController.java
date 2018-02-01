@@ -17,6 +17,7 @@ package com.goranrsbg.houseoftherisingsun.ui.addaddress;
 
 import com.goranrsbg.houseoftherisingsun.database.DBConnector;
 import com.goranrsbg.houseoftherisingsun.ui.main.MainController;
+import com.goranrsbg.houseoftherisingsun.utility.MapHandler;
 import com.goranrsbg.houseoftherisingsun.utility.Street;
 import com.jfoenix.controls.JFXComboBox;
 import com.jfoenix.controls.JFXTextArea;
@@ -40,8 +41,7 @@ public class AddAddressController implements Initializable {
     public static final String TITLE = "Dodaj adresu";
 
     private final DBConnector db;
-
-    private final MainController mc;
+    private final MapHandler mapHandler;
 
     @FXML
     private JFXTextField xTextField;
@@ -58,8 +58,8 @@ public class AddAddressController implements Initializable {
 
     public AddAddressController() {
         db = DBConnector.getInstance();
+        mapHandler = MapHandler.getInstance();
         streetsData = FXCollections.observableArrayList();
-        mc = MainController.getInstance();
     }
 
     @Override
@@ -71,7 +71,7 @@ public class AddAddressController implements Initializable {
                     Double.valueOf(textNew);
                 } catch (NumberFormatException e) {
                     t = null;
-                    mc.notifyWithMsg(TITLE, "Vrednost polja mora da bude realan broj.", false);
+                    sendMessage("Vrednost polja mora da bude realan broj.", false);
                 }
             }
             return t;
@@ -83,7 +83,7 @@ public class AddAddressController implements Initializable {
                     Double.valueOf(textNew);
                 } catch (NumberFormatException e) {
                     t = null;
-                    mc.notifyWithMsg(TITLE, "Vrednost polja mora da bude realan broj.", false);
+                    sendMessage("Vrednost polja mora da bude realan broj.", false);
                 }
             }
             return t;
@@ -95,17 +95,17 @@ public class AddAddressController implements Initializable {
         TextFormatter<String> formatterBr = new TextFormatter<>((t) -> {
             if (t.getText().contains(" ")) {
                 t = null;
-                mc.notifyWithMsg(TITLE, "Vrednost polja ne sme da sadrži razmak.", false);
+                sendMessage("Vrednost polja ne sme da sadrži razmak.", false);
             } else if (t.getControlNewText().length() > 10) {
                 t = null;
-                mc.notifyWithMsg(TITLE, "Vrednost polja mora da bude do 10 znakova.", false);
+                sendMessage("Vrednost polja mora da bude do 10 znakova.", false);
             }
             return t;
         });
         TextFormatter<String> formatterNote = new TextFormatter<>((t) -> {
             if (t.getControlNewText().length() > 512) {
                 t = null;
-                mc.notifyWithMsg(TITLE, "Vrednost polja mora da bude do 512 znakova.", false);
+                MainController.notifyWithMsg(TITLE, "Vrednost polja mora da bude do 512 znakova.", false);
             }
             return t;
         });
@@ -119,9 +119,8 @@ public class AddAddressController implements Initializable {
     }
 
     public void comboBoxAddStreets() {
-        int mapId = mc.getCurrentMap().getID();
         streetsData.clear();
-        List<Street> list = db.executeSelectStreets(mapId);
+        List<Street> list = db.executeSelectStreets(mapHandler.getCurrentMapId());
         streetsData.addAll(list);
     }
 
@@ -146,23 +145,27 @@ public class AddAddressController implements Initializable {
             db.executeInsertLocation(Double.parseDouble(x) - WIDTH_HALF, Double.parseDouble(y) - HEIGHT_HALF, houseNumber, s, note);
         }
     }
-    
+
     private boolean validateFields(final Street s, String x, String y, String houseNumber) {
         boolean valid;
         valid = true;
         if (s == null) {
-            mc.notifyWithMsg(TITLE, "Ulica nije izabrana.", true);
+            sendMessage("Ulica nije izabrana.", true);
             valid = false;
         }
         if (x.isEmpty() || y.isEmpty()) {
-            mc.notifyWithMsg(TITLE, "Koordinate nisu definisane.", true);
+            sendMessage("Koordinate nisu definisane.", true);
             valid = false;
         }
         if (houseNumber.isEmpty()) {
-            mc.notifyWithMsg(TITLE, "Broj nije odabran.", true);
+            sendMessage("Broj nije odabran.", true);
             valid = false;
         }
         return valid;
+    }
+
+    private void sendMessage(String message, boolean type) {
+        MainController.notifyWithMsg(TITLE, message, type);
     }
 
     private static final double WIDTH_HALF = 11.5714282989502;

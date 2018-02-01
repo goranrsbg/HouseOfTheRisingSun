@@ -18,7 +18,9 @@ package com.goranrsbg.houseoftherisingsun.database;
 import com.goranrsbg.houseoftherisingsun.ui.main.MainController;
 import com.goranrsbg.houseoftherisingsun.utility.Address;
 import com.goranrsbg.houseoftherisingsun.utility.AddressHandler;
+import com.goranrsbg.houseoftherisingsun.utility.Settlement;
 import com.goranrsbg.houseoftherisingsun.utility.Street;
+import com.goranrsbg.houseoftherisingsun.utility.StreetInitial;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import java.io.BufferedReader;
 import java.io.File;
@@ -56,12 +58,8 @@ public class DBConnector {
      * Represent single and only instance of this object.
      */
     private static DBConnector instance;
-    /**
-     * Pointer to controller of main scene.
-     */
-    private MainController mc;
 
-    private AddressHandler ah;
+    private AddressHandler addressHandler;
     /**
      * Main connection to database instance.
      */
@@ -79,17 +77,16 @@ public class DBConnector {
     private PreparedStatement ps_selectStreetsFromSettlement;
     private PreparedStatement ps_selectLocationsWithSettlementId;
     private PreparedStatement ps_selectLocationsWithPak;
+    private final String SELECT_ALL_STREETS_QUERY;
 
     private DBConnector() {
         props = new Properties();
+        SELECT_ALL_STREETS_QUERY = "SELECT S.PAK, S.NAME, T.INITIAL FROM STREETS AS S \n"
+                + "JOIN SETTLEMENTS AS T ON S.SETTLEMENT_ID = T.ID";
     }
 
-    public void setMc(MainController mc) {
-        this.mc = mc;
-    }
-
-    public void setAh(AddressHandler ah) {
-        this.ah = ah;
+    public void setAddressHandler(AddressHandler addressHandler) {
+        this.addressHandler = addressHandler;
     }
 
     public boolean isConnected() {
@@ -242,19 +239,23 @@ public class DBConnector {
      * Executes the given SQL statement, which returns a single ResultSet
      * object.
      *
-     * @param query An SQL statement to be sent to the database, typically a
-     * static SQL SELECT statement
-     *
      * @return ResultSet object.
      */
-    public ResultSet executeQuery(String query) {
-        ResultSet rs = null;
+    public ArrayList<Settlement> executeSellectAllSettlements() {
+        final String query = "SELECT * FROM SETTLEMENTS";
+        ArrayList<Settlement> list = new ArrayList<>();
+        ResultSet rs;
         try {
             rs = statement.executeQuery(query);
+            while (rs.next()) {
+                list.add(new Settlement(rs.getInt("ID"), rs.getString("NAME"), rs.getString("INITIAL")));
+            }
+            list.trimToSize();
+            rs.close();
         } catch (SQLException ex) {
             DBConnector.LOGGER.log(Level.SEVERE, null, ex);
         }
-        return rs;
+        return list;
     }
 
     /**
@@ -263,7 +264,7 @@ public class DBConnector {
      * @param query Any to execute.
      * @return number of affected rows.
      */
-    public int executeUpdate(String query) {
+    private int executeUpdate(String query) {
         int updated = 0;
         try {
             updated = statement.executeUpdate(query);
@@ -298,20 +299,20 @@ public class DBConnector {
             ResultSet generatedKeys = ps_insertLocation.getGeneratedKeys();
             if (generatedKeys != null && generatedKeys.next()) {
                 int result = generatedKeys.getInt(1);
-                if(result > 0 && ah.isOnFlagOn()) {
-                    ah.addLocation(new Address(result, x, y, s.getName(), houseNo,
+                if (result > 0 && addressHandler.isOnFlagOn()) {
+                    addressHandler.addLocation(new Address(result, x, y, s.getName(), houseNo,
                             note, new FontAwesomeIconView().setStyleClass("location-icon")).updateLayout());
                 }
             }
             ps_insertLocation.clearParameters();
-            mc.notifyWithMsg(props.getProperty("title"), "Podatak uspešno dodat.", false);
+            sendMessage("Podatak uspešno dodat.", false);
         } catch (SQLException ex) {
             int ec = ex.getErrorCode();
             if (ec == 30000) {
-                mc.notifyWithMsg(props.getProperty("title"), "Dodavalje podatka nije uspelo.\nLokacija već postoji.", true);
+                sendMessage("Dodavalje podatka nije uspelo.\nLokacija već postoji.", true);
             } else {
                 DBConnector.LOGGER.log(Level.SEVERE, null, ex);
-                mc.notifyWithMsg(props.getProperty("title"), "Dodavalje podatka nije uspelo.\nGreška: " + ec, true);
+                sendMessage("Dodavalje podatka nije uspelo.\nGreška: " + ec, true);
             }
         }
     }
@@ -325,84 +326,87 @@ public class DBConnector {
      * @return ResultSet object.
      */
     public List<Street> executeSelectStreets(int settlementId) {
-        ResultSet rs;
         ArrayList<Street> list = new ArrayList<>();
         try {
             ps_selectStreetsFromSettlement.setInt(1, settlementId);
-            rs = ps_selectStreetsFromSettlement.executeQuery();
-            while (rs.next()) {
-                list.add(new Street(rs.getInt("PAK"), rs.getString("NAME")));
-            }
+            ps_selectStreetsFromSettlement.executeQuery();
+            ResultSet rs = ps_selectStreetsFromSettlement.getResultSet();
             ps_selectStreetsFromSettlement.clearParameters();
-            rs.close();
+            if (rs != null) {
+                while (rs.next()) {
+                    list.add(new Street(rs.getInt("PAK"), rs.getString("NAME")));
+                }
+                rs.close();
+            }
         } catch (SQLException ex) {
             DBConnector.LOGGER.log(Level.SEVERE, null, ex);
-            mc.notifyWithMsg(props.getProperty("title"), "Selektovanje ulica nije uspelo.\nGreška: " + ex.getErrorCode(), true);
+            sendMessage("Selektovanje ulica nije uspelo.\nGreška: " + ex.getErrorCode(), true);
         }
         list.trimToSize();
         return list;
     }
 
     /**
-     * Selects single row from locations table where
-     * <code>locations.id = id</code>.
+     * Selects all rows from streets table with settlement initial instead of
+     * settlement id.
      *
-     * @param id Value for compare. Represents primary key in locations table.
-     * @return Single row.
+     * @return List of StreetInitial objects.
      */
-    public List<Address> execugeSelectLocationsByID(int id) {
-        ResultSet rs;
-        List<Address> list = null;
+    public List<StreetInitial> executeSelectAllStreets() {
+        ArrayList<StreetInitial> list = new ArrayList<>(100);
         try {
-            ps_selectLocationsWithSettlementId.setInt(1, id);
-            rs = ps_selectLocationsWithSettlementId.executeQuery();
-            list = readAddresses(rs);
-            ps_selectLocationsWithSettlementId.clearParameters();
+            statement.executeQuery(SELECT_ALL_STREETS_QUERY);
+            ResultSet rs = statement.getResultSet();
+            if (rs != null) {
+                while (rs.next()) {
+                    list.add(new StreetInitial(rs.getInt("PAK"), rs.getString("NAME"), rs.getString("INITIAL")));
+                }
+                rs.close();
+            }
         } catch (SQLException ex) {
-            DBConnector.LOGGER.log(Level.SEVERE, null, ex);
-            mc.notifyWithMsg(props.getProperty("title"), "Selektovanje ulica nije uspelo.\nGreška: " + ex.getErrorCode(), true);
+            Logger.getLogger(DBConnector.class.getName()).log(Level.SEVERE, null, ex);
+            sendMessage("Selektovanje svih ulica nije uspelo.\nGreška: " + ex.getErrorCode(), true);
         }
+        list.trimToSize();
         return list;
     }
 
     /**
-     * Collects rows from locations table where
-     * <code>locations.pak = pak</code>.
+     * Selects rows from locations table where row id or pak values equals
+     * value. <code>locations.id = value</code>.
+     * <code>locations.pak = value</code>.
      *
-     * @param pak Value for compare, must exists in streets table.
-     *
-     * @return ResultSet object from locations table.
+     * @param value Value of settlement id or street pak.
+     * @param byId If true then value maust be from settlement.id, if false then
+     * value must be from street.pak
+     * @return ArrayLisat of selected addresses.
      */
-    public List<Address> executeSelectLocatonsByPak(int pak) {
+    public List<Address> executeSelectLocations(int value, boolean byId) {
         ResultSet rs;
-        List<Address> list = null;
-        try {
-            ps_selectLocationsWithPak.setInt(1, pak);
-            rs = ps_selectLocationsWithPak.executeQuery();
-            list = readAddresses(rs);
-            ps_selectLocationsWithPak.clearParameters();
-        } catch (SQLException e) {
-            DBConnector.LOGGER.log(Level.SEVERE, null, e);
-        }
-        return list;
-    }
-
-    /**
-     * Creates list of addresses from given Result Set.
-     *
-     * @param rs Result Set from prepared statements that query locations table.
-     *
-     * @return List of Address objects.
-     *
-     * @throws SQLException
-     */
-    private List<Address> readAddresses(ResultSet rs) throws SQLException {
         ArrayList<Address> list = new ArrayList<>(200);
-        while (rs.next()) {
-            list.add(new Address(rs.getInt("ID"), rs.getDouble("X"), rs.getDouble("Y"), rs.getString("NAME"),
-                    rs.getString("HOUSE_NUMBER"), rs.getString("NOTE"), new FontAwesomeIconView().setStyleClass("location-icon")).updateLayout());
+        try {
+            if (byId) {
+                ps_selectLocationsWithSettlementId.setInt(1, value);
+                rs = ps_selectLocationsWithSettlementId.executeQuery();
+                ps_selectLocationsWithSettlementId.clearParameters();
+            } else {
+                ps_selectLocationsWithPak.setInt(1, value);
+                rs = ps_selectLocationsWithPak.executeQuery();
+                ps_selectLocationsWithPak.clearParameters();
+            }
+            if (rs != null) {
+                while (rs.next()) {
+                    list.add(new Address(rs.getInt("ID"), rs.getDouble("X"), rs.getDouble("Y"), rs.getString("NAME"),
+                            rs.getString("HOUSE_NUMBER"), rs.getString("NOTE"),
+                            new FontAwesomeIconView().setStyleClass("location-icon")).updateLayout());
+                }
+                rs.close();
+                list.trimToSize();
+            }
+        } catch (SQLException ex) {
+            DBConnector.LOGGER.log(Level.SEVERE, null, ex);
+            sendMessage("Selektovanje ulica nije uspelo.\nGreška: " + ex.getErrorCode(), true);
         }
-        list.trimToSize();
         return list;
     }
 
@@ -412,6 +416,7 @@ public class DBConnector {
      * <code>URL="jdbc:derby:;shutdown=true"</code> to shut down the system.
      * Default error "XJ015" that is thrown is ignored because it indicates
      * normal shut down. Other errors are logged.
+     *
      */
     public void closeConnection() {
         try {
@@ -432,6 +437,17 @@ public class DBConnector {
                 DBConnector.LOGGER.log(Level.SEVERE, null, ex);
             }
         }
+    }
+
+    /**
+     * Sends message to main controller and shows it as pop up notification.
+     *
+     * @param message Massage to be send.
+     * @param type Notification type true for error type or false for
+     * information type
+     */
+    private void sendMessage(String message, boolean type) {
+        MainController.notifyWithMsg(props.getProperty("title"), message, type);
     }
 
 }

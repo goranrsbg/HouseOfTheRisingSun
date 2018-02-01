@@ -98,7 +98,7 @@ public final class Address extends Label {
             tt.setStyle(DEFAULT_TOOLTIP_STYLE);
             this.setTooltip(tt);
         }
-        getTooltip().setText("Adresa:\n" + getStreetName() + " " + getBr() + ((note.get() == null) ? "" : ("\nNapomena:\n" + note.get())));
+        getTooltip().setText("Adresa:\n" + getStreetName() + " br. " + getBr() + ((note.get() == null) ? "" : ("\nNapomena:\n" + note.get())));
         return this;
     }
 

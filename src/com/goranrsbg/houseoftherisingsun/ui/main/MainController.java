@@ -17,23 +17,17 @@ package com.goranrsbg.houseoftherisingsun.ui.main;
 
 import com.goranrsbg.houseoftherisingsun.utility.Settlement;
 import com.goranrsbg.houseoftherisingsun.utility.StagesNames;
-import com.goranrsbg.houseoftherisingsun.LocatorApp;
 import com.goranrsbg.houseoftherisingsun.database.DBConnector;
 import com.goranrsbg.houseoftherisingsun.ui.addaddress.AddAddressController;
 import com.goranrsbg.houseoftherisingsun.ui.showstreets.ShowStreetsController;
 import com.goranrsbg.houseoftherisingsun.utility.AddressHandler;
 import com.goranrsbg.houseoftherisingsun.utility.ButtonFactory;
+import com.goranrsbg.houseoftherisingsun.utility.MapHandler;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXNodesList;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -46,7 +40,6 @@ import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -62,19 +55,13 @@ import org.controlsfx.control.Notifications;
  */
 public class MainController implements Initializable {
 
-    private static MainController instance;
     private AddAddressController addAddressController;
 
     private final DBConnector db;
-    private AddressHandler ah;
+    private MapHandler mapHandler;
+    private AddressHandler addressHandler;
 
     private final Properties props;
-
-    private double imgHeight;
-    private double imgWidth;
-    private int currentMapIndex;
-
-    private final List<Settlement> settlements;
 
     private JFXButton buttonAddRecipient;
     private JFXButton buttonAddLocation;
@@ -99,43 +86,14 @@ public class MainController implements Initializable {
             Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
         }
         db = DBConnector.getInstance();
-        settlements = new ArrayList<>();
-        collectSettlements();
-        instance = this;
-    }
-
-    private void collectSettlements() {
-        final String query = "SELECT * FROM SETTLEMENTS";
-        ResultSet rs = db.executeQuery(query);
-        try {
-            settlements.add(new Settlement(0, "default", null));
-            while (rs.next()) {
-                settlements.add(new Settlement(rs.getInt("ID"), rs.getString("NAME"), rs.getString("INITIAL")));
-            }
-            rs.close();
-        } catch (SQLException ex) {
-            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    public static MainController getInstance() {
-        return instance;
-    }
-
-    public Pane getLocationsPane() {
-        return locationsPane;
-    }
-
-    public Settlement getCurrentMap() {
-        return settlements.get(currentMapIndex);
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        db.setMc(instance);
-        ah = AddressHandler.getInstance();
+        addressHandler = new AddressHandler(locationsPane);
+        db.setAddressHandler(addressHandler);
+        mapHandler = new MapHandler(theMapImageView, db.executeSellectAllSettlements()).loadDefaultMap();
         initButtons();
-        loadTheMap(0);
     }
 
     private void initButtons() {
@@ -171,11 +129,12 @@ public class MainController implements Initializable {
         streetsJFXNodesList.addAnimatedNode(buttonShowStreets);
 
         settlementsMapChooserList.setRotate(90d);
-        for (int i = 1; i < settlements.size(); i++) {
-            Settlement s = settlements.get(i);
-            JFXButton button = factory.createNewJFXTextButton(s.getINITIALS(), s.getMapName()).getButton();
+        Iterator<Settlement> itr = mapHandler.getSettlementsIterator();
+        while (itr.hasNext()) {
+            Settlement s = itr.next();
+            JFXButton button = factory.createNewJFXTextButton(s.getInitials(), s.getMapName()).getButton();
             button.setOnAction(this::btAddMapChangeOnActionEvent);
-            button.setUserData(i);
+            button.setUserData(s.getId());
             settlementsMapChooserList.addAnimatedNode(button);
         }
         settlementsJFXNodesList.addAnimatedNode(settlementsMapChooserList);
@@ -191,8 +150,12 @@ public class MainController implements Initializable {
         Object userData = ((JFXButton) event.getSource()).getUserData();
         switch ((StagesNames) ((JFXButton) event.getSource()).getUserData()) {
             case ADD_LOCATION:
-                loadWindow("/com/goranrsbg/houseoftherisingsun/ui/addaddress/addaddress.fxml", AddAddressController.TITLE, userData);
-                buttonAddLocation.setDisable(true);
+                if (mapHandler.isMapLoaded()) {
+                    loadWindow("/com/goranrsbg/houseoftherisingsun/ui/addaddress/addaddress.fxml", AddAddressController.TITLE, userData);
+                    buttonAddLocation.setDisable(true);
+                } else {
+                    notifyWithMsg(props.getProperty("title"), "Karta mora biti odabrana.", true);
+                }
                 break;
             case SHOW_STREETS:
                 loadWindow("/com/goranrsbg/houseoftherisingsun/ui/showstreets/showstreets.fxml", ShowStreetsController.TITLE, userData);
@@ -235,11 +198,10 @@ public class MainController implements Initializable {
     }
 
     private void btAddMapChangeOnActionEvent(ActionEvent event) {
-        int id = (int) ((JFXButton) event.getSource()).getUserData();
-        if (currentMapIndex != id) {
-            loadTheMap(id);
-            if (ah.isOnFlagOn()) {
-                boolean isAdded = ah.clearLocatons().addLocationsByID(getCurrentMap().getID());
+        int mapId = (int) ((JFXButton) event.getSource()).getUserData();
+        if (mapHandler.loadMap(mapId).isMapLoaded()) {
+            if (addressHandler.isOnFlagOn()) {
+                boolean isAdded = addressHandler.clearLocatons().addLocationsByID(mapHandler.getCurrentMapId());
                 setButtonShowAllLocatonsToShow(!isAdded);
             }
             if (buttonAddLocation.isDisabled()) {
@@ -250,17 +212,17 @@ public class MainController implements Initializable {
     }
 
     private void btShowAllLocationsOnActionEvent(ActionEvent event) {
-        if (currentMapIndex == 0) {
-            notifyWithMsg(props.getProperty("title"), "Karta nije odabrana.", false);
-        } else {
-            boolean flag = ah.isOnFlagOn();
+        if (mapHandler.isMapLoaded()) {
+            boolean flag = addressHandler.isOnFlagOn();
             if (flag) {
                 setButtonShowAllLocatonsToShow(flag);
-                ah.clearLocatons();
+                addressHandler.clearLocatons();
             } else {
-                boolean isAdded = ah.clearLocatons().addLocationsByID(getCurrentMap().getID());
+                boolean isAdded = addressHandler.clearLocatons().addLocationsByID(mapHandler.getCurrentMapId());
                 setButtonShowAllLocatonsToShow(!isAdded);
             }
+        } else {
+            notifyWithMsg(props.getProperty("title"), "Karta nije odabrana.", false);
         }
     }
 
@@ -279,9 +241,12 @@ public class MainController implements Initializable {
         MouseButton mb = event.getButton();
         final double x = event.getX();
         final double y = event.getY();
-        if (mb == MouseButton.SECONDARY) {
+        final boolean isMapLoaded = mapHandler.isMapLoaded();
+        if (mb == MouseButton.SECONDARY && isMapLoaded) {
             final double w = rootScrollPane.getWidth();
             final double h = rootScrollPane.getHeight();
+            final double imgWidth = mapHandler.getMapWidth();
+            final double imgHeight = mapHandler.getMapHeight();
             // move right click point to center of the screen if possible
             if (imgWidth > w) {
                 rootScrollPane.setHvalue((x - w / 2) / (imgWidth - w));
@@ -289,47 +254,12 @@ public class MainController implements Initializable {
             if (imgHeight > h) {
                 rootScrollPane.setVvalue((y - h / 2) / (imgHeight - h));
             }
-        } else if (mb == MouseButton.PRIMARY) {
-            if (buttonAddLocation.isDisabled() && currentMapIndex != 0) {
-                addAddressController.setLocationXY(x, y);
-            }
+        } else if (mb == MouseButton.PRIMARY && buttonAddLocation.isDisabled() && isMapLoaded) {
+            addAddressController.setLocationXY(x, y);
         }
     }
 
-    public void loadTheMap(int index) {
-        currentMapIndex = index;
-        String mapName = settlements.get(currentMapIndex).getMapName();
-        String mapDir = props.getProperty("path.to.maps");
-        String name;
-        String message;
-        boolean error = false;
-        Image img;
-        File f = new File(mapDir + mapName);
-        if (!f.isFile()) {
-            f = new File(mapDir + settlements.get(0).getMapName());
-        }
-        name = f.getName();
-        message = "Karta je učitana.";
-        try {
-            img = new Image(new FileInputStream(f));
-            imgHeight = img.getHeight();
-            imgWidth = img.getWidth();
-            theMapImageView.setImage(img);
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
-            message = "Karta nije pronadjena.";
-            error = true;
-        } finally {
-            final String message1 = message;
-            final boolean error1 = error;
-            Platform.runLater(() -> {
-                LocatorApp.setSubTitle(name);
-                notifyWithMsg(name, message1, error1);
-            });
-        }
-    }
-
-    public void notifyWithMsg(String title, String message, boolean error) {
+    public static void notifyWithMsg(String title, String message, boolean error) {
         Notifications notification = Notifications.create()
                 .title(title)
                 .text(message);

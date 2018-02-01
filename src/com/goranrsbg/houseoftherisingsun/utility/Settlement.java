@@ -23,35 +23,35 @@ public class Settlement {
 
     public static final String EXTENSION = ".bmp";
 
-    private final int ID;
-    private final String NAME;
-    private final String INITIALS;
+    private final int id;
+    private final String name;
+    private final String initials;
 
-    public Settlement(int ID, String NAME, String INITIALS) {
-        this.ID = ID;
-        this.NAME = NAME;
-        this.INITIALS = INITIALS;
+    public Settlement(int id, String name, String initials) {
+        this.id = id;
+        this.name = name;
+        this.initials = initials;
     }
 
-    public int getID() {
-        return ID;
+    public int getId() {
+        return id;
     }
 
-    public String getNAME() {
-        return NAME;
+    public String getName() {
+        return name;
     }
 
-    public String getINITIALS() {
-        return INITIALS;
+    public String getInitials() {
+        return initials;
     }
     
     public String getMapName() {
-        return NAME + Settlement.EXTENSION;
+        return name + Settlement.EXTENSION;
     }
 
     @Override
     public String toString() {
-        return "Settlement{" + "ID=" + ID + ", NAME=" + NAME + ", INITIALS=" + INITIALS + '}';
+        return "Settlement{" + "ID=" + id + ", NAME=" + name + ", INITIALS=" + initials + '}';
     }
 
 }

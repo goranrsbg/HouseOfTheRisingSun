@@ -1,4 +1,4 @@
-Extract res.rar into current directory so that BB-BB-locator.jar have access to all its static resources.
+Extract all *.rar files inside /res/maps into current directory so that BB-BB-locator.jar can load all maps.
 Directory structure should look like this:
 
 /root/

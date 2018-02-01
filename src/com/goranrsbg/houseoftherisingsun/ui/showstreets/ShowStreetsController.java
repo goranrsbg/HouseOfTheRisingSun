@@ -19,8 +19,6 @@ import com.goranrsbg.houseoftherisingsun.database.DBConnector;
 import com.goranrsbg.houseoftherisingsun.ui.main.MainController;
 import com.goranrsbg.houseoftherisingsun.utility.StreetInitial;
 import java.net.URL;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -40,7 +38,6 @@ public class ShowStreetsController implements Initializable {
     public static final String TITLE = "Spisak ulica";
 
     private final DBConnector db;
-    private final MainController mc;
 
     private final ObservableList<StreetInitial> data;
 
@@ -55,14 +52,12 @@ public class ShowStreetsController implements Initializable {
 
     public ShowStreetsController() {
         db = DBConnector.getInstance();
-        mc = MainController.getInstance();
         data = FXCollections.observableArrayList();
     }
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         initColumns();
-        fetchStreets();
     }
 
     private void initColumns() {
@@ -70,22 +65,11 @@ public class ShowStreetsController implements Initializable {
         colName.setCellValueFactory(new PropertyValueFactory<>("name"));
         colInitial.setCellValueFactory(new PropertyValueFactory<>("initial"));
         tableStreets.setItems(data);
+        data.addAll(db.executeSelectAllStreets());
     }
-
-    private void fetchStreets() {
-        final String query = "SELECT S.PAK, S.NAME, T.INITIAL FROM STREETS AS S \n"
-                + "JOIN SETTLEMENTS AS T ON S.SETTLEMENT_ID = T.ID";
-        try {
-            data.clear();
-            ResultSet rs;
-            rs = db.executeQuery(query);
-            while (rs.next()) {
-                data.add(new StreetInitial(rs.getInt("PAK"), rs.getString("NAME"), rs.getString("INITIAL")));
-            }
-            rs.close();
-        } catch (SQLException e) {
-            mc.notifyWithMsg(TITLE, e.getErrorCode() + "", true);
-        }
+    
+    public void sendMessage(String message, boolean type) {
+        MainController.notifyWithMsg(TITLE, message, type);
     }
 
 }

@@ -26,53 +26,39 @@ import javafx.scene.layout.Pane;
  */
 public class AddressHandler {
 
-    public static final String TITLE = "AddressHandler";
-
-    private static AddressHandler instance;
-    private DBConnector db;
-    private MainController mc;
-    private Pane locationsPane;
+    private final DBConnector db;
+    private final Pane locationsPane;
 
     private boolean onFlag;
 
-    private AddressHandler() {
+    public AddressHandler(Pane locationPane) {
+        this.locationsPane = locationPane;
+        db = DBConnector.getInstance();
         onFlag = false;
     }
 
-    public static AddressHandler getInstance() {
-        if (instance == null) {
-            instance = new AddressHandler();
-            instance.db = DBConnector.getInstance();
-            instance.db.setAh(instance);
-            instance.mc = MainController.getInstance();
-            instance.locationsPane = instance.mc.getLocationsPane();
-        }
-        return instance;
-    }
-
     public boolean addLocationsByID(int settlementID) {
-        List<Address> list = db.execugeSelectLocationsByID(settlementID);
+        List<Address> list = db.executeSelectLocations(settlementID, true);
         addLocationsToThePane(list);
         return onFlag;
     }
 
     public boolean addLocationsByPAK(int streetPAK) {
-        List<Address> list = db.executeSelectLocatonsByPak(streetPAK);
+        List<Address> list = db.executeSelectLocations(streetPAK, false);
         addLocationsToThePane(list);
         return onFlag;
     }
 
     public void addLocation(Address address) {
         locationsPane.getChildren().add(address);
-        mc.notifyWithMsg(TITLE, "Učitana " + address.getBr() + " lokacija.", false);
     }
 
     private void addLocationsToThePane(List<Address> list) {
         if (list.isEmpty()) {
-            mc.notifyWithMsg(TITLE, "Nema memorisanih lokacija.", false);
+            sentMessaage("Nema memorisanih lokacija.", false);
         } else {
             locationsPane.getChildren().addAll(list);
-            mc.notifyWithMsg(TITLE, "Učitano " + list.size() + " lokacija.", false);
+            sentMessaage("Učitano lokacija: (" + list.size() + ").", false);
             onFlag = true;
             printList(list);
         }
@@ -93,5 +79,11 @@ public class AddressHandler {
             System.out.println(a);
         });
     }
+
+    private void sentMessaage(String message, boolean type) {
+        MainController.notifyWithMsg(TITLE, message, type);
+    }
+
+    public static final String TITLE = "Upravljač adresama.";
 
 }
