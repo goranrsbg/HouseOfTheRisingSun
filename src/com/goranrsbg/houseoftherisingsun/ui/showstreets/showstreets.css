@@ -1,8 +1,11 @@
 /*
  * Empty Stylesheet file.
  */
+@font-face {
+    src: local("file:res/fonts/SourceSansPro-Regular.ttf");
+}
 .root {
-    -fx-font-family: 'Oxygen';
+    -fx-font-family: 'Source Sans Pro';
 }
 .mainFxmlClass {
 

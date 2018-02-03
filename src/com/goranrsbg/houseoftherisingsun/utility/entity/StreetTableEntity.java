@@ -13,32 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.goranrsbg.houseoftherisingsun.ui.location;
+package com.goranrsbg.houseoftherisingsun.utility.entity;
 
-import java.net.URL;
-import java.util.ResourceBundle;
-import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
-import javafx.scene.control.Label;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.AnchorPane;
+import javafx.beans.property.SimpleStringProperty;
 
 /**
- * FXML Controller class
  *
  * @author Goran
  */
-public class LocationController implements Initializable {
+public class StreetTableEntity extends StreetEntyty {
 
-    @FXML
-    private AnchorPane rootPane;
-    @FXML
-    private ImageView image;
-    @FXML
-    private Label label;
+    private final SimpleStringProperty initial;
 
-    @Override
-    public void initialize(URL url, ResourceBundle rb) {
-    }    
-    
+    public StreetTableEntity(int pak, String name, String initial) {
+        super(pak, name);
+        this.initial = new SimpleStringProperty(initial);
+    }
+
+    public String getInitial() {
+        return initial.get();
+    }
+
+    public void setInitial(String initial) {
+        this.initial.set(initial);
+    }
+
 }

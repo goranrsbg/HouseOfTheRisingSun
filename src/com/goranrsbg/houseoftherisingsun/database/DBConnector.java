@@ -16,12 +16,11 @@
 package com.goranrsbg.houseoftherisingsun.database;
 
 import com.goranrsbg.houseoftherisingsun.ui.main.MainController;
-import com.goranrsbg.houseoftherisingsun.utility.Address;
-import com.goranrsbg.houseoftherisingsun.utility.AddressHandler;
-import com.goranrsbg.houseoftherisingsun.utility.Settlement;
-import com.goranrsbg.houseoftherisingsun.utility.Street;
-import com.goranrsbg.houseoftherisingsun.utility.StreetInitial;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
+import com.goranrsbg.houseoftherisingsun.utility.entity.LocationEntity;
+import com.goranrsbg.houseoftherisingsun.utility.LocationsHandler;
+import com.goranrsbg.houseoftherisingsun.utility.entity.SettlementEntity;
+import com.goranrsbg.houseoftherisingsun.utility.entity.StreetEntyty;
+import com.goranrsbg.houseoftherisingsun.utility.entity.StreetTableEntity;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -59,7 +58,7 @@ public class DBConnector {
      */
     private static DBConnector instance;
 
-    private AddressHandler addressHandler;
+    private LocationsHandler locationHandler;
     /**
      * Main connection to database instance.
      */
@@ -77,16 +76,17 @@ public class DBConnector {
     private PreparedStatement ps_selectStreetsFromSettlement;
     private PreparedStatement ps_selectLocationsWithSettlementId;
     private PreparedStatement ps_selectLocationsWithPak;
-    private final String SELECT_ALL_STREETS_QUERY;
+    private PreparedStatement ps_updateLocation;
+    private String SELECT_ALL_STREETS_QUERY;
+    private String SELECT_ALL_SETTLEMENTS_QUERY;
 
     private DBConnector() {
         props = new Properties();
-        SELECT_ALL_STREETS_QUERY = "SELECT S.PAK, S.NAME, T.INITIAL FROM STREETS AS S \n"
-                + "JOIN SETTLEMENTS AS T ON S.SETTLEMENT_ID = T.ID";
+
     }
 
-    public void setAddressHandler(AddressHandler addressHandler) {
-        this.addressHandler = addressHandler;
+    public void setLocationHandler(LocationsHandler locationHandler) {
+        this.locationHandler = locationHandler;
     }
 
     public boolean isConnected() {
@@ -216,20 +216,27 @@ public class DBConnector {
     }
 
     /**
-     * Initializes all prepared statements.
+     * Initializes all prepared statements and queries.
      */
     private void prepareStatements() {
+        SELECT_ALL_STREETS_QUERY = "SELECT S.STREET_PAK, S.STREET_NAME, T.SETTLEMENT_INITIAL FROM STREETS AS S \n"
+                + "JOIN SETTLEMENTS AS T ON S.SETTLEMENT_ID = T.SETTLEMENT_ID";
+        SELECT_ALL_SETTLEMENTS_QUERY = "SELECT * FROM SETTLEMENTS";
         try {
-            ps_insertLocation = connection.prepareStatement("INSERT INTO LOCATIONS(X,Y,HOUSE_NUMBER,STREET_PAK,NOTE) VALUES(?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
-            ps_selectStreetsFromSettlement = connection.prepareStatement("SELECT * FROM STREETS WHERE SETTLEMENT_ID = ?");
+            ps_insertLocation = connection.prepareStatement("INSERT INTO LOCATIONS(X, Y, STREET_PAK, LOCATION_NUMBER, NOTE)\n"
+                    + "VALUES(?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+            ps_updateLocation = connection.prepareStatement("UPDATE LOCATIONS\n"
+                    + "SET X = ?, Y = ?, STREET_PAK = ?, LOCATION_NUMBER = ?, NOTE = ?\n"
+                    + "WHERE LOCATION_ID = ?");
             ps_selectLocationsWithSettlementId = connection.prepareStatement(
-                    "SELECT L.ID, L.X, L.Y, S.NAME, L.HOUSE_NUMBER, L.NOTE FROM LOCATIONS AS L\n"
-                    + "JOIN STREETS AS S ON L.STREET_PAK = S.PAK\n"
+                    "SELECT L.LOCATION_ID, L.X, L.Y, S.STREET_PAK, S.STREET_NAME, L.LOCATION_NUMBER, L.NOTE FROM LOCATIONS AS L\n"
+                    + "JOIN STREETS AS S ON L.STREET_PAK = S.STREET_PAK\n"
                     + "WHERE S.SETTLEMENT_ID = ?");
             ps_selectLocationsWithPak = connection.prepareStatement(
-                    "SELECT L.ID, L.X, L.Y, S.NAME ,L.HOUSE_NUMBER, L.NOTE FROM LOCATIONS AS L\n"
-                    + "JOIN STREETS AS S ON L.STREET_PAK = S.PAK\n"
+                    "SELECT L.LOCATION_ID, L.X, L.Y, S.STREET_PAK, S.STREET_NAME , L.LOCATION_NUMBER, L.NOTE FROM LOCATIONS AS L\n"
+                    + "JOIN STREETS AS S ON L.STREET_PAK = S.STREET_PAK\n"
                     + "WHERE L.STREET_PAK = ?");
+            ps_selectStreetsFromSettlement = connection.prepareStatement("SELECT STREET_PAK, STREET_NAME FROM STREETS WHERE SETTLEMENT_ID = ?");
         } catch (SQLException ex) {
             DBConnector.LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -241,14 +248,14 @@ public class DBConnector {
      *
      * @return ResultSet object.
      */
-    public ArrayList<Settlement> executeSellectAllSettlements() {
-        final String query = "SELECT * FROM SETTLEMENTS";
-        ArrayList<Settlement> list = new ArrayList<>();
+    public ArrayList<SettlementEntity> executeSellectAllSettlements() {
+
+        ArrayList<SettlementEntity> list = new ArrayList<>();
         ResultSet rs;
         try {
-            rs = statement.executeQuery(query);
+            rs = statement.executeQuery(SELECT_ALL_SETTLEMENTS_QUERY);
             while (rs.next()) {
-                list.add(new Settlement(rs.getInt("ID"), rs.getString("NAME"), rs.getString("INITIAL")));
+                list.add(new SettlementEntity(rs.getInt("SETTLEMENT_ID"), rs.getString("SETTLEMENT_NAME"), rs.getString("SETTLEMENT_INITIAL")));
             }
             list.trimToSize();
             rs.close();
@@ -278,43 +285,53 @@ public class DBConnector {
      * Inserts new address data into location table. X and Y defines point on
      * the map. Should represent real object on the map.
      *
-     * @param x Coordinate X on the map.
-     * @param y Coordinate Y on the map.
-     * @param houseNo House number.
-     * @param s Location street.
-     * @param note Can be null.
+     * @param location The address to be added to the LocationEntity table
      */
-    public void executeInsertLocation(double x, double y, String houseNo, final Street s, String note) {
+    public void executeInsertUpdateLocation(LocationEntity location) {
+        final boolean isInsert = location.isLocationIdEmpty();
+        PreparedStatement ps = isInsert ? ps_insertLocation : ps_updateLocation;
+        String message;
+        boolean type = false;
         try {
-            ps_insertLocation.setDouble(1, x);
-            ps_insertLocation.setDouble(2, y);
-            ps_insertLocation.setString(3, houseNo);
-            ps_insertLocation.setInt(4, s.getPak());
-            if (note.isEmpty()) {
-                ps_insertLocation.setNull(5, Types.VARCHAR);
+            ps.setDouble(1, location.getX());
+            ps.setDouble(2, location.getY());
+            ps.setInt(3, location.getStreet().getPak());
+            ps.setString(4, location.getNumber());
+            if (location.getNote() == null) {
+                ps.setNull(5, Types.VARCHAR);
             } else {
-                ps_insertLocation.setString(5, note);
+                ps.setString(5, location.getNote());
             }
-            ps_insertLocation.executeUpdate();
-            ResultSet generatedKeys = ps_insertLocation.getGeneratedKeys();
-            if (generatedKeys != null && generatedKeys.next()) {
-                int result = generatedKeys.getInt(1);
-                if (result > 0 && addressHandler.isOnFlagOn()) {
-                    addressHandler.addLocation(new Address(result, x, y, s.getName(), houseNo,
-                            note, new FontAwesomeIconView().setStyleClass("location-icon")).updateLayout());
+            if (!isInsert) {
+                ps.setInt(6, location.getLocationId());
+            }
+            ps.executeUpdate();
+            if (isInsert) {
+                int generatedId = -1;
+                ResultSet generatedKeys = ps.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    generatedId = generatedKeys.getInt(1);
                 }
+                if (locationHandler.isOnFlagOn()) {
+                    location.setLocationId(generatedId);
+                    locationHandler.addLocation(location);
+                }
+                message = "Lokacija je uspešno dodata. #" + generatedId;
+            } else {
+                message = "Lokacija uspešno ažurirana.\n" + location.toAddressString();
             }
-            ps_insertLocation.clearParameters();
-            sendMessage("Podatak uspešno dodat.", false);
+            ps.clearParameters();
         } catch (SQLException ex) {
             int ec = ex.getErrorCode();
             if (ec == 30000) {
-                sendMessage("Dodavalje podatka nije uspelo.\nLokacija već postoji.", true);
+                message = "Dodavalje podatka nije uspelo.\nLokacija već postoji.";
             } else {
                 DBConnector.LOGGER.log(Level.SEVERE, null, ex);
-                sendMessage("Dodavalje podatka nije uspelo.\nGreška: " + ec, true);
+                message = "Dodavalje podatka nije uspelo.\nGreška: " + ec;
             }
+            type = true;
         }
+        sendMessage(message, type);
     }
 
     /**
@@ -325,8 +342,8 @@ public class DBConnector {
      *
      * @return ResultSet object.
      */
-    public List<Street> executeSelectStreets(int settlementId) {
-        ArrayList<Street> list = new ArrayList<>();
+    public List<StreetEntyty> executeSelectStreetsById(int settlementId) {
+        ArrayList<StreetEntyty> list = new ArrayList<>();
         try {
             ps_selectStreetsFromSettlement.setInt(1, settlementId);
             ps_selectStreetsFromSettlement.executeQuery();
@@ -334,7 +351,7 @@ public class DBConnector {
             ps_selectStreetsFromSettlement.clearParameters();
             if (rs != null) {
                 while (rs.next()) {
-                    list.add(new Street(rs.getInt("PAK"), rs.getString("NAME")));
+                    list.add(new StreetEntyty(rs.getInt("STREET_PAK"), rs.getString("STREET_NAME")));
                 }
                 rs.close();
             }
@@ -350,16 +367,16 @@ public class DBConnector {
      * Selects all rows from streets table with settlement initial instead of
      * settlement id.
      *
-     * @return List of StreetInitial objects.
+     * @return List of StreetTableEntity objects.
      */
-    public List<StreetInitial> executeSelectAllStreets() {
-        ArrayList<StreetInitial> list = new ArrayList<>(100);
+    public List<StreetTableEntity> executeSelectAllStreets() {
+        ArrayList<StreetTableEntity> list = new ArrayList<>(100);
         try {
             statement.executeQuery(SELECT_ALL_STREETS_QUERY);
             ResultSet rs = statement.getResultSet();
             if (rs != null) {
                 while (rs.next()) {
-                    list.add(new StreetInitial(rs.getInt("PAK"), rs.getString("NAME"), rs.getString("INITIAL")));
+                    list.add(new StreetTableEntity(rs.getInt("STREET_PAK"), rs.getString("STREET_NAME"), rs.getString("SETTLEMENT_INITIAL")));
                 }
                 rs.close();
             }
@@ -377,28 +394,23 @@ public class DBConnector {
      * <code>locations.pak = value</code>.
      *
      * @param value Value of settlement id or street pak.
-     * @param byId If true then value maust be from settlement.id, if false then
+     * @param byId If true then value mast be from settlement.id, if false then
      * value must be from street.pak
      * @return ArrayLisat of selected addresses.
      */
-    public List<Address> executeSelectLocations(int value, boolean byId) {
+    public List<LocationEntity> executeSelectLocations(int value, boolean byId) {
         ResultSet rs;
-        ArrayList<Address> list = new ArrayList<>(200);
+        ArrayList<LocationEntity> list = new ArrayList<>(200);
+        PreparedStatement ps = (byId) ? ps_selectLocationsWithSettlementId : ps_selectLocationsWithPak;
         try {
-            if (byId) {
-                ps_selectLocationsWithSettlementId.setInt(1, value);
-                rs = ps_selectLocationsWithSettlementId.executeQuery();
-                ps_selectLocationsWithSettlementId.clearParameters();
-            } else {
-                ps_selectLocationsWithPak.setInt(1, value);
-                rs = ps_selectLocationsWithPak.executeQuery();
-                ps_selectLocationsWithPak.clearParameters();
-            }
+            ps.setInt(1, value);
+            rs = ps.executeQuery();
+            ps.clearParameters();
             if (rs != null) {
                 while (rs.next()) {
-                    list.add(new Address(rs.getInt("ID"), rs.getDouble("X"), rs.getDouble("Y"), rs.getString("NAME"),
-                            rs.getString("HOUSE_NUMBER"), rs.getString("NOTE"),
-                            new FontAwesomeIconView().setStyleClass("location-icon")).updateLayout());
+                    list.add(new LocationEntity(rs.getInt("LOCATION_ID"), rs.getDouble("X"), rs.getDouble("Y"),
+                            new StreetEntyty(rs.getInt("STREET_PAK"), rs.getString("STREET_NAME")),
+                            rs.getString("LOCATION_NUMBER"), rs.getString("NOTE")).updateLayout());
                 }
                 rs.close();
                 list.trimToSize();

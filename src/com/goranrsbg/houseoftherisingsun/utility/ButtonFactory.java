@@ -29,13 +29,8 @@ public class ButtonFactory {
     private Tooltip tooltip;
     private FontAwesomeIconView icon;
 
-    private ButtonFactory() {
+    public ButtonFactory() {
     }
-
-    public static ButtonFactory newInstance() {
-        return new ButtonFactory();
-    }
-
     public JFXButton getButton() {
         JFXButton button1 = button;
         free();

@@ -15,6 +15,7 @@
  */
 package com.goranrsbg.houseoftherisingsun.utility;
 
+import com.goranrsbg.houseoftherisingsun.utility.entity.LocationEntity;
 import com.goranrsbg.houseoftherisingsun.database.DBConnector;
 import com.goranrsbg.houseoftherisingsun.ui.main.MainController;
 import java.util.List;
@@ -24,36 +25,36 @@ import javafx.scene.layout.Pane;
  *
  * @author Goran
  */
-public class AddressHandler {
+public class LocationsHandler {
 
     private final DBConnector db;
     private final Pane locationsPane;
 
     private boolean onFlag;
 
-    public AddressHandler(Pane locationPane) {
+    public LocationsHandler(Pane locationPane) {
         this.locationsPane = locationPane;
         db = DBConnector.getInstance();
         onFlag = false;
     }
 
     public boolean addLocationsByID(int settlementID) {
-        List<Address> list = db.executeSelectLocations(settlementID, true);
+        List<LocationEntity> list = db.executeSelectLocations(settlementID, true);
         addLocationsToThePane(list);
         return onFlag;
     }
 
     public boolean addLocationsByPAK(int streetPAK) {
-        List<Address> list = db.executeSelectLocations(streetPAK, false);
+        List<LocationEntity> list = db.executeSelectLocations(streetPAK, false);
         addLocationsToThePane(list);
         return onFlag;
     }
 
-    public void addLocation(Address address) {
-        locationsPane.getChildren().add(address);
+    public void addLocation(LocationEntity address) {
+        locationsPane.getChildren().add(address.updateLayout());
     }
 
-    private void addLocationsToThePane(List<Address> list) {
+    private void addLocationsToThePane(List<LocationEntity> list) {
         if (list.isEmpty()) {
             sentMessaage("Nema memorisanih lokacija.", false);
         } else {
@@ -64,7 +65,7 @@ public class AddressHandler {
         }
     }
 
-    public AddressHandler clearLocatons() {
+    public LocationsHandler clearLocatons() {
         locationsPane.getChildren().clear();
         onFlag = false;
         return this;

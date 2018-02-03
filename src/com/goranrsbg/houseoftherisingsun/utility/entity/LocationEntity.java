@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.goranrsbg.houseoftherisingsun.utility;
+package com.goranrsbg.houseoftherisingsun.utility.entity;
 
-import de.jensd.fx.glyphs.GlyphIcon;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import java.util.Objects;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -27,27 +28,39 @@ import javafx.scene.control.Tooltip;
  *
  * @author Goran
  */
-public final class Address extends Label {
+public final class LocationEntity extends Label {
 
-    private final SimpleIntegerProperty addressId;
+    private final SimpleIntegerProperty locationId;
     private final SimpleDoubleProperty x;
     private final SimpleDoubleProperty y;
-    private final SimpleStringProperty streetName;
-    private final SimpleStringProperty br;
+    private final SimpleObjectProperty<StreetEntyty> street;
+    private final SimpleStringProperty number;
     private final SimpleStringProperty note;
 
-    public Address(final int addressId, double x, double y, String streetName, String br, String note, GlyphIcon icon) {
-        super(null, icon);
-        this.addressId = new SimpleIntegerProperty(addressId);
+    public LocationEntity(double x, double y, StreetEntyty street, String number, String note) {
+        this(EMPTY_ADDRESS_ID, x, y, street, number, note);
+    }
+
+    public LocationEntity(int locationId, double x, double y, StreetEntyty street, String number, String note) {
+        super(null, new FontAwesomeIconView().setStyleClass(DEFAULT_ICON_STYLE));
+        this.locationId = new SimpleIntegerProperty(locationId);
         this.x = new SimpleDoubleProperty(x);
         this.y = new SimpleDoubleProperty(y);
-        this.streetName = new SimpleStringProperty(streetName);
-        this.br = new SimpleStringProperty(br);
+        this.street = new SimpleObjectProperty<>(street);
+        this.number = new SimpleStringProperty(number);
         this.note = new SimpleStringProperty(note);
     }
 
-    public int getAddressId() {
-        return addressId.get();
+    public int getLocationId() {
+        return locationId.get();
+    }
+
+    public void setLocationId(int locationId) {
+        this.locationId.set(locationId);
+    }
+
+    public boolean isLocationIdEmpty() {
+        return getLocationId() == EMPTY_ADDRESS_ID;
     }
 
     public double getX() {
@@ -66,20 +79,20 @@ public final class Address extends Label {
         this.y.set(y);
     }
 
-    public String getStreetName() {
-        return streetName.get();
+    public StreetEntyty getStreet() {
+        return street.get();
     }
 
-    public void setStreetName(String streetName) {
-        this.streetName.set(streetName);
+    public void setStreet(StreetEntyty street) {
+        this.street.set(street);
     }
 
-    public String getBr() {
-        return br.get();
+    public String getNumber() {
+        return number.get();
     }
 
-    public void setBr(String br) {
-        this.br.set(br);
+    public void setNumber(String br) {
+        this.number.set(br);
     }
 
     public String getNote() {
@@ -90,7 +103,7 @@ public final class Address extends Label {
         this.note.set(note);
     }
 
-    public Address updateLayout() {
+    public LocationEntity updateLayout() {
         this.setLayoutX(getX());
         this.setLayoutY(getY());
         if (getTooltip() == null) {
@@ -98,7 +111,7 @@ public final class Address extends Label {
             tt.setStyle(DEFAULT_TOOLTIP_STYLE);
             this.setTooltip(tt);
         }
-        getTooltip().setText("Adresa:\n" + getStreetName() + " br. " + getBr() + ((note.get() == null) ? "" : ("\nNapomena:\n" + note.get())));
+        getTooltip().setText("Adresa:\n" + getStreet().getName() + " br. " + getNumber() + ((note.get() == null) ? "" : ("\nNapomena:\n" + note.get())));
         return this;
     }
 
@@ -113,33 +126,6 @@ public final class Address extends Label {
         tt.setText(sb.toString());
     }
 
-    public void update(Address other) {
-        boolean updated = false;
-        if (this.getX() != other.getX()) {
-            this.setX(other.getX());
-            updated = true;
-        }
-        if (this.getY() != other.getY()) {
-            this.setY(other.getY());
-            updated = true;
-        }
-        if (!this.getStreetName().equals(other.getStreetName())) {
-            this.setStreetName(other.getStreetName());
-            updated = true;
-        }
-        if (!this.getBr().equals(other.getBr())) {
-            this.setBr(other.getBr());
-            updated = true;
-        }
-        if (!this.getNote().equals(other.getNote())) {
-            this.setNote(other.getNote());
-            updated = true;
-        }
-        if (updated) {
-            updateLayout();
-        }
-    }
-
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {
@@ -151,30 +137,37 @@ public final class Address extends Label {
         if (!Objects.equals(getClass(), obj.getClass())) {
             return false;
         }
-        final Address other = (Address) obj;
-        return Objects.equals(this.addressId, other.addressId);
+        final LocationEntity other = (LocationEntity) obj;
+        return Objects.equals(this.locationId, other.locationId);
+    }
+    
+    public String toAddressString() {
+        return getStreet().getName() + " br. " + getNumber() + ".";
     }
 
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 19 * hash + Objects.hashCode(this.addressId.get());
+        hash = 19 * hash + Objects.hashCode(this.locationId.get());
         hash = 19 * hash + Objects.hashCode(this.x.get());
         hash = 19 * hash + Objects.hashCode(this.y.get());
-        hash = 19 * hash + Objects.hashCode(this.streetName.get());
-        hash = 19 * hash + Objects.hashCode(this.br.get());
+        hash = 19 * hash + Objects.hashCode(this.street.get().getPak());
+        hash = 19 * hash + Objects.hashCode(this.number.get());
         hash = 19 * hash + Objects.hashCode(this.note.get());
         return hash;
     }
 
- 
     @Override
     public String toString() {
-        return "Address{" + "Id=" + addressId.get() + ", x=" + x.get() + ", y="
-                + y.get() + ", streetName=" + streetName.get() + ", br="
-                + br.get() + ", note=" + note.get() + '}';
+        return "Address{" + "Id=" + locationId.get() + ", x=" + x.get() + ", y="
+                + y.get() + ", streetName=" + street.get().getName() + ", br="
+                + number.get() + ", note=" + note.get() + '}';
     }
 
+    private static final int EMPTY_ADDRESS_ID = -1;
+    private static final double ICON_WIDTH_HALF = 11.5714282989502;
+    private static final double ICON_HEIGHT_HALF = 14.52099609375;
+    private static final String DEFAULT_ICON_STYLE = "location-icon";
     private static final String DEFAULT_TOOLTIP_STYLE = "-fx-font: normal normal 15px 'Oxygen'; -fx-base: #AE3522; -fx-text-fill: orange;";
 
 }

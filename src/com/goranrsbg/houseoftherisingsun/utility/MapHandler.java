@@ -15,6 +15,7 @@
  */
 package com.goranrsbg.houseoftherisingsun.utility;
 
+import com.goranrsbg.houseoftherisingsun.utility.entity.SettlementEntity;
 import com.goranrsbg.houseoftherisingsun.LocatorApp;
 import com.goranrsbg.houseoftherisingsun.ui.main.MainController;
 import java.io.FileInputStream;
@@ -33,12 +34,12 @@ public class MapHandler {
 
     private static MapHandler instance;
 
-    private final ArrayList<Settlement> settlementsList;
+    private final ArrayList<SettlementEntity> settlementsList;
     private final ImageView imageView;
     private int currentSettlementIndex;
     private Image theMapImage;
 
-    public MapHandler(ImageView imageView, ArrayList<Settlement> settlements) {
+    public MapHandler(ImageView imageView, ArrayList<SettlementEntity> settlements) {
         this.imageView = imageView;
         this.settlementsList = settlements;
         this.currentSettlementIndex = NONE_MAP_INDEX;
@@ -49,7 +50,7 @@ public class MapHandler {
         return instance;
     }
 
-    public Iterator<Settlement> getSettlementsIterator() {
+    public Iterator<SettlementEntity> getSettlementsIterator() {
         return settlementsList.iterator();
     }
 

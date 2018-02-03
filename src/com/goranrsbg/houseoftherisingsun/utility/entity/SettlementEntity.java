@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.goranrsbg.houseoftherisingsun.utility;
+package com.goranrsbg.houseoftherisingsun.utility.entity;
 
 /**
  *
  * @author Goran
  */
-public class Settlement {
+public class SettlementEntity {
 
     public static final String EXTENSION = ".bmp";
 
@@ -27,7 +27,7 @@ public class Settlement {
     private final String name;
     private final String initials;
 
-    public Settlement(int id, String name, String initials) {
+    public SettlementEntity(int id, String name, String initials) {
         this.id = id;
         this.name = name;
         this.initials = initials;
@@ -46,7 +46,7 @@ public class Settlement {
     }
     
     public String getMapName() {
-        return name + Settlement.EXTENSION;
+        return name + SettlementEntity.EXTENSION;
     }
 
     @Override

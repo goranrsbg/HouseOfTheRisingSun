@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.goranrsbg.houseoftherisingsun.ui.addaddress;
+package com.goranrsbg.houseoftherisingsun.ui.addlocation;
 
 import com.goranrsbg.houseoftherisingsun.database.DBConnector;
 import com.goranrsbg.houseoftherisingsun.ui.main.MainController;
+import com.goranrsbg.houseoftherisingsun.utility.entity.LocationEntity;
 import com.goranrsbg.houseoftherisingsun.utility.MapHandler;
-import com.goranrsbg.houseoftherisingsun.utility.Street;
+import com.goranrsbg.houseoftherisingsun.utility.entity.StreetEntyty;
 import com.jfoenix.controls.JFXComboBox;
 import com.jfoenix.controls.JFXTextArea;
 import com.jfoenix.controls.JFXTextField;
@@ -36,7 +37,7 @@ import javafx.scene.control.TextFormatter;
  *
  * @author Goran
  */
-public class AddAddressController implements Initializable {
+public class AddLocationController implements Initializable {
 
     public static final String TITLE = "Dodaj adresu";
 
@@ -52,11 +53,11 @@ public class AddAddressController implements Initializable {
     @FXML
     private JFXTextArea noteAreaField;
     @FXML
-    private JFXComboBox<Street> streetCombo;
+    private JFXComboBox<StreetEntyty> streetCombo;
 
-    private final ObservableList<Street> streetsData;
+    private final ObservableList<StreetEntyty> streetsData;
 
-    public AddAddressController() {
+    public AddLocationController() {
         db = DBConnector.getInstance();
         mapHandler = MapHandler.getInstance();
         streetsData = FXCollections.observableArrayList();
@@ -120,7 +121,7 @@ public class AddAddressController implements Initializable {
 
     public void comboBoxAddStreets() {
         streetsData.clear();
-        List<Street> list = db.executeSelectStreets(mapHandler.getCurrentMapId());
+        List<StreetEntyty> list = db.executeSelectStreetsById(mapHandler.getCurrentMapId());
         streetsData.addAll(list);
     }
 
@@ -136,17 +137,20 @@ public class AddAddressController implements Initializable {
 
     @FXML
     private void saveButtonAction(ActionEvent event) {
-        final Street s = streetCombo.getValue();
-        String x = xTextField.getText().trim();
-        String y = yTextField.getText().trim();
-        String houseNumber = brTextField.getText().trim();
-        String note = noteAreaField.getText().trim();
+        final StreetEntyty s = streetCombo.getValue();
+        final String x = xTextField.getText().trim();
+        final String y = yTextField.getText().trim();
+        final String houseNumber = brTextField.getText().trim();
+        final String note = noteAreaField.getText().trim();
         if (validateFields(s, x, y, houseNumber)) {
-            db.executeInsertLocation(Double.parseDouble(x) - WIDTH_HALF, Double.parseDouble(y) - HEIGHT_HALF, houseNumber, s, note);
+            db.executeInsertUpdateLocation(new LocationEntity(Double.parseDouble(x) - ICON_WIDTH_HALF, 
+                    Double.parseDouble(y) - ICON_HEIGHT_HALF, 
+                    s, houseNumber, 
+                    note.isEmpty() ? null : note));
         }
     }
 
-    private boolean validateFields(final Street s, String x, String y, String houseNumber) {
+    private boolean validateFields(final StreetEntyty s, final String x, final String y, final String houseNumber) {
         boolean valid;
         valid = true;
         if (s == null) {
@@ -164,11 +168,11 @@ public class AddAddressController implements Initializable {
         return valid;
     }
 
-    private void sendMessage(String message, boolean type) {
+    private void sendMessage(final String message, final boolean type) {
         MainController.notifyWithMsg(TITLE, message, type);
     }
-
-    private static final double WIDTH_HALF = 11.5714282989502;
-    private static final double HEIGHT_HALF = 14.52099609375;
-
+    
+    private static final double ICON_WIDTH_HALF = 11.5714282989502;
+    private static final double ICON_HEIGHT_HALF = 14.52099609375;
+    
 }

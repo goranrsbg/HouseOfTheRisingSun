@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.goranrsbg.houseoftherisingsun.utility;
+package com.goranrsbg.houseoftherisingsun.utility.entity;
 
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -22,22 +22,18 @@ import javafx.beans.property.SimpleStringProperty;
  *
  * @author Goran
  */
-public class Street {
+public class StreetEntyty {
 
     private final SimpleIntegerProperty pak;
     private final SimpleStringProperty name;
 
-    public Street(int pak, String name) {
+    public StreetEntyty(int pak, String name) {
         this.pak = new SimpleIntegerProperty(pak);
         this.name = new SimpleStringProperty(name);
     }
 
     public int getPak() {
         return pak.get();
-    }
-
-    public void setPak(int pak) {
-        this.pak.set(pak);
     }
 
     public String getName() {
@@ -47,7 +43,7 @@ public class Street {
     public void setName(String name) {
         this.name.set(name);
     }
-
+    
     @Override
     public String toString() {
         return this.getPak() + " ~ " + this.getName();

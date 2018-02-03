@@ -17,7 +17,7 @@ package com.goranrsbg.houseoftherisingsun.ui.showstreets;
 
 import com.goranrsbg.houseoftherisingsun.database.DBConnector;
 import com.goranrsbg.houseoftherisingsun.ui.main.MainController;
-import com.goranrsbg.houseoftherisingsun.utility.StreetInitial;
+import com.goranrsbg.houseoftherisingsun.utility.entity.StreetTableEntity;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
@@ -39,16 +39,16 @@ public class ShowStreetsController implements Initializable {
 
     private final DBConnector db;
 
-    private final ObservableList<StreetInitial> data;
+    private final ObservableList<StreetTableEntity> data;
 
     @FXML
-    private TableView<StreetInitial> tableStreets;
+    private TableView<StreetTableEntity> tableStreets;
     @FXML
-    private TableColumn<StreetInitial, Integer> colPak;
+    private TableColumn<StreetTableEntity, Integer> colPak;
     @FXML
-    private TableColumn<StreetInitial, String> colName;
+    private TableColumn<StreetTableEntity, String> colName;
     @FXML
-    private TableColumn<StreetInitial, String> colInitial;
+    private TableColumn<StreetTableEntity, String> colInitial;
 
     public ShowStreetsController() {
         db = DBConnector.getInstance();
