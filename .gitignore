@@ -1,5 +1,8 @@
-/nbproject/
-/dist/
-/build/
-/resources/
-/lib/
+nbproject/
+dist/
+build/
+resources/
+lib/
+test/
+build.xml
+manifest.mf

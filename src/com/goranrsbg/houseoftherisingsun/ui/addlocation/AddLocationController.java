@@ -15,11 +15,12 @@
  */
 package com.goranrsbg.houseoftherisingsun.ui.addlocation;
 
-import com.goranrsbg.houseoftherisingsun.database.DBConnector;
+import com.goranrsbg.houseoftherisingsun.database.DBHandler;
 import com.goranrsbg.houseoftherisingsun.ui.main.MainController;
+import com.goranrsbg.houseoftherisingsun.utility.LocationsHandler;
 import com.goranrsbg.houseoftherisingsun.utility.entity.LocationEntity;
 import com.goranrsbg.houseoftherisingsun.utility.MapHandler;
-import com.goranrsbg.houseoftherisingsun.utility.entity.StreetEntyty;
+import com.goranrsbg.houseoftherisingsun.utility.entity.StreetEntity;
 import com.jfoenix.controls.JFXComboBox;
 import com.jfoenix.controls.JFXTextArea;
 import com.jfoenix.controls.JFXTextField;
@@ -38,11 +39,12 @@ import javafx.scene.control.TextFormatter;
  * @author Goran
  */
 public class AddLocationController implements Initializable {
-
+    
     public static final String TITLE = "Dodaj adresu";
 
-    private final DBConnector db;
+    private final DBHandler db;
     private final MapHandler mapHandler;
+    private final LocationsHandler locationsHandler;
 
     @FXML
     private JFXTextField xTextField;
@@ -53,14 +55,15 @@ public class AddLocationController implements Initializable {
     @FXML
     private JFXTextArea noteAreaField;
     @FXML
-    private JFXComboBox<StreetEntyty> streetCombo;
+    private JFXComboBox<StreetEntity> streetCombo;
 
-    private final ObservableList<StreetEntyty> streetsData;
+    private final ObservableList<StreetEntity> streetsData;
 
     public AddLocationController() {
-        db = DBConnector.getInstance();
+        db = DBHandler.getInstance();
         mapHandler = MapHandler.getInstance();
         streetsData = FXCollections.observableArrayList();
+        locationsHandler = LocationsHandler.getInstance();
     }
 
     @Override
@@ -119,10 +122,11 @@ public class AddLocationController implements Initializable {
         comboBoxAddStreets();
     }
 
-    public void comboBoxAddStreets() {
+    public AddLocationController comboBoxAddStreets() {
         streetsData.clear();
-        List<StreetEntyty> list = db.executeSelectStreetsById(mapHandler.getCurrentMapId());
+        List<StreetEntity> list = db.executeSelectStreetsById(mapHandler.getCurrentMapId());
         streetsData.addAll(list);
+        return this;
     }
 
     public void clearLocationXY() {
@@ -137,20 +141,23 @@ public class AddLocationController implements Initializable {
 
     @FXML
     private void saveButtonAction(ActionEvent event) {
-        final StreetEntyty s = streetCombo.getValue();
+        final StreetEntity s = streetCombo.getValue();
         final String x = xTextField.getText().trim();
         final String y = yTextField.getText().trim();
         final String houseNumber = brTextField.getText().trim();
         final String note = noteAreaField.getText().trim();
         if (validateFields(s, x, y, houseNumber)) {
-            db.executeInsertUpdateLocation(new LocationEntity(Double.parseDouble(x) - ICON_WIDTH_HALF, 
-                    Double.parseDouble(y) - ICON_HEIGHT_HALF, 
-                    s, houseNumber, 
+            LocationEntity loce = db.executeInsertOrUpdateLocation(new LocationEntity(Double.parseDouble(x) - LocationsHandler.ICON_WIDTH_HALF, 
+                    Double.parseDouble(y) - LocationsHandler.ICON_HEIGHT_HALF,
+                    s.getPak(), houseNumber, 
                     note.isEmpty() ? null : note));
+            if(loce != null && locationsHandler.isLocationsShown()) {
+                locationsHandler.addLocation(loce);
+            }
         }
     }
 
-    private boolean validateFields(final StreetEntyty s, final String x, final String y, final String houseNumber) {
+    private boolean validateFields(final StreetEntity s, final String x, final String y, final String houseNumber) {
         boolean valid;
         valid = true;
         if (s == null) {
@@ -171,8 +178,5 @@ public class AddLocationController implements Initializable {
     private void sendMessage(final String message, final boolean type) {
         MainController.notifyWithMsg(TITLE, message, type);
     }
-    
-    private static final double ICON_WIDTH_HALF = 11.5714282989502;
-    private static final double ICON_HEIGHT_HALF = 14.52099609375;
     
 }

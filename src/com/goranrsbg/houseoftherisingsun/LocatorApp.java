@@ -1,6 +1,6 @@
 package com.goranrsbg.houseoftherisingsun;
 
-import com.goranrsbg.houseoftherisingsun.database.DBConnector;
+import com.goranrsbg.houseoftherisingsun.database.DBHandler;
 import com.sun.javafx.application.LauncherImpl;
 import java.nio.file.Paths;
 import javafx.application.Application;
@@ -27,7 +27,7 @@ public class LocatorApp extends Application {
     
     @Override
     public void init() {
-        DBConnector.ceateInstance();
+        DBHandler.ceateInstance();
     }
 
     @Override
@@ -50,8 +50,7 @@ public class LocatorApp extends Application {
 
     @Override
     public void stop() {
-        DBConnector.getInstance().closeConnection();
-        
+        DBHandler.getInstance().closeConnection();
     }
 
     /**

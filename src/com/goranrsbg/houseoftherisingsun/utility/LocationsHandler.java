@@ -16,9 +16,17 @@
 package com.goranrsbg.houseoftherisingsun.utility;
 
 import com.goranrsbg.houseoftherisingsun.utility.entity.LocationEntity;
-import com.goranrsbg.houseoftherisingsun.database.DBConnector;
+import com.goranrsbg.houseoftherisingsun.database.DBHandler;
 import com.goranrsbg.houseoftherisingsun.ui.main.MainController;
+import com.goranrsbg.houseoftherisingsun.utility.entity.StreetEntity;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import javafx.geometry.Bounds;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Pane;
 
 /**
@@ -26,65 +34,144 @@ import javafx.scene.layout.Pane;
  * @author Goran
  */
 public class LocationsHandler {
+    
+    private static LocationsHandler instance;
 
-    private final DBConnector db;
+    private final DBHandler db;
     private final Pane locationsPane;
+    private final Map<Integer, String> streets;
+    private final List<FontAwesomeIconView> locations;
+    private int currentSize;
+    
+    private boolean showLocations;
 
-    private boolean onFlag;
-
-    public LocationsHandler(Pane locationPane) {
+    private LocationsHandler(Pane locationPane) {
         this.locationsPane = locationPane;
-        db = DBConnector.getInstance();
-        onFlag = false;
+        locations = new ArrayList();
+        streets = new HashMap<>();
+        db = DBHandler.getInstance();
+        showLocations = false;
+    }
+    
+    public static LocationsHandler createInstance(Pane locationPane) {
+        if(instance == null) {
+            instance = new LocationsHandler(locationPane);
+        }
+        return instance;
+    }
+    
+    public static LocationsHandler getInstance() {
+        return instance;
     }
 
     public boolean addLocationsByID(int settlementID) {
-        List<LocationEntity> list = db.executeSelectLocations(settlementID, true);
-        addLocationsToThePane(list);
-        return onFlag;
+        List<LocationEntity> list;
+        List<StreetEntity> streetsList;
+        try {
+            list = db.executeSelectLocations(settlementID, DBHandler.SELECTLOCATIONSBY_ID);
+            streetsList = db.executeSelectStreetsById(settlementID);
+            memorizeStreets(streetsList);
+            buildLocations(list);
+        } catch (SQLException ex) {
+            sendMessage("Selektovanje ulica nije uspelo.\nGreška: " + ex.getErrorCode(), true);
+        }
+        return showLocations;
     }
 
     public boolean addLocationsByPAK(int streetPAK) {
-        List<LocationEntity> list = db.executeSelectLocations(streetPAK, false);
-        addLocationsToThePane(list);
-        return onFlag;
-    }
-
-    public void addLocation(LocationEntity address) {
-        locationsPane.getChildren().add(address.updateLayout());
-    }
-
-    private void addLocationsToThePane(List<LocationEntity> list) {
-        if (list.isEmpty()) {
-            sentMessaage("Nema memorisanih lokacija.", false);
-        } else {
-            locationsPane.getChildren().addAll(list);
-            sentMessaage("Učitano lokacija: (" + list.size() + ").", false);
-            onFlag = true;
-            printList(list);
+        List<LocationEntity> list;
+        try {
+            list = db.executeSelectLocations(streetPAK, DBHandler.SELECTLOCATIONSBY_PAK);
+            buildLocations(list);
+        } catch (SQLException ex) {
+            sendMessage("Selektovanje ulica nije uspelo.\nGreška: " + ex.getErrorCode(), true);
         }
+        return showLocations;
+    }
+    
+    private void memorizeStreets(List<StreetEntity> streetsList) {
+        streetsList.forEach((s) -> {
+            if(!streets.containsKey(s.getPak())) {
+                streets.put(s.getPak(), s.getName());
+            }
+        });
+    }
+
+    public void addLocation(LocationEntity location) {
+        ensureLocationsSize(currentSize + 1);
+        locationsPane.getChildren().add(createIconView(currentSize - 1, location));
+    }
+
+
+    private void buildLocations(List<LocationEntity> list) {
+        if (list.isEmpty()) {
+            sendMessage("Nema memorisanih lokacija.", false);
+            return;
+        }
+        ensureLocationsSize(list.size());
+        for (int i = 0; i < list.size(); i++) {
+            locationsPane.getChildren().add(createIconView(i, list.get(i)));
+        }
+        sendMessage("Učitano lokacija: (" + list.size() + ").", false);
+        showLocations = true;
+    }
+    
+    private FontAwesomeIconView createLocation() {
+        FontAwesomeIconView icon = new FontAwesomeIconView();
+        icon.getStyleClass().add(DEFAULT_ICON_STYLE);
+        return icon;
+    }
+
+    private FontAwesomeIconView createIconView(int pos, LocationEntity le) {
+        FontAwesomeIconView location = locations.get(pos);
+        location.setLayoutX(le.getX());
+        location.setLayoutY(le.getY());
+        Tooltip t = new Tooltip("Adresa:\n" + streets.get(le.getStreetPak()) + le.toTooltipString());
+        t.setStyle(DEFAULT_TOOLTIP_STYLE);
+        Tooltip.install(location, t);
+        location.setUserData(le);
+        location.setOnMouseClicked((e) -> {
+            e.consume();
+            FontAwesomeIconView source = (FontAwesomeIconView) e.getSource();
+            System.out.println("Click # " + source.getUserData());
+            Bounds lb = source.getLayoutBounds();
+            System.out.println(lb.getWidth() + " " +lb.getHeight());
+        });
+        return location;
+    }
+
+    private void ensureLocationsSize(int minSize) {
+        int size = locations.size();
+        if (size < minSize) {
+            for (int i = 0; i < minSize - size; i++) {
+                locations.add(createLocation());
+            }
+        }
+        currentSize = minSize;
     }
 
     public LocationsHandler clearLocatons() {
         locationsPane.getChildren().clear();
-        onFlag = false;
+        streets.clear();
+        showLocations = false;
         return this;
     }
 
-    public boolean isOnFlagOn() {
-        return onFlag;
+    public boolean isLocationsShown() {
+        return showLocations;
     }
 
-    private void printList(List list) {
-        list.forEach((a) -> {
-            System.out.println(a);
-        });
-    }
-
-    private void sentMessaage(String message, boolean type) {
+    private void sendMessage(String message, boolean type) {
         MainController.notifyWithMsg(TITLE, message, type);
     }
 
+    public static final String DRAG_KEY_WORD = "dragged";
     public static final String TITLE = "Upravljač adresama.";
+    public static final double ICON_WIDTH_HALF = 11.5;
+    public static final double ICON_HEIGHT_HALF = 13.5;
+    private static final String DEFAULT_ICON_STYLE = "location-icon";
+    private static final String DEFAULT_TOOLTIP_STYLE = "-fx-font: normal normal 15px 'Oxygen'; -fx-base: #AE3522; -fx-text-fill: orange;";
+
+    
 
 }

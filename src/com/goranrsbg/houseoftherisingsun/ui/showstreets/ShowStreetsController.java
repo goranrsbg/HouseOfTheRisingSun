@@ -15,7 +15,7 @@
  */
 package com.goranrsbg.houseoftherisingsun.ui.showstreets;
 
-import com.goranrsbg.houseoftherisingsun.database.DBConnector;
+import com.goranrsbg.houseoftherisingsun.database.DBHandler;
 import com.goranrsbg.houseoftherisingsun.ui.main.MainController;
 import com.goranrsbg.houseoftherisingsun.utility.entity.StreetTableEntity;
 import java.net.URL;
@@ -37,7 +37,7 @@ public class ShowStreetsController implements Initializable {
 
     public static final String TITLE = "Spisak ulica";
 
-    private final DBConnector db;
+    private final DBHandler db;
 
     private final ObservableList<StreetTableEntity> data;
 
@@ -51,7 +51,7 @@ public class ShowStreetsController implements Initializable {
     private TableColumn<StreetTableEntity, String> colInitial;
 
     public ShowStreetsController() {
-        db = DBConnector.getInstance();
+        db = DBHandler.getInstance();
         data = FXCollections.observableArrayList();
     }
 
@@ -65,9 +65,13 @@ public class ShowStreetsController implements Initializable {
         colName.setCellValueFactory(new PropertyValueFactory<>("name"));
         colInitial.setCellValueFactory(new PropertyValueFactory<>("initial"));
         tableStreets.setItems(data);
-        data.addAll(db.executeSelectAllStreets());
+        readStreets();
     }
-    
+
+    public void readStreets() {
+        data.addAll(db.executeSelectAllTableStreets());
+    }
+
     public void sendMessage(String message, boolean type) {
         MainController.notifyWithMsg(TITLE, message, type);
     }

@@ -29,7 +29,7 @@ import javafx.stage.StageStyle;
  */
 public class LocatorPreloader extends Preloader {
 
-    Stage preloaderStage;
+    private Stage preloaderStage;
 
     @Override
     public void start(Stage stage) throws Exception {

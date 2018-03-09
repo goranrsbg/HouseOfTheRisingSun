@@ -16,26 +16,23 @@
 package com.goranrsbg.houseoftherisingsun.utility.entity;
 
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 
 /**
  *
  * @author Goran
  */
-public class StreetTableEntity extends StreetEntyty {
+public class StreetTableEntity extends StreetEntity {
 
-    private final SimpleStringProperty initial;
+    private final StringProperty initial;
 
-    public StreetTableEntity(int pak, String name, String initial) {
-        super(pak, name);
+    public StreetTableEntity(int pak, String name, int settlementId ,String initial) {
+        super(pak, name, settlementId);
         this.initial = new SimpleStringProperty(initial);
     }
 
     public String getInitial() {
         return initial.get();
-    }
-
-    public void setInitial(String initial) {
-        this.initial.set(initial);
     }
 
 }

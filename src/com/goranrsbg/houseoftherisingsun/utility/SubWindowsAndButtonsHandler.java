@@ -25,9 +25,8 @@ import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXNodesList;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Random;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -45,28 +44,16 @@ public class SubWindowsAndButtonsHandler {
     private final JFXNodesList rootButtonList;
     private final MapHandler mapHandler;
     private final LocationsHandler locationsHandler;
-    private final Map<String, JFXButton> buttonsOfImportance;
+    private final Map<ButtonType, JFXButton> buttonsOfImportance;
+    private JFXButton[] btnMaps;
+    private final Map<ButtonType, Object> subWindowsControllers;
 
-    private AddLocationController addAddressController;
-
-    public SubWindowsAndButtonsHandler(JFXNodesList rootButtonList, LocationsHandler locationsHandler) {
+    public SubWindowsAndButtonsHandler(JFXNodesList rootButtonList, LocationsHandler locationsHandler, MapHandler mapHandler) {
         this.rootButtonList = rootButtonList;
         this.locationsHandler = locationsHandler;
-        mapHandler = MapHandler.getInstance();
+        this.mapHandler = mapHandler;
         buttonsOfImportance = new HashMap<>();
-        ADD_LOCATION_KEY = generateButtonKey(RANDOM_DEFAULT_STRING_LENGTH);
-        ADD_RECIPIENT_KEY = generateButtonKey(RANDOM_DEFAULT_STRING_LENGTH);
-        SHOW_ALL_LOCATIONS_KEY = generateButtonKey(RANDOM_DEFAULT_STRING_LENGTH);
-        SHOW_STREETS_KEY = generateButtonKey(RANDOM_DEFAULT_STRING_LENGTH);
-    }
-
-    private String generateButtonKey(int digits) {
-        StringBuilder sb = new StringBuilder(digits);
-        Random rand = new Random(System.nanoTime());
-        for (int i = 0; i < digits; i++) {
-            sb.append((char) (RANDOM_SEARCH_START + rand.nextInt(RANDOM_SEARCH_GAP)));
-        }
-        return sb.toString();
+        subWindowsControllers = new HashMap<>();
     }
 
     public void generateButtons() {
@@ -87,35 +74,38 @@ public class SubWindowsAndButtonsHandler {
         JFXButton btn;
         btn = factory.createNewJFXGlyphButton(ButtonFactory.BUTTON_SECOND_SUBCLASS, "marker-icon", "Dadaj lokaciju.").getButton();
         btn.setOnAction(this::buttonClickActionEvent);
-        btn.setId(ADD_LOCATION_KEY);
-        buttonsOfImportance.put(ADD_LOCATION_KEY, btn);
+        btn.setUserData(ButtonType.ADD_LOCATION);
+        buttonsOfImportance.put(ButtonType.ADD_LOCATION, btn);
         locationsJFXNodesList.addAnimatedNode(btn);
 
         btn = factory.createNewJFXGlyphButton(ButtonFactory.BUTTON_THIRD_SUBCLASS, "roadt-icon", "Prikaži spisak ulica.").getButton();
         btn.setOnAction(this::buttonClickActionEvent);
-        btn.setId(SHOW_STREETS_KEY);
-        buttonsOfImportance.put(SHOW_STREETS_KEY, btn);
+        btn.setUserData(ButtonType.SHOW_STREETS_TABLE);
+        buttonsOfImportance.put(ButtonType.SHOW_STREETS_TABLE, btn);
         streetsJFXNodesList.addAnimatedNode(btn);
 
         btn = factory.createNewJFXGlyphButton(ButtonFactory.BUTTON_SECOND_SUBCLASS, "streetview-icon", "Prikaži sve Lokacije.").getButton();
         btn.setOnAction(this::buttonClickActionEvent);
-        btn.setId(SHOW_ALL_LOCATIONS_KEY);
-        buttonsOfImportance.put(SHOW_ALL_LOCATIONS_KEY, btn);
+        btn.setUserData(ButtonType.SHOW_ALL_LOCATIONS);
+        buttonsOfImportance.put(ButtonType.SHOW_ALL_LOCATIONS, btn);
         locationsJFXNodesList.addAnimatedNode(btn);
 
         btn = factory.createNewJFXGlyphButton(ButtonFactory.BUTTON_FIRST_SUBCLASS, "addrecip-icon", "Dodaj primaoca.").getButton();
-        btn.setId(ADD_RECIPIENT_KEY);
-        buttonsOfImportance.put(ADD_RECIPIENT_KEY, btn);
+        btn.setUserData(ButtonType.ADD_RECIPIENT);
+        buttonsOfImportance.put(ButtonType.ADD_RECIPIENT, btn);
         recipientsJFXNodesList.addAnimatedNode(btn);
 
         settlementsMapChooserList.setRotate(90d);
-        Iterator<SettlementEntity> itr = mapHandler.getSettlementsIterator();
-        while (itr.hasNext()) {
-            SettlementEntity s = itr.next();
-            JFXButton button = factory.createNewJFXTextButton(s.getInitials(), s.getMapName()).getButton();
+        ObservableList<SettlementEntity> settlements = mapHandler.getSettlements();
+        btnMaps = new JFXButton[settlements.size()];
+        for (int i = 0; i < settlements.size(); i++) {
+            SettlementEntity e = settlements.get(i);
+            JFXButton button = factory.createNewJFXTextButton(e.getInitials(), e.getMapName()).getButton();
             button.setOnAction(this::buttonClickActionEvent);
-            button.setId(s.getId() + "");
+            button.setId(e.getId() + "");
+            button.setUserData(ButtonType.MAP);
             settlementsMapChooserList.addAnimatedNode(button);
+            btnMaps[i] = button;
         }
         settlementsJFXNodesList.addAnimatedNode(settlementsMapChooserList);
 
@@ -126,50 +116,63 @@ public class SubWindowsAndButtonsHandler {
     }
 
     private void buttonClickActionEvent(ActionEvent event) {
+        event.consume();
         JFXButton btn = (JFXButton) event.getSource();
-        final String id = btn.getId();
-        if (id.equals(ADD_LOCATION_KEY)) {
-            if (mapHandler.isMapLoaded()) {
-                loadWindow("/com/goranrsbg/houseoftherisingsun/ui/addlocation/addlocation.fxml", AddLocationController.TITLE, ADD_LOCATION_KEY);
-                btn.setDisable(true);
-            } else {
-                notifyWithMsg(MainController.TITLE, "Karta mora biti odabrana.", true);
-            }
-        } else if (id.equals(SHOW_STREETS_KEY)) {
-            loadWindow("/com/goranrsbg/houseoftherisingsun/ui/showstreets/showstreets.fxml", ShowStreetsController.TITLE, SHOW_STREETS_KEY);
-            btn.setDisable(true);
-        } else if (id.equals(SHOW_ALL_LOCATIONS_KEY)) {
-            if (mapHandler.isMapLoaded()) {
-                boolean flag = locationsHandler.isOnFlagOn();
-                if (flag) {
-                    changeButtonShowAllLocationsTooltip(flag);
-                    locationsHandler.clearLocatons();
+        ButtonType btn_type = (ButtonType) btn.getUserData();
+        switch (btn_type) {
+            case ADD_LOCATION:
+                if (mapHandler.isMapLoaded()) {
+                    loadWindow("/com/goranrsbg/houseoftherisingsun/ui/addlocation/addlocation.fxml", AddLocationController.TITLE, btn_type);
+                    btn.setDisable(true);
                 } else {
-                    boolean isAdded = locationsHandler.clearLocatons().addLocationsByID(mapHandler.getCurrentMapId());
-                    changeButtonShowAllLocationsTooltip(!isAdded);
+                    notifyWithMsg(MainController.TITLE, "Karta mora biti odabrana.", true);
                 }
-            } else {
-                changeButtonShowAllLocationsTooltip(true);
-                MainController.notifyWithMsg(TITLE, "Karta nije odabrana.", false);
-            }
-        } else {
-            // Map change buttons, must be last for simplicity.
-            int mapId = Integer.parseInt(id);
-            if (mapHandler.loadMap(mapId).isMapLoaded()) {
-                if (locationsHandler.isOnFlagOn()) {
-                    boolean isAdded = locationsHandler.clearLocatons().addLocationsByID(mapHandler.getCurrentMapId());
-                    changeButtonShowAllLocationsTooltip(!isAdded);
+                break;
+            case SHOW_STREETS_TABLE:
+                loadWindow("/com/goranrsbg/houseoftherisingsun/ui/showstreets/showstreets.fxml", ShowStreetsController.TITLE, btn_type);
+                btn.setDisable(true);
+                break;
+            case SHOW_ALL_LOCATIONS:
+                if (mapHandler.isMapLoaded()) {
+                    boolean flag = locationsHandler.isLocationsShown();
+                    if (flag) {
+                        toggelButtonShowAllLocationsTooltip(flag);
+                        locationsHandler.clearLocatons();
+                    } else {
+                        boolean isAdded = locationsHandler.clearLocatons().addLocationsByID(mapHandler.getCurrentMapId());
+                        toggelButtonShowAllLocationsTooltip(!isAdded);
+                    }
+                } else {
+                    toggelButtonShowAllLocationsTooltip(true);
+                    MainController.notifyWithMsg(TITLE, "Karta nije odabrana.", false);
                 }
-                if (addAddressController != null) {
-                    addAddressController.comboBoxAddStreets();
-                    addAddressController.clearLocationXY();
+                break;
+            case MAP:
+                final String id = btn.getId();
+                int mapId = Integer.parseInt(id);
+                if (mapHandler.loadMap(mapId).isMapLoaded()) {
+                    enableMapButton();
+                    btn.setDisable(true);
+                    locationsHandler.clearLocatons();
+                    Object adc = subWindowsControllers.get(ButtonType.ADD_LOCATION);
+                    if (adc != null) {
+                        ((AddLocationController)adc).comboBoxAddStreets().clearLocationXY();
+                    }
                 }
+                break;
+        }
+    }
+    
+    private void enableMapButton() {
+        for (JFXButton btn : btnMaps) {
+            if (btn.isDisabled()) {
+                btn.setDisable(false);
             }
         }
     }
 
-    private void changeButtonShowAllLocationsTooltip(boolean show) {
-        JFXButton btn = buttonsOfImportance.get(SHOW_ALL_LOCATIONS_KEY);
+    private void toggelButtonShowAllLocationsTooltip(boolean show) {
+        JFXButton btn = buttonsOfImportance.get(ButtonType.SHOW_ALL_LOCATIONS);
         if (show) {
             btn.getTooltip().setText("Prikaži sve lokacije.");
             btn.setStyle("-fx-border-color: white;");
@@ -179,21 +182,17 @@ public class SubWindowsAndButtonsHandler {
         }
     }
 
-    private void loadWindow(String location, String title, Object userData) {
+    private void loadWindow(String location, String title, ButtonType userData) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(location));
             Parent parent = loader.load();
             Stage stage = new Stage(StageStyle.UTILITY);
-            Scene newScene = new Scene(parent);
-            stage.setScene(newScene);
+            stage.setScene(new Scene(parent));
             stage.setAlwaysOnTop(true);
             stage.setTitle(title);
             stage.setOnCloseRequest(this::addClosingEvent);
             stage.setUserData(userData);
-            if (((String) userData).equals(ADD_LOCATION_KEY)) {
-                addAddressController = (AddLocationController) loader.getController();
-                stage.setResizable(false);
-            }
+            subWindowsControllers.put(userData, loader.getController());
             stage.show();
         } catch (IOException ex) {
             MainController.notifyWithMsg(MainController.TITLE, "Prikazivanje prozora nije uspelo.\nGreška: " + ex.getMessage(), true);
@@ -201,31 +200,17 @@ public class SubWindowsAndButtonsHandler {
     }
 
     private void addClosingEvent(WindowEvent event) {
-        String key = (String) ((Stage) event.getSource()).getUserData();
-        if (key.equals(ADD_LOCATION_KEY)) {
-            buttonsOfImportance.get(key).setDisable(false);
-            addAddressController = null;
-        } else if (key.equals(SHOW_STREETS_KEY)) {
-            buttonsOfImportance.get(SHOW_STREETS_KEY).setDisable(false);
-        }
+        ButtonType btn_type = (ButtonType) ((Stage) event.getSource()).getUserData();
+        buttonsOfImportance.get(btn_type).setDisable(false);
+        subWindowsControllers.put(btn_type, null);
     }
 
-    public boolean isAddAddressWindowShown() {
-        return addAddressController != null;
+    public boolean isWindowLoaded(ButtonType btn_type) {
+        return buttonsOfImportance.get(btn_type).isDisable();
     }
 
-    public void setAddAddressWindow(double x, double y) {
-        if (isAddAddressWindowShown()) {
-            addAddressController.setLocationXY(x, y);
-        }
+    public Object getController(ButtonType btn_type) {
+        return subWindowsControllers.get(btn_type);
     }
-
-    private final int RANDOM_DEFAULT_STRING_LENGTH = 7;
-    private final int RANDOM_SEARCH_START = 33;
-    private final int RANDOM_SEARCH_GAP = 94;
-    public final String ADD_LOCATION_KEY;
-    public final String ADD_RECIPIENT_KEY;
-    public final String SHOW_ALL_LOCATIONS_KEY;
-    public final String SHOW_STREETS_KEY;
 
 }

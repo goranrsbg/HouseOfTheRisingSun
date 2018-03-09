@@ -83,10 +83,10 @@ public class ButtonFactory {
     private static final String DEFAULT_BUTTON_CSS_SUBCLASS = "animated-option-sub-button";
     private static final String DEFAULT_BUTTON_CSS_CLASS = "animated-option-button";
     private static final String DEFAULT_TOOLTIP_STYLE = "-fx-font: normal bold 15px 'Oxygen'; -fx-base: #AE3522; -fx-text-fill: orange;";
-    public static final int BUTTON_ZERO_SUBCLASS = 0x00;
-    public static final int BUTTON_FIRST_SUBCLASS = 0x01;
-    public static final int BUTTON_SECOND_SUBCLASS = 0x02;
-    public static final int BUTTON_THIRD_SUBCLASS = 0x03;
-    public static final int BUTTON_FOURTH_SUBCLASS = 0x04;
+    public static final int BUTTON_ZERO_SUBCLASS   = 0;
+    public static final int BUTTON_FIRST_SUBCLASS  = 1;
+    public static final int BUTTON_SECOND_SUBCLASS = 2;
+    public static final int BUTTON_THIRD_SUBCLASS  = 3;
+    public static final int BUTTON_FOURTH_SUBCLASS = 4;
 
 }

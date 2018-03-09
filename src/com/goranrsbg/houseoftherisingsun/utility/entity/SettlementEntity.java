@@ -15,43 +15,48 @@
  */
 package com.goranrsbg.houseoftherisingsun.utility.entity;
 
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+
 /**
  *
  * @author Goran
  */
 public class SettlementEntity {
 
-    public static final String EXTENSION = ".bmp";
+    private static final String EXTENSION = ".bmp";
 
-    private final int id;
-    private final String name;
-    private final String initials;
+    private final IntegerProperty id;
+    private final StringProperty name;
+    private final StringProperty initials;
 
     public SettlementEntity(int id, String name, String initials) {
-        this.id = id;
-        this.name = name;
-        this.initials = initials;
+        this.id = new SimpleIntegerProperty(id);
+        this.name = new SimpleStringProperty(name);
+        this.initials = new SimpleStringProperty(initials);
     }
 
     public int getId() {
-        return id;
+        return id.get();
     }
 
     public String getName() {
-        return name;
+        return name.get();
     }
 
     public String getInitials() {
-        return initials;
+        return initials.get();
     }
     
     public String getMapName() {
-        return name + SettlementEntity.EXTENSION;
+        return name.get() + EXTENSION;
     }
 
     @Override
     public String toString() {
-        return "Settlement{" + "ID=" + id + ", NAME=" + name + ", INITIALS=" + initials + '}';
+        return "Settlement{" + "ID=" + id.get() + ", NAME=" + name.get() + ", INITIALS=" + initials.get() + '}';
     }
 
 }

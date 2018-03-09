@@ -15,7 +15,9 @@
  */
 package com.goranrsbg.houseoftherisingsun.ui.main;
 
-import com.goranrsbg.houseoftherisingsun.database.DBConnector;
+import com.goranrsbg.houseoftherisingsun.database.DBHandler;
+import com.goranrsbg.houseoftherisingsun.ui.addlocation.AddLocationController;
+import com.goranrsbg.houseoftherisingsun.utility.ButtonType;
 import com.goranrsbg.houseoftherisingsun.utility.LocationsHandler;
 import com.goranrsbg.houseoftherisingsun.utility.SubWindowsAndButtonsHandler;
 import com.goranrsbg.houseoftherisingsun.utility.MapHandler;
@@ -36,9 +38,8 @@ import org.controlsfx.control.Notifications;
  * @author Goran
  */
 public class MainController implements Initializable {
-    
 
-    private final DBConnector db;
+    private final DBHandler db;
     private MapHandler mapHandler;
     private LocationsHandler locationsHandler;
     private SubWindowsAndButtonsHandler subWindowsHandler;
@@ -53,38 +54,41 @@ public class MainController implements Initializable {
     private Pane locationsPane;
 
     public MainController() {
-        db = DBConnector.getInstance();
+        db = DBHandler.getInstance();
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        locationsHandler = new LocationsHandler(locationsPane);
-        db.setLocationHandler(locationsHandler);
-        mapHandler = new MapHandler(theMapImageView, db.executeSellectAllSettlements()).loadDefaultMap();
-        subWindowsHandler = new SubWindowsAndButtonsHandler(rootButtonList, locationsHandler);
+        locationsHandler = LocationsHandler.createInstance(locationsPane);
+        mapHandler = MapHandler.createInstance(theMapImageView, db.executeSellectAllSettlements()).loadDefaultMap();
+        subWindowsHandler = new SubWindowsAndButtonsHandler(rootButtonList, locationsHandler, mapHandler);
         subWindowsHandler.generateButtons();
     }
 
     @FXML
     private void mouseClicked(MouseEvent event) {
         MouseButton mb = event.getButton();
-        final double x = event.getX();
-        final double y = event.getY();
-        final boolean isMapLoaded = mapHandler.isMapLoaded();
-        if (mb == MouseButton.SECONDARY && isMapLoaded) {
-            final double w = rootScrollPane.getWidth();
-            final double h = rootScrollPane.getHeight();
-            final double imgWidth = mapHandler.getMapWidth();
-            final double imgHeight = mapHandler.getMapHeight();
-            // move right click point to center of the screen if possible
-            if (imgWidth > w) {
-                rootScrollPane.setHvalue((x - w / 2) / (imgWidth - w));
+        if (mapHandler.isMapLoaded()) {
+            final double x = event.getX();
+            final double y = event.getY();
+            if (mb == MouseButton.SECONDARY) {
+                centerPointOnTheWindow(x, y);
+            } else if (mb == MouseButton.PRIMARY && subWindowsHandler.isWindowLoaded(ButtonType.ADD_LOCATION)) {
+                ((AddLocationController)subWindowsHandler.getController(ButtonType.ADD_LOCATION)).setLocationXY(x, y);
             }
-            if (imgHeight > h) {
-                rootScrollPane.setVvalue((y - h / 2) / (imgHeight - h));
-            }
-        } else if (mb == MouseButton.PRIMARY && subWindowsHandler.isAddAddressWindowShown() && isMapLoaded) {
-            subWindowsHandler.setAddAddressWindow(x, y);
+        }
+    }
+
+    private void centerPointOnTheWindow(final double x, final double y) {
+        final double w = rootScrollPane.getWidth();
+        final double h = rootScrollPane.getHeight();
+        final double imgWidth = mapHandler.getMapWidth();
+        final double imgHeight = mapHandler.getMapHeight();
+        if (imgWidth > w) {
+            rootScrollPane.setHvalue((x - w / 2) / (imgWidth - w));
+        }
+        if (imgHeight > h) {
+            rootScrollPane.setVvalue((y - h / 2) / (imgHeight - h));
         }
     }
 
@@ -98,7 +102,7 @@ public class MainController implements Initializable {
             notification.showInformation();
         }
     }
-    
+
     public static final String TITLE = "Glavni prikaz.";
-    
+
 }

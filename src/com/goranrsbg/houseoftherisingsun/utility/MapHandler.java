@@ -20,9 +20,10 @@ import com.goranrsbg.houseoftherisingsun.LocatorApp;
 import com.goranrsbg.houseoftherisingsun.ui.main.MainController;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.List;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
@@ -33,25 +34,31 @@ import javafx.scene.image.ImageView;
 public class MapHandler {
 
     private static MapHandler instance;
-
-    private final ArrayList<SettlementEntity> settlementsList;
+    
+    private final ObservableList<SettlementEntity> settlementsList;
     private final ImageView imageView;
     private int currentSettlementIndex;
     private Image theMapImage;
 
-    public MapHandler(ImageView imageView, ArrayList<SettlementEntity> settlements) {
+    private MapHandler(ImageView imageView, List<SettlementEntity> settlements) {
         this.imageView = imageView;
-        this.settlementsList = settlements;
+        this.settlementsList = FXCollections.observableList(settlements);
         this.currentSettlementIndex = NONE_MAP_INDEX;
-        instance = this;
     }
-
+    
+    public static MapHandler createInstance(ImageView imageView, List<SettlementEntity> settlements) {
+        if(instance == null) {
+            instance = new MapHandler(imageView, settlements);
+        }
+        return instance;
+    }
+    
     public static MapHandler getInstance() {
         return instance;
     }
 
-    public Iterator<SettlementEntity> getSettlementsIterator() {
-        return settlementsList.iterator();
+    public ObservableList<SettlementEntity> getSettlements() {
+        return FXCollections.unmodifiableObservableList(settlementsList);
     }
 
     public MapHandler loadMap(int settlementIndex) {
@@ -77,19 +84,20 @@ public class MapHandler {
     }
 
     private boolean readImage(final String fileName) {
-        boolean result = true;
         try {
             theMapImage = new Image(new FileInputStream(PATH + fileName));
-            LocatorApp.setSubTitle(fileName);
             imageView.setImage(theMapImage);
+            LocatorApp.setSubTitle(fileName);
+            Platform.runLater(() -> {
+                sendMessage(fileName, true, false);
+            });
         } catch (FileNotFoundException ex) {
-            result = false;
+            Platform.runLater(() -> {
+                sendMessage(fileName, false, true);
+            });
+            return false;
         }
-        final boolean result1 = result;
-        Platform.runLater(() -> {
-            sendMessage(fileName, result1, !result1);
-        });
-        return result;
+        return true;
     }
 
     public boolean isMapLoaded() {
