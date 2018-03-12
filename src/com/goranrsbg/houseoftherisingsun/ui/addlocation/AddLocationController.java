@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TextFormatter;
@@ -140,15 +139,16 @@ public class AddLocationController implements Initializable {
     }
 
     @FXML
-    private void saveButtonAction(ActionEvent event) {
+    private void saveButtonAction() {
         final StreetEntity s = streetCombo.getValue();
         final String x = xTextField.getText().trim();
         final String y = yTextField.getText().trim();
         final String houseNumber = brTextField.getText().trim();
         final String note = noteAreaField.getText().trim();
         if (validateFields(s, x, y, houseNumber)) {
-            LocationEntity loce = db.executeInsertOrUpdateLocation(new LocationEntity(Double.parseDouble(x) - LocationsHandler.ICON_WIDTH_HALF, 
-                    Double.parseDouble(y) - LocationsHandler.ICON_HEIGHT_HALF,
+            LocationEntity loce = db.executeInsertOrUpdateLocation(new LocationEntity(
+                    Double.parseDouble(x) - LocationsHandler.ICON_WIDTH_HALF, 
+                    Double.parseDouble(y) + LocationsHandler.ICON_HEIGHT_HALF,
                     s.getPak(), houseNumber, 
                     note.isEmpty() ? null : note));
             if(loce != null && locationsHandler.isLocationsShown()) {

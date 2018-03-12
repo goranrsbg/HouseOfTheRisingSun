@@ -47,7 +47,14 @@ import java.util.logging.SimpleFormatter;
  * @author Goran
  */
 public class DBHandler {
-
+    
+    /**
+     * Constants used by DBHandler class
+     */
+    public enum DBTypes {
+        SELECT_LOCATIONS_BY_SETTLEMENT_ID,
+        SELECT_LOCATIONS_BY_PAK
+    }
     /**
      * Default logger for this class.
      */
@@ -314,7 +321,7 @@ public class DBHandler {
                     generatedId = generatedKeys.getInt(1);
                 }
                 location.setLocationId(generatedId);
-                message = "Lokacija je uspešno dodata. #" + generatedId;
+                message = "Lokacija je uspešno dodata. #" + generatedId + " br. " + location.getNumber();
             } else {
                 message = "Lokacija uspešno ažurirana.\n" + location.toAddressString();
             }
@@ -344,15 +351,15 @@ public class DBHandler {
      * @return ArrayLisat of selected addresses.
      * @throws java.sql.SQLException
      */
-    public List<LocationEntity> executeSelectLocations(int value, int type) throws SQLException {
+    public List<LocationEntity> executeSelectLocations(int value, DBTypes type) throws SQLException {
         ResultSet rs;
         ArrayList<LocationEntity> list = new ArrayList<>(256);
         PreparedStatement ps;
         switch (type) {
-            case SELECTLOCATIONSBY_PAK:
+            case SELECT_LOCATIONS_BY_PAK:
                 ps = ps_selectLocationsWithPak;
                 break;
-            case SELECTLOCATIONSBY_ID:
+            case SELECT_LOCATIONS_BY_SETTLEMENT_ID:
                 ps = ps_selectLocationsWithSettlementId;
                 break;
             default:
@@ -470,8 +477,5 @@ public class DBHandler {
     private void sendMessage(String message, boolean type) {
         MainController.notifyWithMsg(props.getProperty("title"), message, type);
     }
-
-    public static final int SELECTLOCATIONSBY_ID = 100;
-    public static final int SELECTLOCATIONSBY_PAK = 101;
 
 }
