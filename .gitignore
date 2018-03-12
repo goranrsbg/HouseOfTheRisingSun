@@ -1,9 +1,9 @@
-!/binaries/lib/
-nbproject/
-dist/
-build/
-resources/
-lib/
-test/
+!/binaries/lib
+/nbproject
+/dist
+/build
+/resources
+/lib
+/test
 build.xml
 manifest.mf
