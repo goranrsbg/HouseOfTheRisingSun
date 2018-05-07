@@ -20,3 +20,6 @@ limitations under the License.
 @font-face {
     src: local("file:res/fonts/Oxygen-Regular.ttf");
 }
+@font-face {
+    src: local("file:res/fonts/SourceSansPro-Regular.ttf");
+}

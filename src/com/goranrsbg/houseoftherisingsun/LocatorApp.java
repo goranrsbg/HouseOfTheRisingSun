@@ -1,15 +1,21 @@
 package com.goranrsbg.houseoftherisingsun;
 
 import com.goranrsbg.houseoftherisingsun.database.DBHandler;
+import com.jfoenix.controls.JFXButton;
 import com.sun.javafx.application.LauncherImpl;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 /**
  *
@@ -17,40 +23,93 @@ import javafx.stage.Stage;
  */
 public class LocatorApp extends Application {
 
-    public static final String TITLE = "BB-BB-lokator";
-    
-    private static Stage primaryStage;
-    
-    public static void setSubTitle(String subtitle) {
-        primaryStage.setTitle(TITLE + " - " + subtitle);
+    private final String TITLE = "BB-BB-lokator";
+
+    private static final Logger LOGGER = Logger.getLogger(LocatorApp.class.getName());
+
+    private static LocatorApp instance;
+
+    private Stage stage;
+
+    public LocatorApp() {
+        instance = this;
+        initLogger();
     }
-    
+
+    private void initLogger() {
+        String uri = System.getProperty("user.dir") + File.separator + "locator%u.log";
+        try {
+            FileHandler fh = new FileHandler(uri, 5000000, 1, true);
+            fh.setFormatter(new SimpleFormatter());
+            LOGGER.addHandler(fh);
+            LOGGER.setUseParentHandlers(false);
+        } catch (IOException | SecurityException ex) {
+            System.err.println("Failed to initialize logger.\n" + ex.getMessage());
+        }
+    }
+
+    public static LocatorApp getInstance() {
+        return instance;
+    }
+
+    public void setSubTitle(String subtitle) {
+        stage.setTitle(TITLE + " - " + subtitle);
+    }
+
     @Override
     public void init() {
         DBHandler.ceateInstance();
     }
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
-        LocatorApp.primaryStage = primaryStage;
-        Parent root = FXMLLoader.load(getClass().getResource("ui/main/main.fxml"));
-        final String uriCss = getClass().getResource("locatorapp.css").toExternalForm();
+    public void start(Stage stage) throws IOException {
+        this.stage = stage;
+        final String uriCss = getClass().getResource("/com/goranrsbg/houseoftherisingsun/locatorapp.css").toExternalForm();
         final String uriIco = Paths.get("", "res", "img").resolve("three.png").toUri().toString();
-        Scene scene = new Scene(root);
+        Parent parent = FXMLLoader.load(getClass().getResource("/com/goranrsbg/houseoftherisingsun/ui/login/login.fxml"));
+        Scene scene = new Scene(parent);
         scene.getStylesheets().add(uriCss);
-        primaryStage.getIcons().add(new Image(uriIco));
-        primaryStage.setMaximized(true);
-        primaryStage.setTitle(TITLE);
-        primaryStage.setScene(scene);
-        primaryStage.setOnHidden((e) -> {
-            Platform.exit();
-        });
-        primaryStage.show();
+        stage.getIcons().add(new Image(uriIco));
+        setSubTitle("Prijava");
+        stage.setResizable(false);
+        stage.setScene(scene);
+        stage.show();
+        LOGGER.info("Login started.");
     }
 
     @Override
     public void stop() {
         DBHandler.getInstance().closeConnection();
+        LOGGER.info("App closed.");
+    }
+
+    public void loadMain() throws IOException {
+        Parent parent = FXMLLoader.load(getClass().getResource("/com/goranrsbg/houseoftherisingsun/ui/main/main.fxml"));
+        Scene scene = stage.getScene();
+        scene.rootProperty().setValue(parent);
+        stage.setMaximized(true);
+        stage.setResizable(true);
+        LOGGER.info("App started.");
+    }
+
+    public void LoadSubWindow(String pathToFxml, JFXButton btn) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource(pathToFxml));
+        Parent parent = loader.load();
+        Scene newScene = new Scene(parent);
+        Stage newStage = new Stage(StageStyle.UTILITY);
+        newStage.setUserData(btn);
+        btn.setUserData(loader.getController());
+        newStage.initOwner(stage);
+        newStage.setScene(newScene);
+        newStage.setAlwaysOnTop(true);
+        newStage.setResizable(false);
+        newStage.setOnCloseRequest((e) -> {
+            Stage s = ((Stage)e.getSource());
+            JFXButton b = (JFXButton) s.getUserData();
+            b.setDisable(false);
+            b.setUserData(null);
+        });
+        newStage.show();
     }
 
     /**

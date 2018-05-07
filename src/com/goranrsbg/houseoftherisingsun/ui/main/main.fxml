@@ -4,25 +4,30 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.StackPane?>
 
-<StackPane stylesheets="@main.css" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.goranrsbg.houseoftherisingsun.ui.main.MainController">
+<AnchorPane xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.goranrsbg.houseoftherisingsun.ui.main.MainController">
    <children>
-      <ScrollPane fx:id="rootScrollPane" pannable="true" prefHeight="400.0" prefWidth="600.0" styleClass="theMap">
-         <content>
-            <StackPane>
-               <children>
-                  <ImageView fx:id="theMapImageView" pickOnBounds="true" preserveRatio="true" />
-                  <Pane fx:id="locationsPane" onMouseClicked="#mouseClicked" />
-               </children>
-            </StackPane>
-         </content>
-      </ScrollPane>
-      <JFXNodesList fx:id="rootButtonList" alignment="CENTER" rotate="90.0" StackPane.alignment="TOP_RIGHT">
-         <StackPane.margin>
-            <Insets right="17.0" top="2.0" />
-         </StackPane.margin>
-      </JFXNodesList>
+      <StackPane prefHeight="36.0" prefWidth="36.0" stylesheets="@main.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <ScrollPane fx:id="rootScrollPane" pannable="true" styleClass="theMap">
+               <content>
+                  <StackPane>
+                     <children>
+                        <ImageView fx:id="theMapImageView" pickOnBounds="true" preserveRatio="true" />
+                        <Pane fx:id="locationsPane" onMouseClicked="#mouseClicked" />
+                     </children>
+                  </StackPane>
+               </content>
+            </ScrollPane>
+            <JFXNodesList fx:id="rootButtonList" alignment="CENTER" rotate="90.0" StackPane.alignment="TOP_RIGHT">
+               <StackPane.margin>
+                  <Insets right="17.0" top="2.0" />
+               </StackPane.margin>
+            </JFXNodesList>
+         </children>
+      </StackPane>
    </children>
-</StackPane>
+</AnchorPane>

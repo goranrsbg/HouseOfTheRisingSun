@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXPasswordField?>
+<?import com.jfoenix.controls.JFXTextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane maxHeight="135.0" onKeyReleased="#onKeyReleased" prefHeight="135.0" prefWidth="386.0" styleClass="root" stylesheets="@login.css" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.goranrsbg.houseoftherisingsun.ui.login.LoginController">
+   <children>
+      <VBox fx:id="root" layoutX="10.0" layoutY="16.0" prefHeight="130.0" prefWidth="201.0" spacing="21.0" AnchorPane.bottomAnchor="3.0" AnchorPane.leftAnchor="17.0" AnchorPane.rightAnchor="17.0" AnchorPane.topAnchor="21.0">
+         <children>
+            <JFXTextField id="uname" fx:id="userName" labelFloat="true" promptText="Korisničko ime" />
+            <JFXPasswordField id="upass" fx:id="password" labelFloat="true" promptText="Lozinka" />
+            <HBox fx:id="buttonsBox" alignment="CENTER" spacing="13.0">
+               <children>
+                  <JFXButton fx:id="buttonOk" alignment="CENTER" buttonType="RAISED" contentDisplay="CENTER" onAction="#onOKAction" prefWidth="61.0" ripplerFill="#17e809" text="OK" />
+                  <JFXButton id="bback" fx:id="buttonBack" alignment="CENTER" buttonType="RAISED" contentDisplay="CENTER" onAction="#onBackAction" ripplerFill="#f80505" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>

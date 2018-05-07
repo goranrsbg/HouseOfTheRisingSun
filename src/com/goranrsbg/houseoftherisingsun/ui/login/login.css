@@ -1,0 +1,18 @@
+/*
+ * Empty Stylesheet file.
+ */
+
+.root {
+    -fx-font-size: 17px;
+}
+
+.glyph-icon{
+    -fx-text-fill: -icons-color;
+    -fx-fill: -icons-color;
+    -glyph-size: 23px;
+}
+
+.back-icon{
+    -glyph-name: "ARROW_CIRCLE_LEFT";
+    -icons-color: black;
+}

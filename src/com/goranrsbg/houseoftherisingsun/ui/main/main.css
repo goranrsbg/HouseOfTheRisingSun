@@ -179,18 +179,8 @@ limitations under the License.
     -icons-color: #cf38bb;
 }
 
-.streetview-icon{
-    -glyph-name: "STREET_VIEW";
-    -icons-color: #03ddff;
-}
-
 .animated-option-button:hover .streetview-icon{
     -icons-color: #04a6bf;
-}
-/*TODO toggle clear locations button class*/
-.streetview2-icon{ 
-    -glyph-name: "STREET_VIEW";
-    -icons-color: #03ddff;
 }
 
 .animated-option-button:hover .streetview2-icon{
@@ -219,13 +209,19 @@ limitations under the License.
     -icons-color: #4d00ff;
 }
 
-.location-icon{
-    -glyph-name: "STREET_VIEW";
-    -icons-color: yellow;
-    -glyph-size: 27px;
+.jfx-toggle-button {
+     -jfx-toggle-color: #0344de;
+     -jfx-untoggle-color: #a81c00;
+     -jfx-toggle-line-color: #77C2BB;
+     -jfx-untoggle-line-color: #ffffff;
+     -jfx-size: 13.0;
+     -jfx-disable-visual-focus: false;
+}
+
+Text {
+    -fx-font: 19pt "Source Sans Pro";
+    -fx-fill: yellow;
+    -fx-font-smoothing-type: lcd;
     -fx-stroke: red;
     -fx-stroke-width: 1;
-}
-.location-icon:hover{
-    -icons-color: blue;
 }

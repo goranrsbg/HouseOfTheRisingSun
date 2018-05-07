@@ -17,8 +17,10 @@ package com.goranrsbg.houseoftherisingsun.ui.showstreets;
 
 import com.goranrsbg.houseoftherisingsun.database.DBHandler;
 import com.goranrsbg.houseoftherisingsun.ui.main.MainController;
-import com.goranrsbg.houseoftherisingsun.utility.entity.StreetTableEntity;
 import java.net.URL;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -35,24 +37,23 @@ import javafx.scene.control.cell.PropertyValueFactory;
  */
 public class ShowStreetsController implements Initializable {
 
-    public static final String TITLE = "Spisak ulica";
-
+    @FXML
+    private TableView<StreetTable> tableStreets;
+    @FXML
+    private TableColumn<StreetTable, Integer> colPak;
+    @FXML
+    private TableColumn<StreetTable, String> colName;
+    @FXML
+    private TableColumn<StreetTable, String> colInitial;
+    
     private final DBHandler db;
-
-    private final ObservableList<StreetTableEntity> data;
-
-    @FXML
-    private TableView<StreetTableEntity> tableStreets;
-    @FXML
-    private TableColumn<StreetTableEntity, Integer> colPak;
-    @FXML
-    private TableColumn<StreetTableEntity, String> colName;
-    @FXML
-    private TableColumn<StreetTableEntity, String> colInitial;
+    private final ObservableList<StreetTable> data;
+    private final MainController mc;
 
     public ShowStreetsController() {
         db = DBHandler.getInstance();
         data = FXCollections.observableArrayList();
+        mc = MainController.getInstance();
     }
 
     @Override
@@ -63,17 +64,26 @@ public class ShowStreetsController implements Initializable {
     private void initColumns() {
         colPak.setCellValueFactory(new PropertyValueFactory<>("pak"));
         colName.setCellValueFactory(new PropertyValueFactory<>("name"));
-        colInitial.setCellValueFactory(new PropertyValueFactory<>("initial"));
+        colInitial.setCellValueFactory(new PropertyValueFactory<>("settlementInitial"));
         tableStreets.setItems(data);
         readStreets();
     }
 
     public void readStreets() {
-        data.addAll(db.executeSelectAllTableStreets());
+        try {
+            Statement stmt = db.getConnection().createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT ST.STREET_ID, ST.STREET_PAK, ST.STREET_NAME, SE.SETTLEMENT_INITIALS FROM STREETS AS ST " 
+                    + "JOIN SETTLEMENTS AS SE ON ST.SETTLEMENT_ID = SE.SETTLEMENT_ID "
+                    + "ORDER BY SE.SETTLEMENT_INITIALS");
+            data.clear();
+            while(rs.next()) {
+                data.add(new StreetTable(rs.getInt(1), rs.getInt(2), rs.getString(3), rs.getString(4)));
+            }
+        } catch (SQLException ex) {
+            mc.showMessage(TITLE, "Greška pri učitavanju ulica.\nError: " + ex.getMessage(), MainController.MessageType.ERROR);
+        }
     }
 
-    public void sendMessage(String message, boolean type) {
-        MainController.notifyWithMsg(TITLE, message, type);
-    }
+    public static final String TITLE = "Spisak ulica";
 
 }

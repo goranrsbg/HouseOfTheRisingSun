@@ -10,12 +10,12 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane styleClass="anchorpane-root" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.goranrsbg.houseoftherisingsun.ui.addlocation.AddLocationController">
+<AnchorPane prefWidth="351.0" styleClass="anchorpane-root" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.goranrsbg.houseoftherisingsun.ui.addlocation.AddLocationController">
     <stylesheets>
         <URL value="@addlocation.css" />
     </stylesheets>
     <children>
-      <VBox layoutY="1.0" prefHeight="391.0" prefWidth="351.0" spacing="20.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <VBox layoutY="1.0" prefHeight="381.0" prefWidth="351.0" spacing="21.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
             <HBox spacing="20.0">
                <children>
@@ -26,24 +26,29 @@
                   <Insets left="20.0" right="20.0" top="20.0" />
                </padding>
             </HBox>
-            <JFXComboBox fx:id="streetCombo" labelFloat="true" promptText="Ulica" visibleRowCount="17">
+            <JFXComboBox fx:id="streetCombo" labelFloat="true" promptText="Ulica:" visibleRowCount="17">
                <VBox.margin>
                   <Insets left="20.0" right="20.0" top="10.0" />
                </VBox.margin>
             </JFXComboBox>
-            <JFXTextField fx:id="brTextField" labelFloat="true" promptText="br." styleClass="textfield-no">
+            <HBox spacing="11.0">
+               <children>
+                  <JFXTextField fx:id="pathWayTextField" labelFloat="true" promptText="Sokak (VS, DS, 1, 2...)" />
+                  <JFXTextField fx:id="brTextField" labelFloat="true" prefWidth="117.0" promptText="br." styleClass="textfield-no" />
+                  <JFXTextField fx:id="postmanPathTextField" labelFloat="true" prefWidth="117.0" promptText="Poštarev Put" />
+               </children>
                <VBox.margin>
                   <Insets left="20.0" right="20.0" top="10.0" />
                </VBox.margin>
-            </JFXTextField>
-            <JFXTextArea fx:id="noteAreaField" labelFloat="true" prefColumnCount="4" prefHeight="85.0" prefWidth="406.0" promptText="Napomena">
+            </HBox>
+            <JFXTextArea fx:id="noteAreaField" labelFloat="true" prefColumnCount="4" prefRowCount="3" promptText="Napomena">
                <VBox.margin>
                   <Insets bottom="20.0" left="20.0" right="20.0" top="10.0" />
                </VBox.margin>
             </JFXTextArea>
             <JFXButton buttonType="RAISED" defaultButton="true" maxWidth="1.7976931348623157E308" onAction="#saveButtonAction" styleClass="button-save" text="Sačuvaj">
                <VBox.margin>
-                  <Insets left="20.0" right="20.0" />
+                  <Insets bottom="21.0" left="21.0" right="21.0" />
                </VBox.margin>
                <padding>
                   <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />

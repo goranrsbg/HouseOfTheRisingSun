@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXCheckBox?>
+<?import com.jfoenix.controls.JFXTextField?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.goranrsbg.houseoftherisingsun.ui.addrecipient.AddRecipientController">
+   <children>
+      <VBox alignment="CENTER_LEFT" fillWidth="false" spacing="17.0" styleClass="mainFxmlClass">
+         <children>
+            <JFXTextField fx:id="lastNameTextField" labelFloat="true" prefColumnCount="24" promptText="Prezime ili ime firme" />
+            <JFXTextField fx:id="firstNameTextField" labelFloat="true" prefColumnCount="24" promptText="Ime" />
+            <JFXTextField fx:id="detaiilsTextField" labelFloat="true" prefColumnCount="24" promptText="Detalji (npr. srednje ime, godište, tip računa...)" />
+            <JFXCheckBox fx:id="isRetireCheckBox" text="Penzioner ili kućna nega" />
+            <HBox fx:id="retireDetails" spacing="7.0">
+               <children>
+                  <JFXTextField fx:id="idCardNuberTextField" labelFloat="true" promptText="Broj lične karte" />
+                  <JFXTextField fx:id="policeDepartmentTextField" labelFloat="true" promptText="Policijska uprava">
+                     <HBox.margin>
+                        <Insets />
+                     </HBox.margin></JFXTextField>
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefWidth="275.0">
+               <children>
+                  <JFXButton fx:id="saveButton" buttonType="RAISED" prefWidth="130.0" ripplerFill="#06ee28" text="Sačuvaj" />
+                  <JFXButton fx:id="cancelButton" buttonType="RAISED" prefWidth="130.0" ripplerFill="#f21804" text="Otkaži" />
+               </children>
+            </HBox>
+         </children>
+         <padding>
+            <Insets bottom="29.0" left="29.0" right="29.0" top="29.0" />
+         </padding>
+      </VBox>
+   </children>
+</AnchorPane>

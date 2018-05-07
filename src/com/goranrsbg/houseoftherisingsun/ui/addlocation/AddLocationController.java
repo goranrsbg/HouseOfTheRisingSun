@@ -17,15 +17,13 @@ package com.goranrsbg.houseoftherisingsun.ui.addlocation;
 
 import com.goranrsbg.houseoftherisingsun.database.DBHandler;
 import com.goranrsbg.houseoftherisingsun.ui.main.MainController;
-import com.goranrsbg.houseoftherisingsun.utility.LocationsHandler;
-import com.goranrsbg.houseoftherisingsun.utility.entity.LocationEntity;
-import com.goranrsbg.houseoftherisingsun.utility.MapHandler;
-import com.goranrsbg.houseoftherisingsun.utility.entity.StreetEntity;
 import com.jfoenix.controls.JFXComboBox;
 import com.jfoenix.controls.JFXTextArea;
 import com.jfoenix.controls.JFXTextField;
 import java.net.URL;
-import java.util.List;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -38,33 +36,32 @@ import javafx.scene.control.TextFormatter;
  * @author Goran
  */
 public class AddLocationController implements Initializable {
-    
-    public static final String TITLE = "Dodaj adresu";
-
-    private final DBHandler db;
-    private final MapHandler mapHandler;
-    private final LocationsHandler locationsHandler;
 
     @FXML
     private JFXTextField xTextField;
     @FXML
     private JFXTextField yTextField;
     @FXML
+    private JFXComboBox<Street> streetCombo;
+    @FXML
+    private JFXTextField pathWayTextField;
+    @FXML
     private JFXTextField brTextField;
     @FXML
-    private JFXTextArea noteAreaField;
+    private JFXTextField postmanPathTextField;
     @FXML
-    private JFXComboBox<StreetEntity> streetCombo;
+    private JFXTextArea noteAreaField;
 
-    private final ObservableList<StreetEntity> streetsData;
+    private final DBHandler db;
+    private final ObservableList<Street> streetsData;
+    private final MainController mc;
 
     public AddLocationController() {
         db = DBHandler.getInstance();
-        mapHandler = MapHandler.getInstance();
         streetsData = FXCollections.observableArrayList();
-        locationsHandler = LocationsHandler.getInstance();
+        mc = MainController.getInstance();
     }
-
+    
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         TextFormatter<String> formatterX = new TextFormatter<>((t) -> {
@@ -74,7 +71,7 @@ public class AddLocationController implements Initializable {
                     Double.valueOf(textNew);
                 } catch (NumberFormatException e) {
                     t = null;
-                    sendMessage("Vrednost polja mora da bude realan broj.", false);
+                    sendMessage("Vrednost polja mora da bude realan broj.", MainController.MessageType.INFORMATION);
                 }
             }
             return t;
@@ -86,46 +83,73 @@ public class AddLocationController implements Initializable {
                     Double.valueOf(textNew);
                 } catch (NumberFormatException e) {
                     t = null;
-                    sendMessage("Vrednost polja mora da bude realan broj.", false);
+                    sendMessage("Vrednost polja mora da bude realan broj.", MainController.MessageType.INFORMATION);
                 }
             }
             return t;
         });
-
-        xTextField.setTextFormatter(formatterX);
-        yTextField.setTextFormatter(formatterY);
-
-        TextFormatter<String> formatterBr = new TextFormatter<>((t) -> {
-            if (t.getText().contains(" ")) {
-                t = null;
-                sendMessage("Vrednost polja ne sme da sadrži razmak.", false);
-            } else if (t.getControlNewText().length() > 10) {
-                t = null;
-                sendMessage("Vrednost polja mora da bude do 10 znakova.", false);
+        TextFormatter<String> formatterNumber = new TextFormatter<>((t) -> {
+            String textNew = t.getControlNewText();
+            if (!textNew.isEmpty()) {
+                if (textNew.contains(" ")) {
+                    t = null;
+                    sendMessage("Vrednost polja ne sme da sadrži razmak.", MainController.MessageType.INFORMATION);
+                } else if (textNew.length() > 10) {
+                    t = null;
+                    sendMessage("Vrednost polja mora da bude do 10 znakova.", MainController.MessageType.INFORMATION);
+                } else if (!Character.isDigit(textNew.charAt(0))) {
+                    t = null;
+                    sendMessage("Broj mora da počne sa brojem.", MainController.MessageType.INFORMATION);
+                }
+            }
+            return t;
+        });
+        TextFormatter<String> formatterPostmanPath = new TextFormatter<>((t) -> {
+            String textNew = t.getControlNewText();
+            if (!textNew.isEmpty()) {
+                try {
+                    Integer.valueOf(textNew);
+                } catch (NumberFormatException e) {
+                    t = null;
+                    sendMessage("Vrednost polja mora da bude ceo broj.", MainController.MessageType.INFORMATION);
+                }
             }
             return t;
         });
         TextFormatter<String> formatterNote = new TextFormatter<>((t) -> {
             if (t.getControlNewText().length() > 512) {
                 t = null;
-                MainController.notifyWithMsg(TITLE, "Vrednost polja mora da bude do 512 znakova.", false);
+                sendMessage("Vrednost polja mora da bude do 512 znakova.", MainController.MessageType.INFORMATION);
             }
             return t;
         });
 
-        brTextField.setTextFormatter(formatterBr);
+        xTextField.setTextFormatter(formatterX);
+        yTextField.setTextFormatter(formatterY);
+        brTextField.setTextFormatter(formatterNumber);
+        postmanPathTextField.setTextFormatter(formatterPostmanPath);
         noteAreaField.setTextFormatter(formatterNote);
 
         streetCombo.setItems(streetsData);
-
-        comboBoxAddStreets();
+        streetCombo.setPromptText("Ulica:");
+        comboBoxLoadStreets();
     }
 
-    public AddLocationController comboBoxAddStreets() {
+    public void comboBoxLoadStreets() {
         streetsData.clear();
-        List<StreetEntity> list = db.executeSelectStreetsById(mapHandler.getCurrentMapId());
-        streetsData.addAll(list);
-        return this;
+        if (mc.isMapLoaded()) {
+            try {
+                PreparedStatement ps = db.getStatement(DBHandler.StatementType.SELECT_STREETS_WITH_SETTLEMENT_ID);
+                ps.setInt(1, mc.getLoadedMapId());
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        streetsData.add(new Street(rs.getInt("STREET_ID"), rs.getString("STREET_NAME")));
+                    }
+                }
+            } catch (SQLException ex) {
+                sendMessage("Greška pri učitavanju ulica (id:" + mc.getLoadedMapId() + ")\n" + "Error: " + ex.getMessage(), MainController.MessageType.ERROR);
+            }
+        }
     }
 
     public void clearLocationXY() {
@@ -140,43 +164,67 @@ public class AddLocationController implements Initializable {
 
     @FXML
     private void saveButtonAction() {
-        final StreetEntity s = streetCombo.getValue();
-        final String x = xTextField.getText().trim();
-        final String y = yTextField.getText().trim();
-        final String houseNumber = brTextField.getText().trim();
+        final Street s = streetCombo.getValue();
+        final String x = xTextField.getText();
+        final String y = yTextField.getText();
+        final String pathWay = pathWayTextField.getText().trim();
+        final String houseNumber;
+        if (pathWay.isEmpty()) {
+            houseNumber = brTextField.getText().trim();
+        } else {
+            houseNumber = pathWay + '-' + brTextField.getText().trim();
+        }
         final String note = noteAreaField.getText().trim();
         if (validateFields(s, x, y, houseNumber)) {
-            LocationEntity loce = db.executeInsertOrUpdateLocation(new LocationEntity(
-                    Double.parseDouble(x) - LocationsHandler.ICON_WIDTH_HALF, 
-                    Double.parseDouble(y) + LocationsHandler.ICON_HEIGHT_HALF,
-                    s.getPak(), houseNumber, 
-                    note.isEmpty() ? null : note));
-            if(loce != null && locationsHandler.isLocationsShown()) {
-                locationsHandler.addLocation(loce);
+            try {
+                PreparedStatement ps = db.getStatement(DBHandler.StatementType.INSERT_LOCATION);
+                double pX = Double.parseDouble(x);
+                double pY = Double.parseDouble(y);
+                ps.setDouble(1, pX);
+                ps.setDouble(2, pY);
+                ps.setString(3, houseNumber);
+                String ppText = postmanPathTextField.getText();
+                ps.setInt(4, ppText.isEmpty()? Integer.MAX_VALUE: Integer.parseInt(ppText));
+                ps.setString(5, note.isEmpty()? null : note);
+                ps.setInt(6, s.getId());
+                ps.executeUpdate();
+                if(mc.isShowLocationsSelected()) {
+                    try (ResultSet rs = ps.getGeneratedKeys()) {
+                        rs.next();
+                        int id = rs.getInt(1);
+                        mc.addLocationToPane(houseNumber, pX, pY, id + "", note);
+                    }
+                }
+                ps.clearParameters();
+                sendMessage("Lokacija >> " + houseNumber + " << uspešno dodana.", MainController.MessageType.INFORMATION);
+            } catch (SQLException ex) {
+                sendMessage("Greška pri dodavanju lokacije >> " + houseNumber + " <<.\nError: " + ex.getMessage(), MainController.MessageType.ERROR);
             }
         }
     }
 
-    private boolean validateFields(final StreetEntity s, final String x, final String y, final String houseNumber) {
+    private boolean validateFields(final Street s, final String x, final String y, final String houseNumber) {
         boolean valid;
         valid = true;
         if (s == null) {
-            sendMessage("Ulica nije izabrana.", true);
+            sendMessage("Ulica nije izabrana.", MainController.MessageType.ERROR);
             valid = false;
         }
         if (x.isEmpty() || y.isEmpty()) {
-            sendMessage("Koordinate nisu definisane.", true);
+            sendMessage("Koordinate nisu definisane.", MainController.MessageType.ERROR);
             valid = false;
         }
         if (houseNumber.isEmpty()) {
-            sendMessage("Broj nije odabran.", true);
+            sendMessage("Broj nije odabran.", MainController.MessageType.ERROR);
             valid = false;
         }
         return valid;
     }
 
-    private void sendMessage(final String message, final boolean type) {
-        MainController.notifyWithMsg(TITLE, message, type);
+    private void sendMessage(final String message, MainController.MessageType type) {
+        MainController.getInstance().showMessage(TITLE, message, type);
     }
-    
+
+    public static final String TITLE = "Dodaj adresu.";
+
 }
