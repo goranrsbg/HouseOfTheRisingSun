@@ -2,4 +2,4 @@
 
 JavaFX desktop app.
 
-Directory "binries" contains fully testable application version.
+Directory "binaries" contains fully testable application version.
