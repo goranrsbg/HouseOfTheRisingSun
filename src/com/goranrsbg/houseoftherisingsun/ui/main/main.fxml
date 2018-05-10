@@ -17,7 +17,7 @@
                   <StackPane>
                      <children>
                         <ImageView fx:id="theMapImageView" pickOnBounds="true" preserveRatio="true" />
-                        <Pane fx:id="locationsPane" onMouseClicked="#mouseClicked" />
+                        <Pane fx:id="locationsPane" onDragDropped="#onTextDragDropped" onDragOver="#onTextDragOver" onMouseClicked="#mouseClicked" />
                      </children>
                   </StackPane>
                </content>

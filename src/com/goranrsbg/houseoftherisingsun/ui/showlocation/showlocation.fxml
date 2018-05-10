@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXButton?>
+<?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView?>
+<?import java.net.URL?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TreeTableColumn?>
+<?import javafx.scene.control.TreeTableView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane id="BorderPane" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.goranrsbg.houseoftherisingsun.ui.showlocation.ShowLocationController">
+    <stylesheets>
+        <URL value="@showlocation.css" />
+    </stylesheets>
+   <center>
+      <TreeTableView BorderPane.alignment="CENTER">
+        <columns>
+          <TreeTableColumn prefWidth="75.0" text="Prezime" />
+          <TreeTableColumn prefWidth="75.0" text="Ime" />
+            <TreeTableColumn prefWidth="75.0" text="Detalji" />
+        </columns>
+      </TreeTableView>
+   </center>
+   <right>
+      <VBox BorderPane.alignment="CENTER">
+         <children>
+            <JFXButton buttonType="RAISED" prefHeight="62.0" prefWidth="111.0" text="Dodaj">
+               <graphic>
+                  <FontAwesomeIconView glyphName="USER_PLUS" size="23.0" />
+               </graphic>
+            </JFXButton>
+            <JFXButton buttonType="RAISED" prefHeight="62.0" prefWidth="111.0" text="Izmeni">
+               <graphic>
+                  <FontAwesomeIconView glyphName="fas fa-pencil-alt" size="23.0" />
+               </graphic>
+            </JFXButton>
+            <JFXButton buttonType="RAISED" prefHeight="62.0" prefWidth="111.0" text="Ukloni">
+               <graphic>
+                  <FontAwesomeIconView glyphName="USER_TIMES" size="23.0" />
+               </graphic>
+            </JFXButton>
+         </children>
+      </VBox>
+   </right>
+   <top>
+      <HBox alignment="CENTER_LEFT" spacing="7.0" BorderPane.alignment="CENTER">
+         <children>
+            <Label text="Adresa :" />
+            <Label />
+         </children>
+         <BorderPane.margin>
+            <Insets bottom="3.0" />
+         </BorderPane.margin>
+      </HBox>
+   </top>
+</BorderPane>

@@ -1,14 +1,8 @@
 /*
  * Empty Stylesheet file.
  */
-@font-face {
-    src: local("file:res/fonts/SourceSansPro-Regular.ttf");
-}
-.root {
-    -fx-font-family: 'Source Sans Pro';
-}
 .mainFxmlClass {
-
+    -fx-font:  14px "Source Sans Pro";
 }
 
 .pak-column {

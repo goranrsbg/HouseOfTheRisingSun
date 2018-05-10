@@ -46,7 +46,7 @@ public class AddLocationController implements Initializable {
     @FXML
     private JFXTextField pathWayTextField;
     @FXML
-    private JFXTextField brTextField;
+    private JFXTextField noTextField;
     @FXML
     private JFXTextField postmanPathTextField;
     @FXML
@@ -126,7 +126,7 @@ public class AddLocationController implements Initializable {
 
         xTextField.setTextFormatter(formatterX);
         yTextField.setTextFormatter(formatterY);
-        brTextField.setTextFormatter(formatterNumber);
+        noTextField.setTextFormatter(formatterNumber);
         postmanPathTextField.setTextFormatter(formatterPostmanPath);
         noteAreaField.setTextFormatter(formatterNote);
 
@@ -170,9 +170,9 @@ public class AddLocationController implements Initializable {
         final String pathWay = pathWayTextField.getText().trim();
         final String houseNumber;
         if (pathWay.isEmpty()) {
-            houseNumber = brTextField.getText().trim();
+            houseNumber = noTextField.getText().trim();
         } else {
-            houseNumber = pathWay + '-' + brTextField.getText().trim();
+            houseNumber = pathWay + '-' + noTextField.getText().trim();
         }
         final String note = noteAreaField.getText().trim();
         if (validateFields(s, x, y, houseNumber)) {

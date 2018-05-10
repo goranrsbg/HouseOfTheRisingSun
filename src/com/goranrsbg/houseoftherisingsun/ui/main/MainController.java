@@ -45,8 +45,12 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import org.controlsfx.control.Notifications;
@@ -68,6 +72,7 @@ public class MainController implements Initializable {
 
     private final DBHandler db;
     private static MainController instance;
+
 
     public enum MessageType {
         CONFIRM,
@@ -127,18 +132,18 @@ public class MainController implements Initializable {
         buttons.put(ButtonType.ADD_LOCATION, btn);
         locationsJFXNodesList.addAnimatedNode(btn);
 
-        btn = createButton(null, new FontAwesomeIconView().setStyleClass("roadt-icon"), DEFAULT_BUTTON_CSS_SUBCLASS + 3, "Prikaži spisak ulica.");
-        btn.setOnAction(this::buttonClickActionEvent);
-        btn.setId(ButtonType.SHOW_STREETS_TABLE.toString());
-        buttons.put(ButtonType.SHOW_STREETS_TABLE, btn);
-        streetsJFXNodesList.addAnimatedNode(btn);
-
         Tooltip tooltip = new Tooltip("Prikaži / ukloni lokacije.");
         tooltip.setStyle(DEFAULT_TOOLTIP_STYLE);
         toggleLocationsButton.setTooltip(tooltip);
         toggleLocationsButton.setText(null);
         toggleLocationsButton.setOnAction(this::toggleShowLocations);
         locationsJFXNodesList.addAnimatedNode(toggleLocationsButton);
+
+        btn = createButton(null, new FontAwesomeIconView().setStyleClass("roadt-icon"), DEFAULT_BUTTON_CSS_SUBCLASS + 3, "Prikaži spisak ulica.");
+        btn.setOnAction(this::buttonClickActionEvent);
+        btn.setId(ButtonType.SHOW_STREETS_TABLE.toString());
+        buttons.put(ButtonType.SHOW_STREETS_TABLE, btn);
+        streetsJFXNodesList.addAnimatedNode(btn);
 
         btn = createButton(null, new FontAwesomeIconView().setStyleClass("addrecip-icon"), DEFAULT_BUTTON_CSS_SUBCLASS + 1, "Dodaj primaoca.");
         btn.setOnAction(this::buttonClickActionEvent);
@@ -188,20 +193,26 @@ public class MainController implements Initializable {
                         LocatorApp.getInstance().LoadSubWindow("/com/goranrsbg/houseoftherisingsun/ui/addlocation/addlocation.fxml", btn);
                         btn.setDisable(true);
                     } catch (IOException ex) {
-                        showMessage(TITLE, "Dodaj lokaciju .fxml fajl nije pronađen.\n" + ex.getMessage(), MessageType.ERROR);
+                        showMessage(TITLE, "Greška pri učitavanju .fxml faja.\n" + ex.getMessage(), MessageType.ERROR);
                     }
                 } else {
                     showMessage(TITLE, "Mapa nije odabrana.", MessageType.INFORMATION);
                 }
                 break;
             case "ADD_RECIPIENT":
+                try {
+                    LocatorApp.getInstance().LoadSubWindow("/com/goranrsbg/houseoftherisingsun/ui/addrecipient/addrecipient.fxml", btn);
+                    btn.setDisable(true);
+                } catch (IOException ex) {
+                    showMessage(TITLE, "Greška pri učitavanju .fxml faja.\n" + ex.getMessage(), MessageType.ERROR);
+                }
                 break;
             case "SHOW_STREETS_TABLE":
                 try {
                     LocatorApp.getInstance().LoadSubWindow("/com/goranrsbg/houseoftherisingsun/ui/showstreets/showstreets.fxml", btn);
                     btn.setDisable(true);
                 } catch (IOException ex) {
-                    showMessage(TITLE, "Prikaži ulice .fxml fajl nije pronađen.\n" + ex.getMessage(), MessageType.ERROR);
+                    showMessage(TITLE, "Greška pri učitavanju .fxml faja.\n" + ex.getMessage(), MessageType.ERROR);
                 }
                 break;
             default:
@@ -288,6 +299,7 @@ public class MainController implements Initializable {
             Tooltip.install(text, tooltip);
         }
         text.setOnMouseClicked(this::locationTextOnMouseClick);
+        text.setOnDragDetected(this::onTextDragDetected);
         locationsPane.getChildren().add(text);
     }
 
@@ -332,10 +344,69 @@ public class MainController implements Initializable {
         }
         return 0;
     }
+    
+    /**
+     * Handles on drag detected on Text element which represent location.
+     * 
+     * @param event 
+     */
+    private void onTextDragDetected(MouseEvent event) {
+        Text location = (Text)event.getSource();
+        Dragboard dragboard = location.startDragAndDrop(TransferMode.MOVE);
+        ClipboardContent clipboardContent = new ClipboardContent();
+        clipboardContent.putString(location.getId());
+        dragboard.setContent(clipboardContent);
+        dragboard.setDragView(location.snapshot(null, null), location.getLayoutBounds().getWidth() / 2, location.getLayoutBounds().getHeight() / 2);
+        event.consume();
+    }
+    
+    /**
+     * 
+     * @param event 
+     */
+    @FXML
+    private void onTextDragOver(DragEvent event) {
+        if(event.getGestureSource() instanceof Text && event.getDragboard().hasString()) {
+            event.acceptTransferModes(TransferMode.MOVE);
+        }
+        event.consume();
+    }
+    
+    /**`
+     * Handles location on drag dropped on locationsPane. Locaton is moved only
+     * after successful database update.
+     * 
+     * @param event 
+     */
+    @FXML
+    private void onTextDragDropped(DragEvent event) {
+        Dragboard dragboard = event.getDragboard();
+        boolean success = false;
+        if(dragboard.hasString()) {
+            try {
+                String id = dragboard.getString();
+                Text locationNode = (Text) locationsPane.lookup('#' + dragboard.getString());
+                double x = event.getX() - locationNode.getLayoutBounds().getWidth() / 2;
+                double y = event.getY() + locationNode.getLayoutBounds().getHeight() / 4;
+                PreparedStatement ps = db.getStatement(DBHandler.StatementType.UPDATE_LOCATON_XY);
+                ps.setDouble(1, x);
+                ps.setDouble(2, y);
+                ps.setInt(3, Integer.parseInt(id));
+                ps.executeUpdate();
+                ps.clearParameters();
+                locationNode.setX(x);
+                locationNode.setY(y);
+                success = true;
+            } catch (SQLException ex) {
+                showMessage(TITLE, "Neuspelo premeštanje lokacije.\nGreška: " + ex.getMessage() , MessageType.ERROR);
+            }
+        }
+        event.setDropCompleted(success);
+        event.consume();
+    }
 
     @FXML
     private void mouseClicked(MouseEvent event) {
-        event.consume();
         if (isMapLoaded()) {
             MouseButton mb = event.getButton();
             final double x = event.getX();
@@ -349,6 +420,7 @@ public class MainController implements Initializable {
                 }
             }
         }
+        event.consume();
     }
 
     private void centerPointOnTheWindow(final double x, final double y) {

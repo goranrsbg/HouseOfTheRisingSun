@@ -10,12 +10,12 @@
         <URL value="@showstreets.css" />
     </stylesheets>
     <children>
-      <TableView fx:id="tableStreets" prefHeight="400.0" prefWidth="333.0" styleClass="mainFxmlClass" tableMenuButtonVisible="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-        <columns>
-          <TableColumn fx:id="colPak" prefWidth="62.0" styleClass="pak-column" text="PAK" />
-          <TableColumn fx:id="colName" prefWidth="204.0" text="Ulica" />
-            <TableColumn fx:id="colInitial" prefWidth="63.0" styleClass="initial-column" text="Naselje" />
-        </columns>
-      </TableView>
+        <TableView fx:id="tableStreets" prefHeight="400.0" prefWidth="333.0" styleClass="mainFxmlClass" tableMenuButtonVisible="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <columns>
+                <TableColumn fx:id="colPak" prefWidth="62.0" styleClass="pak-column" text="PAK" />
+                <TableColumn fx:id="colName" prefWidth="204.0" text="Ulica" />
+                <TableColumn fx:id="colInitial" prefWidth="63.0" styleClass="initial-column" text="Naselje" />
+            </columns>
+        </TableView>
     </children>
 </AnchorPane>

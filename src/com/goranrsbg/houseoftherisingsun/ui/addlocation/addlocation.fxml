@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import com.jfoenix.controls.JFXButton?>
 <?import com.jfoenix.controls.JFXComboBox?>
 <?import com.jfoenix.controls.JFXTextArea?>
@@ -10,7 +9,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefWidth="351.0" styleClass="anchorpane-root" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.goranrsbg.houseoftherisingsun.ui.addlocation.AddLocationController">
+<AnchorPane prefWidth="351.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.goranrsbg.houseoftherisingsun.ui.addlocation.AddLocationController">
     <stylesheets>
         <URL value="@addlocation.css" />
     </stylesheets>
@@ -34,7 +33,7 @@
             <HBox spacing="11.0">
                <children>
                   <JFXTextField fx:id="pathWayTextField" labelFloat="true" promptText="Sokak (VS, DS, 1, 2...)" />
-                  <JFXTextField fx:id="brTextField" labelFloat="true" prefWidth="117.0" promptText="br." styleClass="textfield-no" />
+                  <JFXTextField fx:id="noTextField" labelFloat="true" prefWidth="117.0" promptText="br." styleClass="textfield-no" />
                   <JFXTextField fx:id="postmanPathTextField" labelFloat="true" prefWidth="117.0" promptText="Poštarev Put" />
                </children>
                <VBox.margin>

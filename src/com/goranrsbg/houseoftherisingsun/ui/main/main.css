@@ -210,12 +210,12 @@ limitations under the License.
 }
 
 .jfx-toggle-button {
-     -jfx-toggle-color: #0344de;
-     -jfx-untoggle-color: #a81c00;
-     -jfx-toggle-line-color: #77C2BB;
-     -jfx-untoggle-line-color: #ffffff;
-     -jfx-size: 13.0;
-     -jfx-disable-visual-focus: false;
+    -jfx-toggle-color: #0344de;
+    -jfx-untoggle-color: #a81c00;
+    -jfx-toggle-line-color: #77C2BB;
+    -jfx-untoggle-line-color: #ffffff;
+    -jfx-size: 13.0;
+    -jfx-disable-visual-focus: false;
 }
 
 Text {
@@ -223,5 +223,13 @@ Text {
     -fx-fill: yellow;
     -fx-font-smoothing-type: lcd;
     -fx-stroke: red;
+    -fx-stroke-width: 1;
+    -fx-font-weight: bold;
+}
+
+Text:hover {
+    -fx-fill: yellow;
+    -fx-font-smoothing-type: lcd;
+    -fx-stroke: darkblue;
     -fx-stroke-width: 1;
 }

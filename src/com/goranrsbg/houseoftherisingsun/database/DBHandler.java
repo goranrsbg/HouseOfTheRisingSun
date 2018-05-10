@@ -45,7 +45,8 @@ public class DBHandler {
         SELECT_STREETS_WITH_SETTLEMENT_ID(3),
         INSERT_LOCATION(4),
         SELECT_LOCATONS_WITH_SETTLEMENT_ID(5),
-        SELECT_ALL_STREETS(6);
+        SELECT_ALL_STREETS(6),
+        UPDATE_LOCATON_XY(7);
         public final int I;
         private StatementType(final int I) {
             this.I = I;
@@ -193,6 +194,7 @@ public class DBHandler {
             statements.add(connection.prepareStatement("SELECT ST.STREET_ID, ST.STREET_PAK, ST.STREET_NAME, SE.SETTLEMENT_INITIALS FROM STREETS AS ST "
                     + "JOIN SETTLEMENTS AS SE ON ST.SETTLEMENT_ID = SE.SETTLEMENT_ID " 
                     + "ORDER BY SE.SETTLEMENT_INITIALS"));
+            statements.add(connection.prepareStatement("UPDATE LOCATIONS SET LOCATION_POINT_X = ?, LOCATION_POINT_Y = ? WHERE LOCATION_ID = ?"));
 //            ps_insertLocation = connection.prepareStatement(
 //                    "INSERT INTO LOCATIONS(X, Y, STREET_PAK, LOCATION_NUMBER, NOTE) \n"
 //                    + "VALUES(?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
