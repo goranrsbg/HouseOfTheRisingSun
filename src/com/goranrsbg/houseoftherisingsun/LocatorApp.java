@@ -92,17 +92,18 @@ public class LocatorApp extends Application {
         LOGGER.info("App started.");
     }
 
-    public void LoadSubWindow(String pathToFxml, JFXButton btn) throws IOException {
+    public void LoadSubWindow(String pathToFxml, JFXButton btn, boolean resizable, String title) throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource(pathToFxml));
         Parent parent = loader.load();
         Scene newScene = new Scene(parent);
         Stage newStage = new Stage(StageStyle.UTILITY);
         newStage.setUserData(btn);
         btn.setUserData(loader.getController());
-        newStage.initOwner(stage);
+        newStage.initOwner(btn.getScene().getWindow());
         newStage.setScene(newScene);
         newStage.setAlwaysOnTop(true);
-        newStage.setResizable(false);
+        newStage.setResizable(resizable);
+        newStage.setTitle(title);
         newStage.setOnCloseRequest((e) -> {
             Stage s = ((Stage)e.getSource());
             JFXButton b = (JFXButton) s.getUserData();

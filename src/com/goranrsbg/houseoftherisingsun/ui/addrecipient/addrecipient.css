@@ -3,5 +3,13 @@
  */
 
 .mainFxmlClass {
+    -fx-font: 11pt "Source Sans Pro";
+}
 
+JFXButton:hover {
+    -fx-text-fill: darkcyan;
+}
+
+.saveBackground {
+    -fx-background-color: greenyellow;
 }

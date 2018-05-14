@@ -3,5 +3,14 @@
  */
 
 .mainFxmlClass {
+    -fx-font: 11pt "Source Sans Pro";
+}
 
+.locationName {
+    -fx-font-weight: bold;
+    -fx-text-fill: darkcyan;
+}
+
+JFXButton:hover {
+    -fx-text-fill: darkcyan;
 }

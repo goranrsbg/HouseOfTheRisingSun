@@ -5,12 +5,12 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane id="AnchorPane" prefHeight="676.0" prefWidth="349.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.goranrsbg.houseoftherisingsun.ui.showstreets.ShowStreetsController">
+<AnchorPane id="AnchorPane" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.goranrsbg.houseoftherisingsun.ui.showstreets.ShowStreetsController">
     <stylesheets>
         <URL value="@showstreets.css" />
     </stylesheets>
     <children>
-        <TableView fx:id="tableStreets" prefHeight="400.0" prefWidth="333.0" styleClass="mainFxmlClass" tableMenuButtonVisible="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <TableView fx:id="tableStreets" styleClass="mainFxmlClass" tableMenuButtonVisible="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <columns>
                 <TableColumn fx:id="colPak" prefWidth="62.0" styleClass="pak-column" text="PAK" />
                 <TableColumn fx:id="colName" prefWidth="204.0" text="Ulica" />

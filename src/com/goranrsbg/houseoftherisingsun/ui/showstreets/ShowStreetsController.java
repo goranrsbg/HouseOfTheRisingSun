@@ -59,6 +59,8 @@ public class ShowStreetsController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         initColumns();
+        readStreets();
+        tableStreets.autosize();
     }
 
     private void initColumns() {
@@ -66,12 +68,10 @@ public class ShowStreetsController implements Initializable {
         colName.setCellValueFactory(new PropertyValueFactory<>("name"));
         colInitial.setCellValueFactory(new PropertyValueFactory<>("settlementInitial"));
         tableStreets.setItems(data);
-        readStreets();
     }
 
     public void readStreets() {
-        try {
-            Statement stmt = db.getConnection().createStatement();
+        try (Statement stmt = db.getConnection().createStatement()) {
             ResultSet rs = stmt.executeQuery("SELECT ST.STREET_ID, ST.STREET_PAK, ST.STREET_NAME, SE.SETTLEMENT_INITIALS FROM STREETS AS ST " 
                     + "JOIN SETTLEMENTS AS SE ON ST.SETTLEMENT_ID = SE.SETTLEMENT_ID "
                     + "ORDER BY SE.SETTLEMENT_INITIALS");

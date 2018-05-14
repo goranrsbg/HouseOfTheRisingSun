@@ -18,6 +18,7 @@ package com.goranrsbg.houseoftherisingsun.ui.main;
 import com.goranrsbg.houseoftherisingsun.LocatorApp;
 import com.goranrsbg.houseoftherisingsun.database.DBHandler;
 import com.goranrsbg.houseoftherisingsun.ui.addlocation.AddLocationController;
+import com.goranrsbg.houseoftherisingsun.ui.showlocation.ShowLocationController;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXNodesList;
 import com.jfoenix.controls.JFXToggleButton;
@@ -83,7 +84,7 @@ public class MainController implements Initializable {
 
     public enum ButtonType {
         ADD_LOCATION,
-        ADD_RECIPIENT,
+        SHOW_LOCATION,
         SHOW_STREETS_TABLE;
     }
 
@@ -145,10 +146,10 @@ public class MainController implements Initializable {
         buttons.put(ButtonType.SHOW_STREETS_TABLE, btn);
         streetsJFXNodesList.addAnimatedNode(btn);
 
-        btn = createButton(null, new FontAwesomeIconView().setStyleClass("addrecip-icon"), DEFAULT_BUTTON_CSS_SUBCLASS + 1, "Dodaj primaoca.");
+        btn = createButton(null, new FontAwesomeIconView().setStyleClass("showlocation-icon"), DEFAULT_BUTTON_CSS_SUBCLASS + 1, "Prikaži primaoce na adresi.");
         btn.setOnAction(this::buttonClickActionEvent);
-        btn.setId(ButtonType.ADD_RECIPIENT.toString());
-        buttons.put(ButtonType.ADD_RECIPIENT, btn);
+        btn.setId(ButtonType.SHOW_LOCATION.toString());
+        buttons.put(ButtonType.SHOW_LOCATION, btn);
         recipientsJFXNodesList.addAnimatedNode(btn);
 
         settlementsMapChooserList.setRotate(90d);
@@ -190,7 +191,7 @@ public class MainController implements Initializable {
             case "ADD_LOCATION":
                 if (isMapLoaded()) {
                     try {
-                        LocatorApp.getInstance().LoadSubWindow("/com/goranrsbg/houseoftherisingsun/ui/addlocation/addlocation.fxml", btn);
+                        LocatorApp.getInstance().LoadSubWindow("/com/goranrsbg/houseoftherisingsun/ui/addlocation/addlocation.fxml", btn, false, "Dadaj lokaciju.");
                         btn.setDisable(true);
                     } catch (IOException ex) {
                         showMessage(TITLE, "Greška pri učitavanju .fxml faja.\n" + ex.getMessage(), MessageType.ERROR);
@@ -199,9 +200,9 @@ public class MainController implements Initializable {
                     showMessage(TITLE, "Mapa nije odabrana.", MessageType.INFORMATION);
                 }
                 break;
-            case "ADD_RECIPIENT":
+            case "SHOW_LOCATION":
                 try {
-                    LocatorApp.getInstance().LoadSubWindow("/com/goranrsbg/houseoftherisingsun/ui/addrecipient/addrecipient.fxml", btn);
+                    LocatorApp.getInstance().LoadSubWindow("/com/goranrsbg/houseoftherisingsun/ui/showlocation/showlocation.fxml", btn, true, "Prikaži lokaciju.");
                     btn.setDisable(true);
                 } catch (IOException ex) {
                     showMessage(TITLE, "Greška pri učitavanju .fxml faja.\n" + ex.getMessage(), MessageType.ERROR);
@@ -209,7 +210,7 @@ public class MainController implements Initializable {
                 break;
             case "SHOW_STREETS_TABLE":
                 try {
-                    LocatorApp.getInstance().LoadSubWindow("/com/goranrsbg/houseoftherisingsun/ui/showstreets/showstreets.fxml", btn);
+                    LocatorApp.getInstance().LoadSubWindow("/com/goranrsbg/houseoftherisingsun/ui/showstreets/showstreets.fxml", btn, true, "Prikaz ulica.");
                     btn.setDisable(true);
                 } catch (IOException ex) {
                     showMessage(TITLE, "Greška pri učitavanju .fxml faja.\n" + ex.getMessage(), MessageType.ERROR);
@@ -302,12 +303,22 @@ public class MainController implements Initializable {
         text.setOnDragDetected(this::onTextDragDetected);
         locationsPane.getChildren().add(text);
     }
-
+    
+    /**
+     * Called on mouse left double click on any location Text element.
+     * 
+     * @param event 
+     */
     private void locationTextOnMouseClick(MouseEvent event) {
         MouseButton bt = event.getButton();
-        Text t = (Text) event.getSource();
-        if (bt == MouseButton.PRIMARY) {
-            System.out.println("Click: " + t.getId());
+        Text locationText = (Text) event.getSource();
+        if (bt == MouseButton.PRIMARY && event.getClickCount() == 2) {
+            JFXButton btn = buttons.get(ButtonType.SHOW_LOCATION);
+            if(btn.getUserData() == null) {
+                btn.fire();
+            }
+            ShowLocationController slc = (ShowLocationController) btn.getUserData();
+            slc.setLocation(Integer.parseInt(locationText.getId()));
             
             // TODO implement add/remove/update recipient on this location.
             
@@ -373,7 +384,7 @@ public class MainController implements Initializable {
     }
     
     /**`
-     * Handles location on drag dropped on locationsPane. Locaton is moved only
+     * Handles location on drag dropped on locationsPane. Location is moved only
      * after successful database update.
      * 
      * @param event 
@@ -396,6 +407,7 @@ public class MainController implements Initializable {
                 ps.clearParameters();
                 locationNode.setX(x);
                 locationNode.setY(y);
+                showMessage(TITLE, "Lokacija na broju " + locationNode.getText() + " je uspešno premeštena.", MessageType.INFORMATION);
                 success = true;
             } catch (SQLException ex) {
                 showMessage(TITLE, "Neuspelo premeštanje lokacije.\nGreška: " + ex.getMessage() , MessageType.ERROR);
@@ -423,7 +435,7 @@ public class MainController implements Initializable {
         event.consume();
     }
 
-    private void centerPointOnTheWindow(final double x, final double y) {
+    private void centerPointOnTheWindow(double x, double y) {
         final double w = rootScrollPane.getWidth();
         final double h = rootScrollPane.getHeight();
         final double imgWidth = theMapImageView.getImage().getWidth();

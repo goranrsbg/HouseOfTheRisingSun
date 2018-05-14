@@ -46,7 +46,9 @@ public class DBHandler {
         INSERT_LOCATION(4),
         SELECT_LOCATONS_WITH_SETTLEMENT_ID(5),
         SELECT_ALL_STREETS(6),
-        UPDATE_LOCATON_XY(7);
+        UPDATE_LOCATON_XY(7),
+        SELECT_STREET_NAME_AND_LOCATION_NUMBER(8),
+        INSERT_RECIPIENT(9);
         public final int I;
         private StatementType(final int I) {
             this.I = I;
@@ -68,14 +70,6 @@ public class DBHandler {
      * All prepared statements.
      */
     private final ArrayList<PreparedStatement> statements;
-
-    private PreparedStatement ps_insertLocation;
-    private PreparedStatement ps_selectStreetsWithSettlementId;
-    private PreparedStatement ps_selectLocationsWithSettlementId;
-    private PreparedStatement ps_selectLocationsWithPak;
-    private PreparedStatement ps_updateLocation;
-    private String SELECT_ALL_TABLE_STREETS_QUERY;
-    private String SELECT_ALL_SETTLEMENTS_QUERY;
 
     private DBHandler() {
         this.LOGGER = Logger.getLogger(LocatorApp.class.getName());
@@ -177,11 +171,6 @@ public class DBHandler {
      * Initializes all prepared statements and queries.
      */
     private void prepareStatements() {
-//        SELECT_ALL_TABLE_STREETS_QUERY
-//                = "SELECT S.STREET_PAK, S.STREET_NAME, S.SETTLEMENT_ID, T.SETTLEMENT_INITIAL FROM STREETS AS S \n"
-//                + "JOIN SETTLEMENTS AS T ON S.SETTLEMENT_ID = T.SETTLEMENT_ID";
-//        SELECT_ALL_SETTLEMENTS_QUERY
-//                = "SELECT * FROM SETTLEMENTS";
         try {
             statements.add(connection.prepareStatement("SELECT SETTLEMENT_NAME, SETTLEMENT_FILE_NAME FROM SETTLEMENTS WHERE SETTLEMENT_ID = ?"));
             statements.add(connection.prepareStatement("SELECT USER_ID FROM USERS WHERE USER_NAME = ?"));
@@ -195,22 +184,9 @@ public class DBHandler {
                     + "JOIN SETTLEMENTS AS SE ON ST.SETTLEMENT_ID = SE.SETTLEMENT_ID " 
                     + "ORDER BY SE.SETTLEMENT_INITIALS"));
             statements.add(connection.prepareStatement("UPDATE LOCATIONS SET LOCATION_POINT_X = ?, LOCATION_POINT_Y = ? WHERE LOCATION_ID = ?"));
-//            ps_insertLocation = connection.prepareStatement(
-//                    "INSERT INTO LOCATIONS(X, Y, STREET_PAK, LOCATION_NUMBER, NOTE) \n"
-//                    + "VALUES(?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
-//            ps_updateLocation = connection.prepareStatement(
-//                    "UPDATE LOCATIONS\n"
-//                    + "SET X = ?, Y = ?, STREET_PAK = ?, LOCATION_NUMBER = ?, NOTE = ? \n"
-//                    + "WHERE LOCATION_ID = ?");
-//            ps_selectLocationsWithSettlementId = connection.prepareStatement(
-//                    "SELECT L.LOCATION_ID, L.X, L.Y, L.STREET_PAK, L.LOCATION_NUMBER, L.NOTE FROM LOCATIONS AS L \n"
-//                    + "JOIN STREETS AS S ON L.STREET_PAK = S.STREET_PAK \n"
-//                    + "WHERE S.SETTLEMENT_ID = ?");
-//            ps_selectLocationsWithPak = connection.prepareStatement(
-//                    "SELECT LOCATION_ID, X, Y, STREET_PAK, LOCATION_NUMBER, NOTE FROM LOCATIONS \n"
-//                    + "WHERE STREET_PAK = ?");
-//            ps_selectStreetsWithSettlementId = connection.prepareStatement(
-//                    "SELECT STREET_PAK, STREET_NAME, SETTLEMENT_ID FROM STREETS WHERE SETTLEMENT_ID = ?");
+            statements.add(connection.prepareStatement("SELECT S.STREET_NAME, L.LOCATION_ADDRESS_NO FROM LOCATIONS AS L JOIN STREETS AS S ON L.STREET_ID = S.STREET_ID "
+                    + "WHERE L.LOCATION_ID = ?"));
+            statements.add(connection.prepareStatement("INSERT INTO RECIPIENTS VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS));
         } catch (SQLException e) {
             LOGGER.log(Level.INFO, "Failed to initiate prepared statements.\nError: {0}", e.getSQLState());
         }

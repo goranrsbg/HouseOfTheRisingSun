@@ -128,11 +128,11 @@ limitations under the License.
     -icons-color: #149c02;
 }
 
-.addrecip-icon{
-    -glyph-name: "USER_PLUS";
+.showlocation-icon{
+    -glyph-name: "TELEGRAM";
     -icons-color: #ff8102;
 }
-.animated-option-button:hover .addrecip-icon{
+.animated-option-button:hover .showlocation-icon{
     -icons-color: #de6f00;
 }
 
