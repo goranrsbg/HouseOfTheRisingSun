@@ -31,17 +31,17 @@ import javafx.beans.property.StringProperty;
 public class Recipient {
     
     private final IntegerProperty id;
-    private final StringProperty firstName;
     private final StringProperty lastName;
+    private final StringProperty firstName;
     private final StringProperty details;
     private final BooleanProperty isRetire;
     private final LongProperty idCardNumber;
     private final StringProperty policeDepartment;
 
-    public Recipient(int id, String firstName, String lastName, String details, boolean isRetire, long idCardNumber, String policeDepartment) {
+    public Recipient(int id, String lastName, String firstName, String details, boolean isRetire, long idCardNumber, String policeDepartment) {
         this.id = new SimpleIntegerProperty(id);
-        this.firstName = new SimpleStringProperty(firstName);
         this.lastName = new SimpleStringProperty(lastName);
+        this.firstName = new SimpleStringProperty(firstName);
         this.details = new SimpleStringProperty(details);
         this.isRetire = new SimpleBooleanProperty(isRetire);
         this.idCardNumber = new SimpleLongProperty(idCardNumber);

@@ -101,7 +101,6 @@ public class LocatorApp extends Application {
         btn.setUserData(loader.getController());
         newStage.initOwner(btn.getScene().getWindow());
         newStage.setScene(newScene);
-        newStage.setAlwaysOnTop(true);
         newStage.setResizable(resizable);
         newStage.setTitle(title);
         newStage.setOnCloseRequest((e) -> {

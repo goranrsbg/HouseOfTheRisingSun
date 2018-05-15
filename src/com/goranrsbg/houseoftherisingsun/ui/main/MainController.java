@@ -74,7 +74,6 @@ public class MainController implements Initializable {
     private final DBHandler db;
     private static MainController instance;
 
-
     public enum MessageType {
         CONFIRM,
         ERROR,
@@ -289,6 +288,16 @@ public class MainController implements Initializable {
         return toggleLocationsButton.isSelected();
     }
 
+    /**
+     * Creates new Text element that represent location and adds it the
+     * locationPane.
+     *
+     * @param no Location number, text of the Text element.
+     * @param x Location position X on the Pane.
+     * @param y Location position Y on the Pane .
+     * @param id Id of the location in database.
+     * @param note Note of the location as tool tip.
+     */
     public void addLocationToPane(String no, double x, double y, String id, String note) {
         Text text = new Text(no);
         text.setX(x);
@@ -300,32 +309,39 @@ public class MainController implements Initializable {
             Tooltip.install(text, tooltip);
         }
         text.setOnMouseClicked(this::locationTextOnMouseClick);
-        text.setOnDragDetected(this::onTextDragDetected);
+        text.setOnDragDetected(this::onLocationDragDetected);
         locationsPane.getChildren().add(text);
     }
-    
+
     /**
      * Called on mouse left double click on any location Text element.
-     * 
-     * @param event 
+     *
+     * @param event
      */
     private void locationTextOnMouseClick(MouseEvent event) {
         MouseButton bt = event.getButton();
         Text locationText = (Text) event.getSource();
         if (bt == MouseButton.PRIMARY && event.getClickCount() == 2) {
             JFXButton btn = buttons.get(ButtonType.SHOW_LOCATION);
-            if(btn.getUserData() == null) {
+            if (btn.getUserData() == null) {
                 btn.fire();
             }
             ShowLocationController slc = (ShowLocationController) btn.getUserData();
-            slc.setLocation(Integer.parseInt(locationText.getId()));
-            
-            // TODO implement add/remove/update recipient on this location.
-            
+            if (slc.setLocation(Integer.parseInt(locationText.getId()))) {
+                slc.loadRecipients();
+            }
         }
         event.consume();
     }
 
+    /**
+     * Reads the map file from PATH_TO_MAPS and adds it to the MapImageView.
+     *
+     * @param fileName Name of the file, map file.
+     * @param name Name as part of subtile of the window to indicate witch map
+     * image is loaded.
+     * @return
+     */
     private boolean loadMap(String fileName, String name) {
         try {
             Image theMapImage = new Image(new FileInputStream(PATH_TO_MAPS + fileName));
@@ -343,10 +359,20 @@ public class MainController implements Initializable {
         return false;
     }
 
+    /**
+     * Checks weather any map is shown except default map.
+     *
+     * @return
+     */
     public boolean isMapLoaded() {
         return mapButtons.stream().anyMatch((b) -> ((int) b.getUserData() > 1 && b.isDisabled()));
     }
 
+    /**
+     * ID of the map from database.
+     *
+     * @return ID of the map.
+     */
     public int getLoadedMapId() {
         for (int i = 0; i < mapButtons.size(); i++) {
             if (mapButtons.get(i).isDisabled()) {
@@ -355,14 +381,14 @@ public class MainController implements Initializable {
         }
         return 0;
     }
-    
+
     /**
      * Handles on drag detected on Text element which represent location.
-     * 
-     * @param event 
+     *
+     * @param event
      */
-    private void onTextDragDetected(MouseEvent event) {
-        Text location = (Text)event.getSource();
+    private void onLocationDragDetected(MouseEvent event) {
+        Text location = (Text) event.getSource();
         Dragboard dragboard = location.startDragAndDrop(TransferMode.MOVE);
         ClipboardContent clipboardContent = new ClipboardContent();
         clipboardContent.putString(location.getId());
@@ -370,30 +396,32 @@ public class MainController implements Initializable {
         dragboard.setDragView(location.snapshot(null, null), location.getLayoutBounds().getWidth() / 2, location.getLayoutBounds().getHeight() / 2);
         event.consume();
     }
-    
+
     /**
-     * 
-     * @param event 
+     * Text element of the location.
+     *
+     * @param event
      */
     @FXML
     private void onTextDragOver(DragEvent event) {
-        if(event.getGestureSource() instanceof Text && event.getDragboard().hasString()) {
+        if (event.getGestureSource() instanceof Text && event.getDragboard().hasString()) {
             event.acceptTransferModes(TransferMode.MOVE);
         }
         event.consume();
     }
-    
-    /**`
+
+    /**
+     * `
      * Handles location on drag dropped on locationsPane. Location is moved only
      * after successful database update.
-     * 
-     * @param event 
+     *
+     * @param event
      */
     @FXML
     private void onTextDragDropped(DragEvent event) {
         Dragboard dragboard = event.getDragboard();
         boolean success = false;
-        if(dragboard.hasString()) {
+        if (dragboard.hasString()) {
             try {
                 String id = dragboard.getString();
                 Text locationNode = (Text) locationsPane.lookup('#' + dragboard.getString());
@@ -410,7 +438,7 @@ public class MainController implements Initializable {
                 showMessage(TITLE, "Lokacija na broju " + locationNode.getText() + " je uspešno premeštena.", MessageType.INFORMATION);
                 success = true;
             } catch (SQLException ex) {
-                showMessage(TITLE, "Neuspelo premeštanje lokacije.\nGreška: " + ex.getMessage() , MessageType.ERROR);
+                showMessage(TITLE, "Neuspelo premeštanje lokacije.\nGreška: " + ex.getMessage(), MessageType.ERROR);
             }
         }
         event.setDropCompleted(success);
@@ -435,6 +463,12 @@ public class MainController implements Initializable {
         event.consume();
     }
 
+    /**
+     * Puts point (x,y) to the center of the window.
+     *
+     * @param x
+     * @param y
+     */
     private void centerPointOnTheWindow(double x, double y) {
         final double w = rootScrollPane.getWidth();
         final double h = rootScrollPane.getHeight();
@@ -448,6 +482,13 @@ public class MainController implements Initializable {
         }
     }
 
+    /**
+     * Shows notification message.
+     *
+     * @param title
+     * @param message
+     * @param type
+     */
     public void showMessage(String title, String message, MessageType type) {
         Notifications notification = Notifications.create().title(title).text(message);
         switch (type) {

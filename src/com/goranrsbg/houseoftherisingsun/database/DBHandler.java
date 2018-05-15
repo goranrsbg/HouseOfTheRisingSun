@@ -48,9 +48,11 @@ public class DBHandler {
         SELECT_ALL_STREETS(6),
         UPDATE_LOCATON_XY(7),
         SELECT_STREET_NAME_AND_LOCATION_NUMBER(8),
-        INSERT_RECIPIENT(9);
+        INSERT_RECIPIENT(9),
+        SELECT_RECIPIENTS_ON_LOCATION_ID(10),
+        DELETE_RECIPIENT_WITH_ID(11);
         public final int I;
-        private StatementType(final int I) {
+        private StatementType(int I) {
             this.I = I;
         }
     }
@@ -108,12 +110,13 @@ public class DBHandler {
                 try {
                     connection = DriverManager.getConnection(props.getProperty("jdbc.protocol") + props.getProperty("jdbc.name") + ";create=true");
                     connection.setSchema(props.getProperty("jdbc.default.shema"));
-                    Statement st = connection.createStatement();
-                    st.executeUpdate("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.user.posta', '11431')");
-                    st.executeUpdate("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.connection.requireAuthentication', 'true')");
-                    st.executeUpdate("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.authentication.provider', 'BUILTIN')");
-                    st.executeUpdate("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.database.defaultConnectionMode', 'noAccess')");
-                    st.executeUpdate("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.database.fullAccessUsers', 'posta')");
+                    try (Statement st = connection.createStatement()) {
+                        st.executeUpdate("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.user.posta', '11431')");
+                        st.executeUpdate("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.connection.requireAuthentication', 'true')");
+                        st.executeUpdate("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.authentication.provider', 'BUILTIN')");
+                        st.executeUpdate("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.database.defaultConnectionMode', 'noAccess')");
+                        st.executeUpdate("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.database.fullAccessUsers', 'posta')");
+                    }
                     initTables();
                 } catch (SQLException ex) {
                     LOGGER.log(Level.INFO, "Failed to create connection.\nError: {0}", ex.getSQLState());
@@ -187,6 +190,9 @@ public class DBHandler {
             statements.add(connection.prepareStatement("SELECT S.STREET_NAME, L.LOCATION_ADDRESS_NO FROM LOCATIONS AS L JOIN STREETS AS S ON L.STREET_ID = S.STREET_ID "
                     + "WHERE L.LOCATION_ID = ?"));
             statements.add(connection.prepareStatement("INSERT INTO RECIPIENTS VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS));
+            statements.add(connection.prepareStatement("SELECT R.RECIPIENT_ID, R.RECIPIENT_LAST_NAME, R.RECIPIENT_FIRST_NAME, R.RECIPIENT_DETAILS, "
+                    + "R.RECIPIENT_IS_RETIREE, R.RECIPIENT_ID_CARD_NUMBER, R.RECIPIENT_ID_CARD_POLICE_DEPARTMENT FROM RECIPIENTS AS R WHERE R.LOCATION_ID = ?"));
+            statements.add(connection.prepareStatement("DELETE FROM RECIPIENTS AS R WHERE R.RECIPIENT_ID = ?"));
         } catch (SQLException e) {
             LOGGER.log(Level.INFO, "Failed to initiate prepared statements.\nError: {0}", e.getSQLState());
         }

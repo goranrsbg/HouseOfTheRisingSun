@@ -17,6 +17,7 @@ package com.goranrsbg.houseoftherisingsun.ui.addrecipient;
 
 import com.goranrsbg.houseoftherisingsun.database.DBHandler;
 import com.goranrsbg.houseoftherisingsun.ui.main.MainController;
+import com.goranrsbg.houseoftherisingsun.ui.showlocation.ShowLocationController;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXCheckBox;
 import com.jfoenix.controls.JFXTextField;
@@ -65,6 +66,7 @@ public class AddRecipientController implements Initializable {
     private final String TITLE = "Dodaj primaoca.";
     private int locationID;
     private DBHandler db;
+    private ShowLocationController slc;
 
     /**
      * Initializes the controller class.
@@ -100,8 +102,13 @@ public class AddRecipientController implements Initializable {
         }
     }
 
-    public void setLocationID(int locationID) {
+    public AddRecipientController setLocationID(int locationID) {
         this.locationID = locationID;
+        return this;
+    }
+    
+    public void setShowLocationController(ShowLocationController slc) {
+        this.slc = slc;
     }
 
     @FXML
@@ -121,7 +128,7 @@ public class AddRecipientController implements Initializable {
                 ps.setBoolean(4, isRetire);
                 if (isRetire) {
                     ps.setLong(5, Long.parseLong(idCardNumber));
-                    ps.setString(6, policeDepartment);
+                    ps.setString(6, nameToUpperCase(policeDepartment));
                 } else {
                     ps.setNull(5, Types.BIGINT);
                     ps.setNull(6, Types.VARCHAR);
@@ -129,6 +136,9 @@ public class AddRecipientController implements Initializable {
                 ps.setInt(7, locationID);
                 ps.executeUpdate();
                 ps.clearParameters();
+                if(slc != null) {
+                    slc.loadRecipients();
+                }
                 MainController.getInstance().showMessage(TITLE, "Primalac " + lastName + " " + firstName + " uspešno dodan.", MainController.MessageType.INFORMATION);
             } catch (SQLException ex) {
                 MainController.getInstance().showMessage(TITLE, "Neuspelo dodavanje primaoca.\nGreška: " + ex.getMessage(), MainController.MessageType.ERROR);
@@ -160,15 +170,19 @@ public class AddRecipientController implements Initializable {
     }
 
     /**
-     * Changes name to start as uppercase first letter. goran -> Goran
+     * Changes name to start with uppercase letter. 
+     * goran -> Goran
+     * smederevo -> Smederevo
      *
      * @param name name to be changed.
      * @return
      */
     private String nameToUpperCase(String name) {
-        char charAt0 = name.charAt(0);
-        if (Character.isLowerCase(charAt0)) {
-            name = Character.toUpperCase(charAt0) + name.substring(1, name.length());
+        if (!name.isEmpty()) {
+            char charAt0 = name.charAt(0);
+            if (Character.isLowerCase(charAt0)) {
+                name = Character.toUpperCase(charAt0) + name.substring(1, name.length());
+            }
         }
         return name;
     }
