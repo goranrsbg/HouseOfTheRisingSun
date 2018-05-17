@@ -104,7 +104,7 @@ public class LocatorApp extends Application {
         newStage.setResizable(resizable);
         newStage.setTitle(title);
         newStage.setOnCloseRequest((e) -> {
-            Stage s = ((Stage)e.getSource());
+            Stage s = ((Stage) e.getSource());
             JFXButton b = (JFXButton) s.getUserData();
             b.setDisable(false);
             b.setUserData(null);

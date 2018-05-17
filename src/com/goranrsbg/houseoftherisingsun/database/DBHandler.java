@@ -50,7 +50,9 @@ public class DBHandler {
         SELECT_STREET_NAME_AND_LOCATION_NUMBER(8),
         INSERT_RECIPIENT(9),
         SELECT_RECIPIENTS_ON_LOCATION_ID(10),
-        DELETE_RECIPIENT_WITH_ID(11);
+        DELETE_RECIPIENT_WITH_ID(11),
+        UPDATE_RECIPIENT(12),
+        SELECT_RECIPIENT(13);
         public final int I;
         private StatementType(int I) {
             this.I = I;
@@ -181,11 +183,9 @@ public class DBHandler {
             statements.add(connection.prepareStatement("SELECT STREET_ID, STREET_NAME FROM STREETS WHERE SETTLEMENT_ID = ?"));
             statements.add(connection.prepareStatement("INSERT INTO LOCATIONS VALUES (DEFAULT, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS));
             statements.add(connection.prepareStatement("SELECT L.LOCATION_ID, L.LOCATION_POINT_X, L.LOCATION_POINT_Y, L.LOCATION_ADDRESS_NO, L.LOCATION_NOTE FROM LOCATIONS AS L "
-                    + "JOIN STREETS AS S ON L.STREET_ID = S.STREET_ID "
-                    + "WHERE S.SETTLEMENT_ID = ?"));
+                    + "JOIN STREETS AS S ON L.STREET_ID = S.STREET_ID WHERE S.SETTLEMENT_ID = ?"));
             statements.add(connection.prepareStatement("SELECT ST.STREET_ID, ST.STREET_PAK, ST.STREET_NAME, SE.SETTLEMENT_INITIALS FROM STREETS AS ST "
-                    + "JOIN SETTLEMENTS AS SE ON ST.SETTLEMENT_ID = SE.SETTLEMENT_ID " 
-                    + "ORDER BY SE.SETTLEMENT_INITIALS"));
+                    + "JOIN SETTLEMENTS AS SE ON ST.SETTLEMENT_ID = SE.SETTLEMENT_ID ORDER BY SE.SETTLEMENT_INITIALS"));
             statements.add(connection.prepareStatement("UPDATE LOCATIONS SET LOCATION_POINT_X = ?, LOCATION_POINT_Y = ? WHERE LOCATION_ID = ?"));
             statements.add(connection.prepareStatement("SELECT S.STREET_NAME, L.LOCATION_ADDRESS_NO FROM LOCATIONS AS L JOIN STREETS AS S ON L.STREET_ID = S.STREET_ID "
                     + "WHERE L.LOCATION_ID = ?"));
@@ -193,6 +193,9 @@ public class DBHandler {
             statements.add(connection.prepareStatement("SELECT R.RECIPIENT_ID, R.RECIPIENT_LAST_NAME, R.RECIPIENT_FIRST_NAME, R.RECIPIENT_DETAILS, "
                     + "R.RECIPIENT_IS_RETIREE, R.RECIPIENT_ID_CARD_NUMBER, R.RECIPIENT_ID_CARD_POLICE_DEPARTMENT FROM RECIPIENTS AS R WHERE R.LOCATION_ID = ?"));
             statements.add(connection.prepareStatement("DELETE FROM RECIPIENTS AS R WHERE R.RECIPIENT_ID = ?"));
+            statements.add(connection.prepareStatement("UPDATE RECIPIENTS AS R SET R.RECIPIENT_LAST_NAME = ?, R.RECIPIENT_FIRST_NAME = ?, R.RECIPIENT_DETAILS = ?, R.RECIPIENT_IS_RETIREE = ?, "
+                    + "R.RECIPIENT_ID_CARD_NUMBER = ?, R.RECIPIENT_ID_CARD_POLICE_DEPARTMENT = ? WHERE R.RECIPIENT_ID = ?"));
+            statements.add(connection.prepareStatement("SELECT * FROM RECIPIENTS AS R WHERE R.RECIPIENT_ID = ?"));
         } catch (SQLException e) {
             LOGGER.log(Level.INFO, "Failed to initiate prepared statements.\nError: {0}", e.getSQLState());
         }
@@ -233,7 +236,7 @@ public class DBHandler {
             props.load(getClass().getResourceAsStream("database.properties"));
             props.clear();
             DriverManager.getConnection("jdbc:derby:;shutdown=true", props.getProperty("jdbc.username"), props.getProperty("jdbc.password"));
-            while(!statements.isEmpty()) {
+            while (!statements.isEmpty()) {
                 PreparedStatement ps = statements.remove(0);
                 ps.close();
             }

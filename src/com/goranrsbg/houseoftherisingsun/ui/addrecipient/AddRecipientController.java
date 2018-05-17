@@ -17,15 +17,18 @@ package com.goranrsbg.houseoftherisingsun.ui.addrecipient;
 
 import com.goranrsbg.houseoftherisingsun.database.DBHandler;
 import com.goranrsbg.houseoftherisingsun.ui.main.MainController;
+import com.goranrsbg.houseoftherisingsun.ui.showlocation.Recipient;
 import com.goranrsbg.houseoftherisingsun.ui.showlocation.ShowLocationController;
-import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXCheckBox;
 import com.jfoenix.controls.JFXTextField;
 import java.net.URL;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -58,15 +61,12 @@ public class AddRecipientController implements Initializable {
     private JFXTextField idCardNuberTextField;
     @FXML
     private JFXTextField policeDepartmentTextField;
-    @FXML
-    private JFXButton saveButton;
-    @FXML
-    private JFXButton cancelButton;
 
-    private final String TITLE = "Dodaj primaoca.";
+    private final String TITLE = "Dodaj/Izmeni primaoca.";
     private int locationID;
     private DBHandler db;
     private ShowLocationController slc;
+    private Recipient recipient;
 
     /**
      * Initializes the controller class.
@@ -92,6 +92,7 @@ public class AddRecipientController implements Initializable {
             return t;
         });
         idCardNuberTextField.setTextFormatter(formatterIdCardNumber);
+        recipient = null;
     }
 
     private void isRetireActionEvent(ActionEvent event) {
@@ -106,9 +107,20 @@ public class AddRecipientController implements Initializable {
         this.locationID = locationID;
         return this;
     }
-    
+
     public void setShowLocationController(ShowLocationController slc) {
         this.slc = slc;
+    }
+
+    public void setRecipient(Recipient recipient) {
+        lastNameTextField.setText(recipient.getLastName());
+        firstNameTextField.setText(recipient.getFirstName());
+        detailsTextField.setText(recipient.getDetails());
+        isRetireCheckBox.setSelected(recipient.getIsRetire());
+        retireDetails.setDisable(!recipient.getIsRetire());
+        idCardNuberTextField.setText(recipient.getIdCardNumber() + "");
+        policeDepartmentTextField.setText(recipient.getPoliceDepartment());
+        this.recipient = recipient;
     }
 
     @FXML
@@ -121,6 +133,8 @@ public class AddRecipientController implements Initializable {
         String policeDepartment = policeDepartmentTextField.getText();
         if (validateFields(lastName, isRetire, idCardNumber, policeDepartment)) {
             try {
+
+                // TO DO UPDATE RECIPIENT
                 PreparedStatement ps = db.getStatement(DBHandler.StatementType.INSERT_RECIPIENT);
                 ps.setString(1, lastName);
                 ps.setString(2, firstName);
@@ -136,7 +150,8 @@ public class AddRecipientController implements Initializable {
                 ps.setInt(7, locationID);
                 ps.executeUpdate();
                 ps.clearParameters();
-                if(slc != null) {
+                clearName();
+                if (slc != null) {
                     slc.loadRecipients();
                 }
                 MainController.getInstance().showMessage(TITLE, "Primalac " + lastName + " " + firstName + " uspešno dodan.", MainController.MessageType.INFORMATION);
@@ -168,10 +183,25 @@ public class AddRecipientController implements Initializable {
         }
         return valid;
     }
+    
+    private void clearName() {
+        if(firstNameTextField.getText().isEmpty()) {
+            lastNameTextField.setText("");
+        } else {
+            firstNameTextField.setText("");
+        }
+        detailsTextField.setText("");
+        if(isRetireCheckBox.isSelected()) {
+            isRetireCheckBox.setSelected(false);
+            idCardNuberTextField.setText("");
+            policeDepartmentTextField.setText("");
+            retireDetails.setDisable(true);
+        }
+    }
 
     /**
      * Changes name to start with uppercase letter. 
-     * goran -> Goran
+     * goran -> Goran 
      * smederevo -> Smederevo
      *
      * @param name name to be changed.

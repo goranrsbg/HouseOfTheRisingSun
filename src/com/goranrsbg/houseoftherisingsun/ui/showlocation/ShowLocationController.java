@@ -117,6 +117,8 @@ public class ShowLocationController implements Initializable {
             } catch (SQLException ex) {
                 MainController.getInstance().showMessage(TITLE, "Greška pri selektovanju lokacije #" + locationId + "\nError: " + ex.getMessage(), MainController.MessageType.ERROR);
             }
+        } else {
+            MainController.getInstance().showMessage(TITLE, "Potrebno je zatvoriti pomoćne prozore da bi bila prikazana nova lokacija.", MainController.MessageType.ERROR);
         }
         return result;
     }
@@ -166,6 +168,7 @@ public class ShowLocationController implements Initializable {
 
     @FXML
     private void deleteLocationOnAction(ActionEvent event) {
+
     }
 
     @FXML
@@ -182,6 +185,21 @@ public class ShowLocationController implements Initializable {
 
     @FXML
     private void changeRecipientOnAction(ActionEvent event) {
+        Recipient recipient = recipientsTableView.getSelectionModel().getSelectedItem();
+        if (recipient != null) {
+            try {
+                JFXButton btn = (JFXButton) event.getSource();
+                LocatorApp.getInstance().LoadSubWindow("/com/goranrsbg/houseoftherisingsun/ui/addrecipient/addrecipient.fxml", btn, false, "Izmeni primaoca.");
+                btn.setDisable(true);
+                AddRecipientController arc = ((AddRecipientController) btn.getUserData());
+                arc.setLocationID(Integer.parseInt(idLabel.getText())).setShowLocationController(this);
+                arc.setRecipient(recipient);
+            } catch (IOException ex) {
+                MainController.getInstance().showMessage(TITLE, "Greška pri učitavanju .fxml faja.\n" + ex.getMessage(), MainController.MessageType.ERROR);
+            }
+        } else {
+            MainController.getInstance().showMessage(TITLE, "Primalac nije izabran.", MainController.MessageType.INFORMATION);
+        }
     }
 
     @FXML
