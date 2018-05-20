@@ -52,7 +52,7 @@ public class DBHandler {
         SELECT_RECIPIENTS_ON_LOCATION_ID(10),
         DELETE_RECIPIENT_WITH_ID(11),
         UPDATE_RECIPIENT(12),
-        SELECT_RECIPIENT(13);
+        UPDATE_RECIPIENT_LOCATION(13);
         public final int I;
         private StatementType(int I) {
             this.I = I;
@@ -195,7 +195,7 @@ public class DBHandler {
             statements.add(connection.prepareStatement("DELETE FROM RECIPIENTS AS R WHERE R.RECIPIENT_ID = ?"));
             statements.add(connection.prepareStatement("UPDATE RECIPIENTS AS R SET R.RECIPIENT_LAST_NAME = ?, R.RECIPIENT_FIRST_NAME = ?, R.RECIPIENT_DETAILS = ?, R.RECIPIENT_IS_RETIREE = ?, "
                     + "R.RECIPIENT_ID_CARD_NUMBER = ?, R.RECIPIENT_ID_CARD_POLICE_DEPARTMENT = ? WHERE R.RECIPIENT_ID = ?"));
-            statements.add(connection.prepareStatement("SELECT * FROM RECIPIENTS AS R WHERE R.RECIPIENT_ID = ?"));
+            statements.add(connection.prepareStatement("UPDATE RECIPIENTS AS R SET R.LOCATION_ID = ? WHERE R.RECIPIENT_ID = ?"));
         } catch (SQLException e) {
             LOGGER.log(Level.INFO, "Failed to initiate prepared statements.\nError: {0}", e.getSQLState());
         }

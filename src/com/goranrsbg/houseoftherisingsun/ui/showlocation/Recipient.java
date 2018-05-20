@@ -97,4 +97,13 @@ public class Recipient {
         this.policeDepartment.set(policeDepartment);
     }
     
+    public String getFullName() {
+        return lastName.get() + " " + firstName.get();
+    }
+
+    @Override
+    public String toString() {
+        return "Recipient{" + "id=" + id + ", lastName=" + lastName + ", firstName=" + firstName + ", details=" + details + ", isRetire=" + isRetire + ", idCardNumber=" + idCardNumber + ", policeDepartment=" + policeDepartment + '}';
+    }
+    
 }

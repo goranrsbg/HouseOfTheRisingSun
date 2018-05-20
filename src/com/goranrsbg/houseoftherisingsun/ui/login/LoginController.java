@@ -167,7 +167,7 @@ public class LoginController implements Initializable {
 
     private String toSha256String(String text) {
         byte[] digestedText = generator.digest(text.getBytes());
-        // digestedText.toFullSizeHexString()
+        // digestedText to full size hex string
         StringBuilder sb = new StringBuilder(64);
         for (int i = 0; i < digestedText.length; i++) {
             String val = Integer.toHexString(digestedText[i] & 0xff);

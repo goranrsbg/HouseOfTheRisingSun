@@ -19,16 +19,15 @@ import com.goranrsbg.houseoftherisingsun.database.DBHandler;
 import com.goranrsbg.houseoftherisingsun.ui.main.MainController;
 import com.goranrsbg.houseoftherisingsun.ui.showlocation.Recipient;
 import com.goranrsbg.houseoftherisingsun.ui.showlocation.ShowLocationController;
+import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXCheckBox;
 import com.jfoenix.controls.JFXTextField;
 import java.net.URL;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -61,7 +60,9 @@ public class AddRecipientController implements Initializable {
     private JFXTextField idCardNuberTextField;
     @FXML
     private JFXTextField policeDepartmentTextField;
-
+    @FXML
+    private JFXButton cancelButton;
+    
     private final String TITLE = "Dodaj/Izmeni primaoca.";
     private int locationID;
     private DBHandler db;
@@ -120,7 +121,17 @@ public class AddRecipientController implements Initializable {
         retireDetails.setDisable(!recipient.getIsRetire());
         idCardNuberTextField.setText(recipient.getIdCardNumber() + "");
         policeDepartmentTextField.setText(recipient.getPoliceDepartment());
+        setTitle("Ažuriraj - " + recipient.getFullName());
         this.recipient = recipient;
+    }
+    /**
+     * Creates title on the window.
+     * @param title title to be shown
+     */
+    public void setTitle(String title) {
+        Platform.runLater(() -> {
+            ((Stage)rootPane.getScene().getWindow()).setTitle(title);
+        });
     }
 
     @FXML
@@ -133,9 +144,12 @@ public class AddRecipientController implements Initializable {
         String policeDepartment = policeDepartmentTextField.getText();
         if (validateFields(lastName, isRetire, idCardNumber, policeDepartment)) {
             try {
-
-                // TO DO UPDATE RECIPIENT
-                PreparedStatement ps = db.getStatement(DBHandler.StatementType.INSERT_RECIPIENT);
+                PreparedStatement ps;
+                if (recipient != null) {
+                    ps = db.getStatement(DBHandler.StatementType.UPDATE_RECIPIENT);
+                } else {
+                    ps = db.getStatement(DBHandler.StatementType.INSERT_RECIPIENT);
+                }
                 ps.setString(1, lastName);
                 ps.setString(2, firstName);
                 ps.setString(3, details);
@@ -147,16 +161,22 @@ public class AddRecipientController implements Initializable {
                     ps.setNull(5, Types.BIGINT);
                     ps.setNull(6, Types.VARCHAR);
                 }
-                ps.setInt(7, locationID);
+                if (recipient != null) {
+                    ps.setInt(7, recipient.getId());
+                } else {
+                    ps.setInt(7, locationID);
+                }
                 ps.executeUpdate();
                 ps.clearParameters();
-                clearName();
-                if (slc != null) {
-                    slc.loadRecipients();
+                MainController.getInstance().showMessage(TITLE, "Primalac " + lastName + " " + firstName + " uspešno" + ((recipient != null) ? " ažuriran" : " dodan") + ".", MainController.MessageType.INFORMATION);
+                slc.loadRecipients();
+                if (recipient == null) {
+                    clearName();
+                } else {
+                    cancelButton.fire();
                 }
-                MainController.getInstance().showMessage(TITLE, "Primalac " + lastName + " " + firstName + " uspešno dodan.", MainController.MessageType.INFORMATION);
             } catch (SQLException ex) {
-                MainController.getInstance().showMessage(TITLE, "Neuspelo dodavanje primaoca.\nGreška: " + ex.getMessage(), MainController.MessageType.ERROR);
+                MainController.getInstance().showMessage(TITLE, "Neuspelo" + ((recipient != null) ? " ažuriranje" : " dodavanje") + " primaoca.\nGreška: " + ex.getMessage(), MainController.MessageType.ERROR);
             }
         }
     }
@@ -183,15 +203,15 @@ public class AddRecipientController implements Initializable {
         }
         return valid;
     }
-    
+
     private void clearName() {
-        if(firstNameTextField.getText().isEmpty()) {
+        if (firstNameTextField.getText().isEmpty()) {
             lastNameTextField.setText("");
         } else {
             firstNameTextField.setText("");
         }
         detailsTextField.setText("");
-        if(isRetireCheckBox.isSelected()) {
+        if (isRetireCheckBox.isSelected()) {
             isRetireCheckBox.setSelected(false);
             idCardNuberTextField.setText("");
             policeDepartmentTextField.setText("");
@@ -200,9 +220,8 @@ public class AddRecipientController implements Initializable {
     }
 
     /**
-     * Changes name to start with uppercase letter. 
-     * goran -> Goran 
-     * smederevo -> Smederevo
+     * Changes name to start with uppercase letter. goran -> Goran kolari ->
+     * Kolari
      *
      * @param name name to be changed.
      * @return

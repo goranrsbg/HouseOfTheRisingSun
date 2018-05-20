@@ -37,11 +37,15 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
@@ -54,6 +58,8 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import org.controlsfx.control.Notifications;
 
 /**
@@ -91,12 +97,16 @@ public class MainController implements Initializable {
     private final ArrayList<JFXButton> mapButtons;
     private final JFXToggleButton toggleLocationsButton;
     private static final Logger LOGGER = Logger.getLogger(LocatorApp.class.getName());
+    private final Map<Integer, ShowLocationController> shownLocations;
+    private final Pattern recipientPattern;
 
     public MainController() {
         db = DBHandler.getInstance();
         mapButtons = new ArrayList<>();
         buttons = new HashMap<>();
         toggleLocationsButton = new JFXToggleButton();
+        shownLocations = new HashMap<>();
+        recipientPattern = Pattern.compile("RID:\\d+,LID:\\d+");
         instance = this;
     }
 
@@ -314,7 +324,8 @@ public class MainController implements Initializable {
     }
 
     /**
-     * Called on mouse left double click on any location Text element.
+     * Called on mouse left double click on any location Text element, to show
+     * location recipients.
      *
      * @param event
      */
@@ -322,16 +333,47 @@ public class MainController implements Initializable {
         MouseButton bt = event.getButton();
         Text locationText = (Text) event.getSource();
         if (bt == MouseButton.PRIMARY && event.getClickCount() == 2) {
-            JFXButton btn = buttons.get(ButtonType.SHOW_LOCATION);
-            if (btn.getUserData() == null) {
-                btn.fire();
-            }
-            ShowLocationController slc = (ShowLocationController) btn.getUserData();
-            if (slc.setLocation(Integer.parseInt(locationText.getId()))) {
-                slc.loadRecipients();
-            }
+            showLocation(Integer.parseInt(locationText.getId()));
         }
         event.consume();
+    }
+
+    /**
+     * Shows location user interface.
+     *
+     * @param locationID Database ID of the location to be shown.
+     */
+    private void showLocation(int locationID) {
+        if (shownLocations.containsKey(locationID)) {
+            shownLocations.get(locationID).requestFocus();
+        } else {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/goranrsbg/houseoftherisingsun/ui/showlocation/showlocation.fxml"));
+                Parent parent = loader.load();
+                ShowLocationController controller = (ShowLocationController) loader.getController();
+                shownLocations.put(locationID, controller);
+                controller.setPattern(recipientPattern);
+                controller.setLocation(locationID);
+                controller.loadRecipients();
+                Scene scene = new Scene(parent);
+                Stage stage = new Stage(StageStyle.UTILITY);
+                stage.initOwner(locationsPane.getScene().getWindow());
+                stage.setOnCloseRequest((event) -> {
+                    Stage st = (Stage) event.getSource();
+                    Object[] ud = (Object[]) st.getUserData();
+                    ((MainController) ud[0]).getShownLocations().remove((Integer) ud[1]);
+                });
+                stage.setUserData(new Object[]{this, locationID});
+                stage.setScene(scene);
+                stage.show();
+            } catch (IOException ex) {
+                showMessage(TITLE, "Greška pri učitavanju showlocation.fxml fajla.\n" + ex.getMessage(), MessageType.ERROR);
+            }
+        }
+    }
+
+    public Map<Integer, ShowLocationController> getShownLocations() {
+        return shownLocations;
     }
 
     /**
@@ -396,6 +438,12 @@ public class MainController implements Initializable {
         dragboard.setDragView(location.snapshot(null, null), location.getLayoutBounds().getWidth() / 2, location.getLayoutBounds().getHeight() / 2);
         event.consume();
     }
+    
+    public void refreshRecipients(int locationId) {
+        if(shownLocations.containsKey(locationId)) {
+            shownLocations.get(locationId).loadRecipients();
+        }
+    }
 
     /**
      * Text element of the location.
@@ -406,8 +454,8 @@ public class MainController implements Initializable {
     private void onTextDragOver(DragEvent event) {
         if (event.getGestureSource() instanceof Text && event.getDragboard().hasString()) {
             event.acceptTransferModes(TransferMode.MOVE);
+            event.consume();
         }
-        event.consume();
     }
 
     /**
