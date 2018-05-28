@@ -153,6 +153,7 @@ public class MainController implements Initializable {
         locationAddress.setCellValueFactory(new PropertyValueFactory<>("locationAddress"));
         searchRecipientsTable.getColumns().addAll(lastName, firstName, details, locationAddress);
         searchRecipientsTable.setItems(showRecipientsData);
+        searchRecipientsTable.setVisible(false);
     }
 
     private void initButtons() {

@@ -29,11 +29,13 @@ public class SearchRecipient extends Recipient {
     
     private final IntegerProperty locationId;
     private final StringProperty locationAddress;
+    private final IntegerProperty postmanPathStep;
 
-    public SearchRecipient(int id, String lastName, String firstName, String details, boolean isRetire, long idCardNumber, String policeDepartment, int locationId, String locationAddress) {
+    public SearchRecipient(int id, String lastName, String firstName, String details, boolean isRetire, long idCardNumber, String policeDepartment, int locationId, String locationAddress, int postmanPathStep) {
         super(id, lastName, firstName, details, isRetire, idCardNumber, policeDepartment);
         this.locationId = new SimpleIntegerProperty(locationId);
         this.locationAddress = new SimpleStringProperty(locationAddress);
+        this.postmanPathStep = new SimpleIntegerProperty(postmanPathStep);
     }
     
     public int getLocationId() {
@@ -50,6 +52,14 @@ public class SearchRecipient extends Recipient {
 
     public void setLocationAddress(String locationAddress) {
         this.locationAddress.set(locationAddress);
+    }
+    
+    public int getPostmanPathStep() {
+        return postmanPathStep.get();
+    }
+    
+    public void setPostmanPathStep(int postmanPathStep) {
+        this.postmanPathStep.set(postmanPathStep);
     }
     
 }
