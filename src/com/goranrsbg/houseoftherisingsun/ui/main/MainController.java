@@ -21,6 +21,7 @@ import com.goranrsbg.houseoftherisingsun.ui.addlocation.AddLocationController;
 import com.goranrsbg.houseoftherisingsun.ui.showlocation.ShowLocationController;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXNodesList;
+import com.jfoenix.controls.JFXTextField;
 import com.jfoenix.controls.JFXToggleButton;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import java.io.FileInputStream;
@@ -39,7 +40,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -47,16 +51,22 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -69,6 +79,8 @@ import org.controlsfx.control.Notifications;
 public class MainController implements Initializable {
 
     @FXML
+    private StackPane rootPane;
+    @FXML
     private ImageView theMapImageView;
     @FXML
     private JFXNodesList rootButtonList;
@@ -76,6 +88,14 @@ public class MainController implements Initializable {
     private ScrollPane rootScrollPane;
     @FXML
     private Pane locationsPane;
+    @FXML
+    private JFXTextField searchBox;
+    @FXML
+    private JFXButton searchArrow;
+    @FXML
+    private VBox searchLine;
+    @FXML
+    private TableView<SearchRecipient> searchRecipientsTable;
 
     private final DBHandler db;
     private static MainController instance;
@@ -99,6 +119,7 @@ public class MainController implements Initializable {
     private static final Logger LOGGER = Logger.getLogger(LocatorApp.class.getName());
     private final Map<Integer, ShowLocationController> shownLocations;
     private final Pattern recipientPattern;
+    private final ObservableList showRecipientsData;
 
     public MainController() {
         db = DBHandler.getInstance();
@@ -107,6 +128,7 @@ public class MainController implements Initializable {
         toggleLocationsButton = new JFXToggleButton();
         shownLocations = new HashMap<>();
         recipientPattern = Pattern.compile("RID:\\d+,LID:\\d+");
+        showRecipientsData = FXCollections.observableArrayList();
         instance = this;
     }
 
@@ -117,6 +139,20 @@ public class MainController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         initButtons();
+        initSearch();
+    }
+    
+    private void initSearch() {
+        TableColumn<SearchRecipient, String> lastName = new TableColumn<>("Prezime");
+        lastName.setCellValueFactory(new PropertyValueFactory<>("lastName"));
+        TableColumn<SearchRecipient, String> firstName = new TableColumn<>("Ime");
+        firstName.setCellValueFactory(new PropertyValueFactory<>("firstName"));
+        TableColumn<SearchRecipient, String> details = new TableColumn<>("Detalj");
+        details.setCellValueFactory(new PropertyValueFactory<>("details"));
+        TableColumn<SearchRecipient, String> locationAddress = new TableColumn<>("Adresa");
+        locationAddress.setCellValueFactory(new PropertyValueFactory<>("locationAddress"));
+        searchRecipientsTable.getColumns().addAll(lastName, firstName, details, locationAddress);
+        searchRecipientsTable.setItems(showRecipientsData);
     }
 
     private void initButtons() {
@@ -182,6 +218,10 @@ public class MainController implements Initializable {
         Platform.runLater(() -> {
             mapButtons.get(0).fire();
         });
+        
+        // search part
+        searchBox.addEventFilter(ContextMenuEvent.CONTEXT_MENU_REQUESTED, Event::consume);
+        searchArrow.setText("");
     }
 
     private JFXButton createButton(String text, Node graphic, String cssButtonSubClass, String tooltipText) {
@@ -313,6 +353,7 @@ public class MainController implements Initializable {
         text.setX(x);
         text.setY(y);
         text.setId(id);
+        text.getStyleClass().add(DEFAULT_LOCATION_CSS_CLASS);
         if (note != null && !note.isEmpty()) {
             Tooltip tooltip = new Tooltip(note);
             tooltip.setStyle(DEFAULT_TOOLTIP_STYLE);
@@ -343,7 +384,7 @@ public class MainController implements Initializable {
      *
      * @param locationID Database ID of the location to be shown.
      */
-    private void showLocation(int locationID) {
+    private void showLocation(Integer locationID) {
         if (shownLocations.containsKey(locationID)) {
             shownLocations.get(locationID).requestFocus();
         } else {
@@ -392,6 +433,7 @@ public class MainController implements Initializable {
             Platform.runLater(() -> {
                 showMessage(name, "Karta je učitana.", MessageType.INFORMATION);
             });
+            searchLine.setVisible(!name.equals("default"));
             return true;
         } catch (FileNotFoundException e) {
             Platform.runLater(() -> {
@@ -439,7 +481,7 @@ public class MainController implements Initializable {
         event.consume();
     }
     
-    public void refreshRecipients(int locationId) {
+    public void refreshRecipients(Integer locationId) {
         if(shownLocations.containsKey(locationId)) {
             shownLocations.get(locationId).loadRecipients();
         }
@@ -491,6 +533,14 @@ public class MainController implements Initializable {
         }
         event.setDropCompleted(success);
         event.consume();
+    }
+    /**
+     * Toggles between show/hide searchRecipientsTable.
+     * @param event 
+     */
+    @FXML
+    private void searchArrowOnAction(ActionEvent event) {
+        searchRecipientsTable.setVisible(!searchRecipientsTable.isVisible());
     }
 
     @FXML
@@ -558,4 +608,5 @@ public class MainController implements Initializable {
     private final String PATH_TO_MAPS = "res/maps/";
     private final String DEFAULT_BUTTON_CSS_CLASS = "animated-option-button";
     private final String DEFAULT_TOOLTIP_STYLE = "-fx-font: normal bold 15px 'Oxygen'; -fx-base: #AE3522; -fx-text-fill: orange;";
+    private final String DEFAULT_LOCATION_CSS_CLASS = "location-text";
 }

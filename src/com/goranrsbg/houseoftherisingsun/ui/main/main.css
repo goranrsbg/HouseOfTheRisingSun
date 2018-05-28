@@ -218,7 +218,7 @@ limitations under the License.
     -jfx-disable-visual-focus: false;
 }
 
-Text {
+.location-text {
     -fx-font: 19pt "Source Sans Pro";
     -fx-fill: yellow;
     -fx-font-smoothing-type: lcd;
@@ -227,9 +227,52 @@ Text {
     -fx-font-weight: bold;
 }
 
-Text:hover {
+.location-text:hover {
     -fx-fill: yellow;
     -fx-font-smoothing-type: lcd;
     -fx-stroke: darkblue;
     -fx-stroke-width: 1;
+}
+
+.search-box {
+    -fx-background-color: rgba(1, 1, 1, .51);
+    -fx-font: normal normal 15pt "Source Sans Pro";
+    -fx-text-fill: orange;
+    -fx-prompt-text-fill: orange;
+    -fx-display-caret: true;
+}
+
+.search-arrow {
+    -fx-background-color: rgba(1, 1, 1, .51);
+}
+
+.search-arrow-glyph {
+    -glyph-name: "ARROW_CIRCLE_ALT_DOWN";
+    -icons-color: orange;
+    -glyph-size: 32px;
+}
+
+.search-table {
+    -fx-background-color: rgba(1, 1, 1, .51);
+}
+
+.search-table .text {
+    -fx-font: 11pt "Source Sans Pro";
+    -fx-fill: orange;
+}
+
+.search-table .table-row {
+    -fx-background-color: rgba(1, 1, 1, .51);
+}
+
+.search-table .column-header {
+    -fx-background-color: rgb(127, 127, 127);
+}
+
+.search-table .column-header .text {
+    -fx-font-weight: bold;
+}
+
+.search-table .column-header .text:hover {
+    -fx-fill: green;
 }
