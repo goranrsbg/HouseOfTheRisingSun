@@ -261,14 +261,24 @@ limitations under the License.
     -fx-fill: orange;
 }
 
-.search-table .table-row {
-    -fx-background-color: rgba(1, 1, 1, .51);
+.search-table .table-row-cell {
+    -fx-background-color: rgba(127, 127, 127, .51);
+}
+
+.search-table .table-row-cell:odd {
+    -fx-background-color: rgba(201, 201, 201, .51);
+}
+
+.search-table .table-row-cell:selected {
+    -fx-background-color: rgba(24, 199, 65, .51);
 }
 
 .search-table .column-header {
     -fx-background-color: rgb(127, 127, 127);
 }
-
+.search-table .filler {
+    -fx-background-color: rgb(127, 127, 127);
+}
 .search-table .column-header .text {
     -fx-font-weight: bold;
 }

@@ -136,8 +136,8 @@ public class AddRecipientController implements Initializable {
 
     @FXML
     private void saveButtonOnAction(ActionEvent event) {
-        String lastName = nameToUpperCase(lastNameTextField.getText());
-        String firstName = nameToUpperCase(firstNameTextField.getText());
+        String lastName = nameFirstLetterToUpperCase(lastNameTextField.getText());
+        String firstName = nameFirstLetterToUpperCase(firstNameTextField.getText());
         String details = detailsTextField.getText();
         boolean isRetire = isRetireCheckBox.isSelected();
         String idCardNumber = idCardNuberTextField.getText();
@@ -156,7 +156,7 @@ public class AddRecipientController implements Initializable {
                 ps.setBoolean(4, isRetire);
                 if (isRetire) {
                     ps.setLong(5, Long.parseLong(idCardNumber));
-                    ps.setString(6, nameToUpperCase(policeDepartment));
+                    ps.setString(6, nameFirstLetterToUpperCase(policeDepartment));
                 } else {
                     ps.setNull(5, Types.BIGINT);
                     ps.setNull(6, Types.VARCHAR);
@@ -226,7 +226,7 @@ public class AddRecipientController implements Initializable {
      * @param name name to be changed.
      * @return
      */
-    private String nameToUpperCase(String name) {
+    private String nameFirstLetterToUpperCase(String name) {
         if (!name.isEmpty()) {
             char charAt0 = name.charAt(0);
             if (Character.isLowerCase(charAt0)) {

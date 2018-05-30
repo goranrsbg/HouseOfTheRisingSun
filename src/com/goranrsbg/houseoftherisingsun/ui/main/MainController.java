@@ -61,6 +61,7 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
+import javafx.scene.input.InputMethodEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
@@ -120,7 +121,8 @@ public class MainController implements Initializable {
     private final Map<Integer, ShowLocationController> shownLocations;
     private final Pattern recipientPattern;
     private final ObservableList showRecipientsData;
-
+    private SearchRunnable sr;
+    
     public MainController() {
         db = DBHandler.getInstance();
         mapButtons = new ArrayList<>();
@@ -140,6 +142,8 @@ public class MainController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         initButtons();
         initSearch();
+        sr = new SearchRunnable(showRecipientsData);
+        sr.start();
     }
     
     private void initSearch() {
@@ -154,6 +158,10 @@ public class MainController implements Initializable {
         searchRecipientsTable.getColumns().addAll(lastName, firstName, details, locationAddress);
         searchRecipientsTable.setItems(showRecipientsData);
         searchRecipientsTable.setVisible(false);
+        searchBox.textProperty().addListener((observable, oldValue, newValue) -> {
+            System.out.println("Search text: " + newValue + " (" + oldValue + ")");
+            sr.setValueToSearchFor(newValue);
+        });
     }
 
     private void initButtons() {
@@ -287,6 +295,7 @@ public class MainController implements Initializable {
                         }
                     });
                     btn.setDisable(true);
+                    showRecipientsData.clear();
                     Platform.runLater(() -> {
                         AddLocationController ac = ((AddLocationController) buttons.get(ButtonType.ADD_LOCATION).getUserData());
                         if (ac != null) {
@@ -487,7 +496,11 @@ public class MainController implements Initializable {
             shownLocations.get(locationId).loadRecipients();
         }
     }
-
+    
+    @FXML
+    private void onSearchBoxAction(ActionEvent event) {
+        sr.resume();
+    }
     /**
      * Text element of the location.
      *
