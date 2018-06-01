@@ -55,7 +55,8 @@ public class DBHandler {
         UPDATE_RECIPIENT_LOCATION(13),
         SEARCH_RECIPIENTS_WITH_NAME(14),
         SEARCH_RECIPIENTS_WITH_NAME_X2(15),
-        SEARCH_RECIPIENTS(16);
+        SEARCH_RECIPIENTS(16),
+        UPDATE_LOCATION_NUMBER(17);
         public final int I;
         private StatementType(int I) {
             this.I = I;
@@ -215,6 +216,7 @@ public class DBHandler {
                     + "JOIN LOCATIONS AS L ON R.LOCATION_ID = L.LOCATION_ID "
                     + "JOIN STREETS AS S ON L.STREET_ID = S.STREET_ID "
                     + "WHERE S.SETTLEMENT_ID = ?"));
+            statements.add(connection.prepareStatement("UPDATE LOCATIONS SET LOCATION_ADDRESS_NO = ? WHERE LOCATION_ID = ?"));
         } catch (SQLException e) {
             LOGGER.log(Level.INFO, "Failed to initiate prepared statements.\nError: {0}", e.getSQLState());
         }

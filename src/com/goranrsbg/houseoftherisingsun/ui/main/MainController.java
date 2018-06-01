@@ -42,6 +42,7 @@ import java.util.regex.Pattern;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -61,7 +62,6 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
-import javafx.scene.input.InputMethodEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
@@ -121,8 +121,8 @@ public class MainController implements Initializable {
     private final Map<Integer, ShowLocationController> shownLocations;
     private final Pattern recipientPattern;
     private final ObservableList showRecipientsData;
-    private SearchRunnable sr;
-    
+    private SearchRunnable searchRunnable;
+
     public MainController() {
         db = DBHandler.getInstance();
         mapButtons = new ArrayList<>();
@@ -142,10 +142,10 @@ public class MainController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         initButtons();
         initSearch();
-        sr = new SearchRunnable(showRecipientsData);
-        sr.start();
+        searchRunnable = new SearchRunnable(showRecipientsData);
+        searchRunnable.start();
     }
-    
+
     private void initSearch() {
         TableColumn<SearchRecipient, String> lastName = new TableColumn<>("Prezime");
         lastName.setCellValueFactory(new PropertyValueFactory<>("lastName"));
@@ -160,7 +160,7 @@ public class MainController implements Initializable {
         searchRecipientsTable.setVisible(false);
         searchBox.textProperty().addListener((observable, oldValue, newValue) -> {
             System.out.println("Search text: " + newValue + " (" + oldValue + ")");
-            sr.setValueToSearchFor(newValue);
+            searchRunnable.setValueToSearchFor(newValue);
         });
     }
 
@@ -227,7 +227,7 @@ public class MainController implements Initializable {
         Platform.runLater(() -> {
             mapButtons.get(0).fire();
         });
-        
+
         // search part
         searchBox.addEventFilter(ContextMenuEvent.CONTEXT_MENU_REQUESTED, Event::consume);
         searchArrow.setText("");
@@ -346,6 +346,15 @@ public class MainController implements Initializable {
 
     public boolean isShowLocationsSelected() {
         return toggleLocationsButton.isSelected();
+    }
+
+    public void updateLocationText(String id, String newLocationAddressNumberText) {
+        FilteredList<Node> filtered = locationsPane.getChildren().filtered((t) -> {
+            return t.getId().equals(id);
+        });
+        if (filtered.size() == 1) {
+            ((Text) filtered.get(0)).setText(newLocationAddressNumberText);
+        }
     }
 
     /**
@@ -490,17 +499,18 @@ public class MainController implements Initializable {
         dragboard.setDragView(location.snapshot(null, null), location.getLayoutBounds().getWidth() / 2, location.getLayoutBounds().getHeight() / 2);
         event.consume();
     }
-    
+
     public void refreshRecipients(Integer locationId) {
-        if(shownLocations.containsKey(locationId)) {
+        if (shownLocations.containsKey(locationId)) {
             shownLocations.get(locationId).loadRecipients();
         }
     }
-    
+
     @FXML
     private void onSearchBoxAction(ActionEvent event) {
-        sr.resume();
+        searchRunnable.resume();
     }
+
     /**
      * Text element of the location.
      *
@@ -548,9 +558,11 @@ public class MainController implements Initializable {
         event.setDropCompleted(success);
         event.consume();
     }
+
     /**
      * Toggles between show/hide searchRecipientsTable.
-     * @param event 
+     *
+     * @param event
      */
     @FXML
     private void searchArrowOnAction(ActionEvent event) {

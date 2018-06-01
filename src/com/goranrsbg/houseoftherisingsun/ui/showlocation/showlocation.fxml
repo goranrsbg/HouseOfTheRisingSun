@@ -45,7 +45,7 @@
                   <FontAwesomeIconView glyphName="USER_TIMES" size="23.0" />
                </graphic>
             </JFXButton>
-            <JFXButton fx:id="updateLocation" buttonType="RAISED" layoutX="10.0" layoutY="196.0" onAction="#deleteLocationOnAction" prefHeight="62.0" prefWidth="131.0" text="Izmeni lokaciju" />
+            <JFXButton fx:id="updateLocation" buttonType="RAISED" layoutX="10.0" layoutY="196.0" onAction="#changeLocationNumberOnAction" prefHeight="62.0" prefWidth="131.0" text="Izmeni lokaciju" />
             <JFXButton fx:id="deleteLocation" buttonType="RAISED" onAction="#deleteLocationOnAction" prefHeight="62.0" prefWidth="131.0" text="Obriši lokaciju" />
          </children>
       </VBox>

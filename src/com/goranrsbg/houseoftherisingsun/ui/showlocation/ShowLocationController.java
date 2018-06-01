@@ -24,7 +24,10 @@ import java.net.URL;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -41,6 +44,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
@@ -311,4 +317,54 @@ public class ShowLocationController implements Initializable {
         }
     }
 
+    @FXML
+    private void changeLocationNumberOnAction(ActionEvent event) {
+        String[] split = addressNameLabel.getText().split(" ");
+        String addressNumber = split[split.length - 1];
+        TextInputDialog dialog = createDialog(addressNumber);
+        Optional<String> newAddressNumber = dialog.showAndWait();
+        if(newAddressNumber.isPresent() && !newAddressNumber.get().equals(addressNumber)) {
+            try {
+                System.out.println("Update address: " + newAddressNumber.get());
+                PreparedStatement ps = db.getStatement(DBHandler.StatementType.UPDATE_LOCATION_NUMBER);
+                ps.setString(1, newAddressNumber.get());
+                ps.setInt(2, Integer.parseInt(idLabel.getText()));
+                ps.executeUpdate();
+                ps.clearParameters();
+                MainController.getInstance().updateLocationText(idLabel.getText().replaceFirst("0*", ""), newAddressNumber.get());
+                sendMessage("Adresa lokacije uspešno promenjena.", MainController.MessageType.INFORMATION);
+            } catch (SQLException ex) {
+                sendMessage("Greška prilikom promene adrese.\nError: " + ex.getMessage(), MainController.MessageType.ERROR);
+            }
+        }
+    }
+    
+    private TextInputDialog createDialog(String addressNumber) {
+        TextInputDialog tid = new TextInputDialog(addressNumber);
+        tid.setTitle("Promena broja adrese.");
+        TextFormatter<String> formatterNumber = new TextFormatter<>((t) -> {
+            String textNew = t.getControlNewText();
+            if (!textNew.isEmpty()) {
+                if (textNew.contains(" ")) {
+                    t = null;
+                    sendMessage("Vrednost polja ne sme da sadrži razmak.", MainController.MessageType.INFORMATION);
+                } else if (textNew.length() > 23) {
+                    t = null;
+                    sendMessage("Vrednost polja mora da bude do 10 znakova.", MainController.MessageType.INFORMATION);
+                } else if (!Character.isDigit(textNew.charAt(0))) {
+                    t = null;
+                    sendMessage("Broj mora da počne sa brojem.", MainController.MessageType.INFORMATION);
+                }
+            }
+            return t;
+        });
+        tid.getEditor().setTextFormatter(formatterNumber);
+        tid.initStyle(StageStyle.UTILITY);
+        return tid;
+    }
+    
+    private void sendMessage(String message, MainController.MessageType type) {
+        MainController.getInstance().showMessage("Lokacija: " + addressNameLabel.getText(), message, type);
+    }
+    
 }
