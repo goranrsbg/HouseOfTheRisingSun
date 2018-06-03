@@ -136,6 +136,14 @@ limitations under the License.
     -icons-color: #de6f00;
 }
 
+.user-icon{
+    -glyph-name: "KEY";
+    -icons-color: #ff8102;
+}
+.animated-option-button:hover .user-icon{
+    -icons-color: #de6f00;
+}
+
 .loc-icon{
     -glyph-name: "HOME";
     -icons-color: #ff1500;
@@ -223,7 +231,7 @@ limitations under the License.
     -fx-fill: yellow;
     -fx-font-smoothing-type: lcd;
     -fx-stroke: red;
-    -fx-stroke-width: 1;
+    -fx-stroke-width: 1px;
     -fx-font-weight: bold;
 }
 
@@ -231,7 +239,12 @@ limitations under the License.
     -fx-fill: yellow;
     -fx-font-smoothing-type: lcd;
     -fx-stroke: darkblue;
-    -fx-stroke-width: 1;
+    -fx-stroke-width: 1px;
+}
+
+.location-text:mark {
+    -fx-stroke: #c420ff;
+    -fx-stroke-width: 2px;
 }
 
 .search-box {

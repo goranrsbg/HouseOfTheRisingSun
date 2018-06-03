@@ -26,8 +26,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -44,7 +42,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -142,7 +139,7 @@ public class ShowLocationController implements Initializable {
             int recipientId = Integer.parseInt(split[0].split(":")[1]);
             int fromLocation = Integer.parseInt(split[1].split(":")[1]);
             int toLocation = Integer.parseInt(idLabel.getText());
-            if(fromLocation != toLocation) {
+            if (fromLocation != toLocation) {
                 try {
                     PreparedStatement ps = db.getStatement(DBHandler.StatementType.UPDATE_RECIPIENT_LOCATION);
                     ps.setInt(1, toLocation);
@@ -248,7 +245,7 @@ public class ShowLocationController implements Initializable {
 
     @FXML
     private void deleteLocationOnAction(ActionEvent event) {
-
+         System.out.println("Delete location not yet implemented.");
     }
 
     @FXML
@@ -323,7 +320,7 @@ public class ShowLocationController implements Initializable {
         String addressNumber = split[split.length - 1];
         TextInputDialog dialog = createDialog(addressNumber);
         Optional<String> newAddressNumber = dialog.showAndWait();
-        if(newAddressNumber.isPresent() && !newAddressNumber.get().equals(addressNumber)) {
+        if (newAddressNumber.isPresent() && !newAddressNumber.get().equals(addressNumber)) {
             try {
                 System.out.println("Update address: " + newAddressNumber.get());
                 PreparedStatement ps = db.getStatement(DBHandler.StatementType.UPDATE_LOCATION_NUMBER);
@@ -338,7 +335,7 @@ public class ShowLocationController implements Initializable {
             }
         }
     }
-    
+
     private TextInputDialog createDialog(String addressNumber) {
         TextInputDialog tid = new TextInputDialog(addressNumber);
         tid.setTitle("Promena broja adrese.");
@@ -362,9 +359,9 @@ public class ShowLocationController implements Initializable {
         tid.initStyle(StageStyle.UTILITY);
         return tid;
     }
-    
+
     private void sendMessage(String message, MainController.MessageType type) {
         MainController.getInstance().showMessage("Lokacija: " + addressNameLabel.getText(), message, type);
     }
-    
+
 }

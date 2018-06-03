@@ -21,6 +21,7 @@ import com.goranrsbg.houseoftherisingsun.ui.addlocation.AddLocationController;
 import com.goranrsbg.houseoftherisingsun.ui.showlocation.ShowLocationController;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXNodesList;
+import com.jfoenix.controls.JFXPasswordField;
 import com.jfoenix.controls.JFXTextField;
 import com.jfoenix.controls.JFXToggleButton;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
@@ -28,6 +29,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -35,6 +38,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,6 +47,7 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -51,6 +56,11 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -62,15 +72,18 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.util.Pair;
 import org.controlsfx.control.Notifications;
 
 /**
@@ -108,13 +121,14 @@ public class MainController implements Initializable {
         INFORMATION;
     }
 
-    public enum ButtonType {
+    public enum DefaultButtonType {
         ADD_LOCATION,
         SHOW_LOCATION,
-        SHOW_STREETS_TABLE;
+        SHOW_STREETS_TABLE,
+        CREATE_USER;
     }
 
-    private final Map<ButtonType, JFXButton> buttons;
+    private final Map<DefaultButtonType, JFXButton> buttons;
     private final ArrayList<JFXButton> mapButtons;
     private final JFXToggleButton toggleLocationsButton;
     private static final Logger LOGGER = Logger.getLogger(LocatorApp.class.getName());
@@ -158,10 +172,38 @@ public class MainController implements Initializable {
         searchRecipientsTable.getColumns().addAll(lastName, firstName, details, locationAddress);
         searchRecipientsTable.setItems(showRecipientsData);
         searchRecipientsTable.setVisible(false);
+        searchRecipientsTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (oldValue != null) {
+                selectLocation(oldValue.getLocationId() + "", false);
+            }
+            if (newValue != null) {
+                selectLocation(newValue.getLocationId() + "", true);
+            }
+        });
+        searchRecipientsTable.setOnKeyPressed((event) -> {
+            if (event.getCode() == KeyCode.ESCAPE) {
+                searchRecipientsTable.getSelectionModel().clearSelection();
+            }
+        });
         searchBox.textProperty().addListener((observable, oldValue, newValue) -> {
-            System.out.println("Search text: " + newValue + " (" + oldValue + ")");
             searchRunnable.setValueToSearchFor(newValue);
         });
+    }
+
+    /**
+     * Select or deselect location of the selected recipient inside of the
+     * serchTable.
+     *
+     * @param id Id of the location text element
+     * @param ON toggle switch show/hide true/false
+     */
+    private void selectLocation(String id, boolean ON) {
+        FilteredList<Node> filtered = locationsPane.getChildren().filtered((t) -> {
+            return t.getId().equals(id);
+        });
+        if (filtered.size() == 1) {
+            filtered.get(0).pseudoClassStateChanged(MARKED_PSEUDO_CLASS, ON);
+        }
     }
 
     private void initButtons() {
@@ -183,8 +225,8 @@ public class MainController implements Initializable {
         JFXButton btn;
         btn = createButton(null, new FontAwesomeIconView().setStyleClass("marker-icon"), DEFAULT_BUTTON_CSS_SUBCLASS + 2, "Dadaj lokaciju.");
         btn.setOnAction(this::buttonClickActionEvent);
-        btn.setId(ButtonType.ADD_LOCATION.toString());
-        buttons.put(ButtonType.ADD_LOCATION, btn);
+        btn.setId(DefaultButtonType.ADD_LOCATION.toString());
+        buttons.put(DefaultButtonType.ADD_LOCATION, btn);
         locationsJFXNodesList.addAnimatedNode(btn);
 
         Tooltip tooltip = new Tooltip("Prikaži / ukloni lokacije.");
@@ -196,14 +238,20 @@ public class MainController implements Initializable {
 
         btn = createButton(null, new FontAwesomeIconView().setStyleClass("roadt-icon"), DEFAULT_BUTTON_CSS_SUBCLASS + 3, "Prikaži spisak ulica.");
         btn.setOnAction(this::buttonClickActionEvent);
-        btn.setId(ButtonType.SHOW_STREETS_TABLE.toString());
-        buttons.put(ButtonType.SHOW_STREETS_TABLE, btn);
+        btn.setId(DefaultButtonType.SHOW_STREETS_TABLE.toString());
+        buttons.put(DefaultButtonType.SHOW_STREETS_TABLE, btn);
         streetsJFXNodesList.addAnimatedNode(btn);
 
         btn = createButton(null, new FontAwesomeIconView().setStyleClass("showlocation-icon"), DEFAULT_BUTTON_CSS_SUBCLASS + 1, "Prikaži primaoce na adresi.");
         btn.setOnAction(this::buttonClickActionEvent);
-        btn.setId(ButtonType.SHOW_LOCATION.toString());
-        buttons.put(ButtonType.SHOW_LOCATION, btn);
+        btn.setId(DefaultButtonType.SHOW_LOCATION.toString());
+        buttons.put(DefaultButtonType.SHOW_LOCATION, btn);
+        recipientsJFXNodesList.addAnimatedNode(btn);
+
+        btn = createButton(null, new FontAwesomeIconView().setStyleClass("user-icon"), DEFAULT_BUTTON_CSS_SUBCLASS + 1, "Dodaj korisnika.");
+        btn.setOnAction(this::buttonClickActionEvent);
+        btn.setId(DefaultButtonType.CREATE_USER.toString());
+        buttons.put(DefaultButtonType.CREATE_USER, btn);
         recipientsJFXNodesList.addAnimatedNode(btn);
 
         settlementsMapChooserList.setRotate(90d);
@@ -274,10 +322,75 @@ public class MainController implements Initializable {
                     showMessage(TITLE, "Greška pri učitavanju .fxml faja.\n" + ex.getMessage(), MessageType.ERROR);
                 }
                 break;
+            case "CREATE_USER":
+                System.out.println("HERE.");
+                Dialog dialog = createDialog();
+                Optional<Pair<String, String>> result = dialog.showAndWait();
+                if (result.isPresent()) {
+                    System.out.println("Name: " + result.get().getKey() + "\nLozinka: " + result.get().getValue());
+                    
+                    //
+                    // DB insert new user with given credentials.
+                    //
+                    
+                }
+                break;
             default:
                 showMessage(TITLE, "Nepoznat taster\nID: " + id, MessageType.ERROR);
         }
         event.consume();
+    }
+    /**
+     * Creates dialog with text field user name and password field for password.
+     * It is used for creating new user for the application.
+     * @return Fresh dialog.
+     */
+    private Dialog createDialog() {
+        Dialog<Pair<String, String>> dialog = new Dialog<>();
+        dialog.setTitle("Kreiraj korisnika.");
+        dialog.initStyle(StageStyle.UTILITY);
+        ButtonType create = new ButtonType("Kreiraj", ButtonData.OK_DONE);
+        ButtonType cancel = new ButtonType("Otkaži", ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().addAll(create, cancel);
+        GridPane grid = new GridPane();
+        JFXTextField name = new JFXTextField();
+        JFXPasswordField password = new JFXPasswordField();
+        name.setPromptText("Ime");
+        password.setPromptText("Lozinka");
+        grid.add(new Label("Korisničko ime:"), 0, 0);
+        grid.add(name, 1, 0);
+        grid.add(new Label("Korisnička lozinka:"), 0, 1);
+        grid.add(password, 1, 1);
+        grid.setHgap(10d);
+        grid.setVgap(10d);
+        dialog.getDialogPane().setContent(grid);
+        dialog.setResultConverter((param) -> {
+            if (param == create && !name.getText().isEmpty() && !password.getText().isEmpty()) {
+                return new Pair(toSha256String(name.getText()), toSha256String(password.getText()));
+            }
+            return null;
+        });
+        return dialog;
+    }
+
+    private String toSha256String(String text) {
+        MessageDigest generator;
+        try {
+            generator = MessageDigest.getInstance("SHA-256");
+            byte[] digestedText = generator.digest(text.getBytes());
+            StringBuilder sb = new StringBuilder(64);
+            for (int i = 0; i < digestedText.length; i++) {
+                String val = Integer.toHexString(digestedText[i] & 0xff);
+                if (val.length() == 1) {
+                    sb.append('0');
+                }
+                sb.append(val);
+            }
+            return sb.toString();
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
     }
 
     private void buttonMapClickActionEvent(ActionEvent event) {
@@ -297,7 +410,7 @@ public class MainController implements Initializable {
                     btn.setDisable(true);
                     showRecipientsData.clear();
                     Platform.runLater(() -> {
-                        AddLocationController ac = ((AddLocationController) buttons.get(ButtonType.ADD_LOCATION).getUserData());
+                        AddLocationController ac = ((AddLocationController) buttons.get(DefaultButtonType.ADD_LOCATION).getUserData());
                         if (ac != null) {
                             ac.comboBoxLoadStreets();
                             ac.clearLocationXY();
@@ -508,6 +621,7 @@ public class MainController implements Initializable {
 
     @FXML
     private void onSearchBoxAction(ActionEvent event) {
+        searchRunnable.setValueToSearchFor(searchBox.getText());
         searchRunnable.resume();
     }
 
@@ -578,7 +692,7 @@ public class MainController implements Initializable {
             if (mb == MouseButton.SECONDARY) {
                 centerPointOnTheWindow(x, y);
             } else if (mb == MouseButton.PRIMARY) {
-                AddLocationController ac = ((AddLocationController) buttons.get(ButtonType.ADD_LOCATION).getUserData());
+                AddLocationController ac = ((AddLocationController) buttons.get(DefaultButtonType.ADD_LOCATION).getUserData());
                 if (ac != null) {
                     ac.setLocationXY(x, y);
                 }
@@ -607,11 +721,11 @@ public class MainController implements Initializable {
     }
 
     /**
-     * Shows notification message.
+     * Shows message.
      *
-     * @param title
-     * @param message
-     * @param type
+     * @param title Title to set.
+     * @param message Message to show.
+     * @param type MessageType ERROR/WARNING/INFORMATION/CONFIRM
      */
     public void showMessage(String title, String message, MessageType type) {
         Notifications notification = Notifications.create().title(title).text(message);
@@ -635,4 +749,5 @@ public class MainController implements Initializable {
     private final String DEFAULT_BUTTON_CSS_CLASS = "animated-option-button";
     private final String DEFAULT_TOOLTIP_STYLE = "-fx-font: normal bold 15px 'Oxygen'; -fx-base: #AE3522; -fx-text-fill: orange;";
     private final String DEFAULT_LOCATION_CSS_CLASS = "location-text";
+    private final PseudoClass MARKED_PSEUDO_CLASS = PseudoClass.getPseudoClass("mark");
 }
