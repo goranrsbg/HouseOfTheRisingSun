@@ -323,16 +323,21 @@ public class MainController implements Initializable {
                 }
                 break;
             case "CREATE_USER":
-                System.out.println("HERE.");
                 Dialog dialog = createDialog();
-                Optional<Pair<String, String>> result = dialog.showAndWait();
+                Optional<User> result = dialog.showAndWait();
                 if (result.isPresent()) {
-                    System.out.println("Name: " + result.get().getKey() + "\nLozinka: " + result.get().getValue());
-                    
-                    //
-                    // DB insert new user with given credentials.
-                    //
-                    
+                    User user = result.get();
+                    try {
+                        System.out.println("Name: " + user.getNAME() + "\nLozinka: " + user.getPASSWORD() + "\nDelete: " + user.isForDeletion());
+                        PreparedStatement ps;
+                        ps = user.isForDeletion() ? db.getStatement(DBHandler.StatementType.DELETE_USER) : db.getStatement(DBHandler.StatementType.INSERT_USER);
+                        ps.setString(1, user.getNAME());
+                        ps.setString(2, user.getPASSWORD());
+                        ps.clearParameters();
+                        showMessage(TITLE, "Korisnik uspešno " + (user.isForDeletion() ? "obrisan" : "dodan") + ".", MessageType.INFORMATION);
+                    } catch (SQLException ex) {
+                        showMessage(TITLE, user.isForDeletion() ? "Greška prilikom brisanja korisnika.\n" : "Greška prilikom dodavanja korisnika.\n" + ex.getMessage(), MessageType.ERROR);
+                    }
                 }
                 break;
             default:
@@ -340,35 +345,41 @@ public class MainController implements Initializable {
         }
         event.consume();
     }
+
     /**
      * Creates dialog with text field user name and password field for password.
-     * It is used for creating new user for the application.
+     * It is used for creating or deleting user for the application.
+     *
      * @return Fresh dialog.
      */
     private Dialog createDialog() {
-        Dialog<Pair<String, String>> dialog = new Dialog<>();
+        Dialog<User> dialog = new Dialog<>();
         dialog.setTitle("Kreiraj korisnika.");
         dialog.initStyle(StageStyle.UTILITY);
         ButtonType create = new ButtonType("Kreiraj", ButtonData.OK_DONE);
         ButtonType cancel = new ButtonType("Otkaži", ButtonData.CANCEL_CLOSE);
-        dialog.getDialogPane().getButtonTypes().addAll(create, cancel);
+        ButtonType delete = new ButtonType("Obriši", ButtonData.FINISH);
+        dialog.getDialogPane().getButtonTypes().addAll(create, delete, cancel);
         GridPane grid = new GridPane();
         JFXTextField name = new JFXTextField();
         JFXPasswordField password = new JFXPasswordField();
+        JFXPasswordField passwordReTyped = new JFXPasswordField();
         name.setPromptText("Ime");
         password.setPromptText("Lozinka");
         grid.add(new Label("Korisničko ime:"), 0, 0);
         grid.add(name, 1, 0);
         grid.add(new Label("Korisnička lozinka:"), 0, 1);
         grid.add(password, 1, 1);
+        grid.add(new Label("Lozinka ponovo otkucana:"), 0, 2);
+        grid.add(passwordReTyped, 1, 2);
         grid.setHgap(10d);
         grid.setVgap(10d);
         dialog.getDialogPane().setContent(grid);
         dialog.setResultConverter((param) -> {
-            if (param == create && !name.getText().isEmpty() && !password.getText().isEmpty()) {
-                return new Pair(toSha256String(name.getText()), toSha256String(password.getText()));
+            if (param == cancel || name.getText().isEmpty() || password.getText().isEmpty() || !password.getText().equals(passwordReTyped.getText())) {
+                return null;
             }
-            return null;
+            return new User(toSha256String(name.getText()), toSha256String(password.getText()), param == delete);
         });
         return dialog;
     }
@@ -476,7 +487,7 @@ public class MainController implements Initializable {
      *
      * @param no Location number, text of the Text element.
      * @param x Location position X on the Pane.
-     * @param y Location position Y on the Pane .
+     * @param y Location position Y on the Pane.
      * @param id Id of the location in database.
      * @param note Note of the location as tool tip.
      */

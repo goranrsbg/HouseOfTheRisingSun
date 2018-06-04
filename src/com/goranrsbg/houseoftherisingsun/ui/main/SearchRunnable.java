@@ -41,6 +41,7 @@ public class SearchRunnable implements Runnable {
     private final ReentrantReadWriteLock rwl;
     private final Lock readLock;
     private final Lock writeLock;
+    private final SearchRunnable lock;
     
     private PreparedStatement ps;
     private final PreparedStatement ps_selectAll;
@@ -62,6 +63,7 @@ public class SearchRunnable implements Runnable {
         ps_selectAll = DBHandler.getInstance().getStatement(DBHandler.StatementType.SEARCH_RECIPIENTS);
         ps_selectName = DBHandler.getInstance().getStatement(DBHandler.StatementType.SEARCH_RECIPIENTS_WITH_NAME);
         ps_selectNameX2 = DBHandler.getInstance().getStatement(DBHandler.StatementType.SEARCH_RECIPIENTS_WITH_NAME_X2);
+        lock = this;
     }
 
     public void setValueToSearchFor(String valueToSearchFor) {
@@ -87,8 +89,10 @@ public class SearchRunnable implements Runnable {
         }
     }
 
-    public synchronized void resume() {
-            this.notify();
+    public void resume() {
+        synchronized(lock) {
+            lock.notify();
+        }    
     }
 
     @Override
@@ -145,15 +149,14 @@ public class SearchRunnable implements Runnable {
                 System.out.println("Do not search.");
             }
             try {
-                synchronized (this) {
-                    this.wait(DELAY_IN_MILLISECONDS);
+                synchronized (lock) {
+                    lock.wait(DELAY_IN_MILLISECONDS);
                 }
             } catch (InterruptedException ex) {
                 currentThread.interrupt();
             }
         }
     }
-    
     
     /**
      * Changes name to start with uppercase letter. goran -> Goran kolari ->
@@ -171,6 +174,5 @@ public class SearchRunnable implements Runnable {
         }
         return name;
     }
-
 
 }

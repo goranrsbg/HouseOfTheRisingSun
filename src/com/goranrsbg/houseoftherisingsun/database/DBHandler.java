@@ -56,7 +56,9 @@ public class DBHandler {
         SEARCH_RECIPIENTS_WITH_NAME(14),
         SEARCH_RECIPIENTS_WITH_NAME_X2(15),
         SEARCH_RECIPIENTS(16),
-        UPDATE_LOCATION_NUMBER(17);
+        UPDATE_LOCATION_NUMBER(17),
+        INSERT_USER(18),
+        DELETE_USER(19);
         public final int I;
         private StatementType(int I) {
             this.I = I;
@@ -217,6 +219,9 @@ public class DBHandler {
                     + "JOIN STREETS AS S ON L.STREET_ID = S.STREET_ID "
                     + "WHERE S.SETTLEMENT_ID = ?"));
             statements.add(connection.prepareStatement("UPDATE LOCATIONS SET LOCATION_ADDRESS_NO = ? WHERE LOCATION_ID = ?"));
+            statements.add(connection.prepareStatement("INSERT INTO USERS VALUES (DEFAULT, ?, ?)"));
+            statements.add(connection.prepareStatement("DELETE FROM USERS AS U WHERE U.USER_NAME = ? AND U.USER_PASSWORD = ?"));
+            
         } catch (SQLException e) {
             LOGGER.log(Level.INFO, "Failed to initiate prepared statements.\nError: {0}", e.getSQLState());
         }

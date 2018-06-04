@@ -62,7 +62,7 @@ public class AddRecipientController implements Initializable {
     private JFXTextField policeDepartmentTextField;
     @FXML
     private JFXButton cancelButton;
-    
+
     private final String TITLE = "Dodaj/Izmeni primaoca.";
     private int locationID;
     private DBHandler db;
@@ -124,13 +124,15 @@ public class AddRecipientController implements Initializable {
         setTitle("Ažuriraj - " + recipient.getFullName());
         this.recipient = recipient;
     }
+
     /**
      * Creates title on the window.
+     *
      * @param title title to be shown
      */
     public void setTitle(String title) {
         Platform.runLater(() -> {
-            ((Stage)rootPane.getScene().getWindow()).setTitle(title);
+            ((Stage) rootPane.getScene().getWindow()).setTitle(title);
         });
     }
 
@@ -168,8 +170,10 @@ public class AddRecipientController implements Initializable {
                 }
                 ps.executeUpdate();
                 ps.clearParameters();
-                MainController.getInstance().showMessage(TITLE, "Primalac " + lastName + " " + firstName + " uspešno" + ((recipient != null) ? " ažuriran" : " dodan") + ".", MainController.MessageType.INFORMATION);
                 slc.loadRecipients();
+                Platform.runLater(() -> {
+                    MainController.getInstance().showMessage(TITLE, "Primalac " + lastName + " " + firstName + " uspešno" + ((recipient != null) ? " ažuriran" : " dodan") + ".", MainController.MessageType.INFORMATION);
+                });
                 if (recipient == null) {
                     clearName();
                 } else {
