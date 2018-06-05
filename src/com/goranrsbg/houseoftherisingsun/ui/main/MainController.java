@@ -56,7 +56,6 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
@@ -83,7 +82,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.util.Pair;
 import org.controlsfx.control.Notifications;
 
 /**
@@ -158,6 +156,14 @@ public class MainController implements Initializable {
         initSearch();
         searchRunnable = new SearchRunnable(showRecipientsData);
         searchRunnable.start();
+        rootPane.setOnKeyTyped((event) -> {
+            if (isMapLoaded() && searchBox.getText().isEmpty()) {
+                searchBox.fireEvent(event);
+                searchBox.requestFocus();
+                searchBox.deselect();
+                searchBox.positionCaret(1);
+            }
+        });
     }
 
     private void initSearch() {
@@ -739,6 +745,9 @@ public class MainController implements Initializable {
      * @param type MessageType ERROR/WARNING/INFORMATION/CONFIRM
      */
     public void showMessage(String title, String message, MessageType type) {
+        if (rootPane == null) {
+            return;
+        }
         Notifications notification = Notifications.create().title(title).text(message);
         switch (type) {
             case ERROR:
