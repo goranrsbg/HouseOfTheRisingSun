@@ -19,6 +19,7 @@ import com.goranrsbg.houseoftherisingsun.database.DBHandler;
 import com.goranrsbg.houseoftherisingsun.ui.addrecipient.AddRecipientController;
 import com.goranrsbg.houseoftherisingsun.ui.main.MainController;
 import com.jfoenix.controls.JFXButton;
+import com.jfoenix.controls.JFXTextField;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.PreparedStatement;
@@ -38,16 +39,17 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextFormatter;
-import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
+import javafx.scene.layout.GridPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -86,6 +88,8 @@ public class ShowLocationController implements Initializable {
     private DBHandler db;
     private final String TITLE = "Prikaz lokacije.";
     private Pattern pattern;
+    
+    private int postman_path_step;
 
     /**
      * Initializes the controller class.
@@ -167,12 +171,13 @@ public class ShowLocationController implements Initializable {
         boolean result = false;
         if (!addRecipient.isDisabled()) {
             try {
-                PreparedStatement ps = db.getStatement(DBHandler.StatementType.SELECT_STREET_NAME_AND_LOCATION_NUMBER);
+                PreparedStatement ps = db.getStatement(DBHandler.StatementType.SELECT_STREET_NAME_LOCATION_NUMBER_LOCATION_PPSTEP);
                 ps.setInt(1, locationId);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         String streetName = rs.getString("STREET_NAME");
                         String locationNumber = rs.getString("LOCATION_ADDRESS_NO");
+                        postman_path_step = rs.getInt("LOCATION_POSTMAN_PATH_STEP");
                         idLabel.setText(String.format("%06d", locationId));
                         addressNameLabel.setText(streetName + " " + locationNumber);
                         setTitle(streetName + " " + locationNumber);
@@ -245,7 +250,7 @@ public class ShowLocationController implements Initializable {
 
     @FXML
     private void deleteLocationOnAction(ActionEvent event) {
-         System.out.println("Delete location not yet implemented.");
+         sendMessage("Delete location is not yet implemented.", MainController.MessageType.INFORMATION);
     }
 
     @FXML
@@ -318,27 +323,36 @@ public class ShowLocationController implements Initializable {
     private void changeLocationNumberOnAction(ActionEvent event) {
         String[] split = addressNameLabel.getText().split(" ");
         String addressNumber = split[split.length - 1];
-        TextInputDialog dialog = createDialog(addressNumber);
-        Optional<String> newAddressNumber = dialog.showAndWait();
-        if (newAddressNumber.isPresent() && !newAddressNumber.get().equals(addressNumber)) {
+        Dialog dialog = createDialog(addressNumber, postman_path_step + "");
+        Optional<LocationUpdate> locUpdate = dialog.showAndWait();
+        if (locUpdate.isPresent()) {
             try {
-                System.out.println("Update address: " + newAddressNumber.get());
-                PreparedStatement ps = db.getStatement(DBHandler.StatementType.UPDATE_LOCATION_NUMBER);
-                ps.setString(1, newAddressNumber.get());
-                ps.setInt(2, Integer.parseInt(idLabel.getText()));
+                LocationUpdate lu = locUpdate.get();
+                System.out.println(lu);
+                PreparedStatement ps = db.getStatement(DBHandler.StatementType.UPDATE_LOCATION_NUMBER_PPSTEP);
+                ps.setString(1, lu.getNumber());
+                ps.setInt(2, lu.getPpStep());
+                ps.setInt(3, Integer.parseInt(idLabel.getText()));
                 ps.executeUpdate();
                 ps.clearParameters();
-                MainController.getInstance().updateLocationText(idLabel.getText().replaceFirst("0*", ""), newAddressNumber.get());
+                postman_path_step = lu.getPpStep();
+                MainController.getInstance().updateLocationText(idLabel.getText().replaceFirst("0*", ""), lu.getNumber());
                 sendMessage("Adresa lokacije uspešno promenjena.", MainController.MessageType.INFORMATION);
             } catch (SQLException ex) {
                 sendMessage("Greška prilikom promene adrese.\nError: " + ex.getMessage(), MainController.MessageType.ERROR);
             }
         }
     }
-
-    private TextInputDialog createDialog(String addressNumber) {
-        TextInputDialog tid = new TextInputDialog(addressNumber);
-        tid.setTitle("Promena broja adrese.");
+    /**
+     * Dialog for updating location number and postman path step.
+     * 
+     * @param addressNumber Current number.
+     * @param ppStep Current postman path step.
+     * @return 
+     */
+    private Dialog createDialog(String addressNumber, String ppStep) {
+        Dialog<LocationUpdate> dialog = new Dialog<>();
+        dialog.setTitle("Ažuriranje adrese.");
         TextFormatter<String> formatterNumber = new TextFormatter<>((t) -> {
             String textNew = t.getControlNewText();
             if (!textNew.isEmpty()) {
@@ -347,7 +361,7 @@ public class ShowLocationController implements Initializable {
                     sendMessage("Vrednost polja ne sme da sadrži razmak.", MainController.MessageType.INFORMATION);
                 } else if (textNew.length() > 23) {
                     t = null;
-                    sendMessage("Vrednost polja mora da bude do 10 znakova.", MainController.MessageType.INFORMATION);
+                    sendMessage("Vrednost polja mora da bude do 23 znaka.", MainController.MessageType.INFORMATION);
                 } else if (!Character.isDigit(textNew.charAt(0))) {
                     t = null;
                     sendMessage("Broj mora da počne sa brojem.", MainController.MessageType.INFORMATION);
@@ -355,9 +369,48 @@ public class ShowLocationController implements Initializable {
             }
             return t;
         });
-        tid.getEditor().setTextFormatter(formatterNumber);
-        tid.initStyle(StageStyle.UTILITY);
-        return tid;
+        TextFormatter<String> formatterPostmanPath = new TextFormatter<>((t) -> {
+            String textNew = t.getControlNewText();
+            if (!textNew.isEmpty()) {
+                try {
+                    Integer.valueOf(textNew);
+                } catch (NumberFormatException e) {
+                    t = null;
+                    sendMessage("Vrednost polja mora da bude ceo broj.", MainController.MessageType.INFORMATION);
+                }
+            }
+            return t;
+        });
+        JFXTextField number = new JFXTextField();
+        JFXTextField pStep = new JFXTextField();
+        number.setLabelFloat(true);
+        pStep.setLabelFloat(true);
+        number.setPromptText("Broj adrese");
+        pStep.setPromptText("Broj poštarevog puta");
+        number.setText(addressNumber);
+        pStep.setText(ppStep);
+        number.setTextFormatter(formatterNumber);
+        pStep.setTextFormatter(formatterPostmanPath);
+        GridPane pane = new GridPane();
+        pane.add(new Label("Broj:"), 0, 0);
+        pane.add(new Label("Poštarev put:"), 0, 1);
+        pane.add(number, 1, 0);
+        pane.add(pStep, 1, 1);
+        pane.setHgap(13d);
+        pane.setVgap(13d);
+        dialog.getDialogPane().setContent(pane);
+        dialog.initStyle(StageStyle.UTILITY);
+        ButtonType save = new ButtonType("Sačucaj", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancel = new ButtonType("Otkaži", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().addAll(save,  cancel);
+        dialog.setResultConverter((param) -> {
+            if(param == save && !number.getText().isEmpty()) {
+                return new LocationUpdate(number.getText(), Integer.parseInt(pStep.getText()));
+            }
+            return null;
+        });
+        
+        return dialog;
     }
 
     private void sendMessage(String message, MainController.MessageType type) {

@@ -47,7 +47,7 @@ public class DBHandler {
         SELECT_LOCATONS_WITH_SETTLEMENT_ID(5),
         SELECT_ALL_STREETS(6),
         UPDATE_LOCATON_XY(7),
-        SELECT_STREET_NAME_AND_LOCATION_NUMBER(8),
+        SELECT_STREET_NAME_LOCATION_NUMBER_LOCATION_PPSTEP(8),
         INSERT_RECIPIENT(9),
         SELECT_RECIPIENTS_ON_LOCATION_ID(10),
         DELETE_RECIPIENT_WITH_ID(11),
@@ -56,7 +56,7 @@ public class DBHandler {
         SEARCH_RECIPIENTS_WITH_NAME(14),
         SEARCH_RECIPIENTS_WITH_NAME_X2(15),
         SEARCH_RECIPIENTS(16),
-        UPDATE_LOCATION_NUMBER(17),
+        UPDATE_LOCATION_NUMBER_PPSTEP(17),
         INSERT_USER(18),
         DELETE_USER(19);
         public final int I;
@@ -193,7 +193,7 @@ public class DBHandler {
             statements.add(connection.prepareStatement("SELECT ST.STREET_ID, ST.STREET_PAK, ST.STREET_NAME, SE.SETTLEMENT_INITIALS FROM STREETS AS ST "
                     + "JOIN SETTLEMENTS AS SE ON ST.SETTLEMENT_ID = SE.SETTLEMENT_ID ORDER BY SE.SETTLEMENT_INITIALS"));
             statements.add(connection.prepareStatement("UPDATE LOCATIONS SET LOCATION_POINT_X = ?, LOCATION_POINT_Y = ? WHERE LOCATION_ID = ?"));
-            statements.add(connection.prepareStatement("SELECT S.STREET_NAME, L.LOCATION_ADDRESS_NO FROM LOCATIONS AS L JOIN STREETS AS S ON L.STREET_ID = S.STREET_ID "
+            statements.add(connection.prepareStatement("SELECT S.STREET_NAME, L.LOCATION_ADDRESS_NO, L.LOCATION_POSTMAN_PATH_STEP FROM LOCATIONS AS L JOIN STREETS AS S ON L.STREET_ID = S.STREET_ID "
                     + "WHERE L.LOCATION_ID = ?"));
             statements.add(connection.prepareStatement("INSERT INTO RECIPIENTS VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS));
             statements.add(connection.prepareStatement("SELECT R.RECIPIENT_ID, R.RECIPIENT_LAST_NAME, R.RECIPIENT_FIRST_NAME, R.RECIPIENT_DETAILS, "
@@ -218,7 +218,7 @@ public class DBHandler {
                     + "JOIN LOCATIONS AS L ON R.LOCATION_ID = L.LOCATION_ID "
                     + "JOIN STREETS AS S ON L.STREET_ID = S.STREET_ID "
                     + "WHERE S.SETTLEMENT_ID = ?"));
-            statements.add(connection.prepareStatement("UPDATE LOCATIONS SET LOCATION_ADDRESS_NO = ? WHERE LOCATION_ID = ?"));
+            statements.add(connection.prepareStatement("UPDATE LOCATIONS SET LOCATION_ADDRESS_NO = ?, LOCATION_POSTMAN_PATH_STEP = ? WHERE LOCATION_ID = ?"));
             statements.add(connection.prepareStatement("INSERT INTO USERS VALUES (DEFAULT, ?, ?)"));
             statements.add(connection.prepareStatement("DELETE FROM USERS AS U WHERE U.USER_NAME = ? AND U.USER_PASSWORD = ?"));
             

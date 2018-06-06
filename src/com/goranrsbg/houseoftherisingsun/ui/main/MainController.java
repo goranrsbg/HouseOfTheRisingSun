@@ -62,6 +62,7 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -191,6 +192,26 @@ public class MainController implements Initializable {
                 searchRecipientsTable.getSelectionModel().clearSelection();
             }
         });
+        searchRecipientsTable.setRowFactory((param) -> {
+            TableRow<SearchRecipient> row = new TableRow<>();
+            row.setOnMouseClicked((event) -> {
+                if(event.getClickCount() == 2) {
+                    System.out.println("HERE");
+                    SearchRecipient item = row.getItem();
+                    int locationId = item.getLocationId();
+                    FilteredList<Node> filtered = locationsPane.getChildren().filtered((t) -> {
+                        return t.getId().equals(locationId + "");
+                    });
+                    if(filtered.size() == 1) {
+                        System.out.println("HER2");
+                        Text loc = (Text)filtered.get(0);
+                        System.out.println("X: " + loc.getX() + "| Y: " + loc.getY());
+                        centerPointOnTheWindow(loc.getX(), loc.getY());
+                    }
+                }
+            });
+            return row;
+        });
         searchBox.textProperty().addListener((observable, oldValue, newValue) -> {
             searchRunnable.setValueToSearchFor(newValue);
         });
@@ -286,7 +307,15 @@ public class MainController implements Initializable {
         searchBox.addEventFilter(ContextMenuEvent.CONTEXT_MENU_REQUESTED, Event::consume);
         searchArrow.setText("");
     }
-
+    /**
+     * Creates button for the main screen.
+     * 
+     * @param text
+     * @param graphic
+     * @param cssButtonSubClass
+     * @param tooltipText
+     * @return 
+     */
     private JFXButton createButton(String text, Node graphic, String cssButtonSubClass, String tooltipText) {
         JFXButton btn = new JFXButton(text, graphic);
         btn.getStyleClass().addAll(DEFAULT_BUTTON_CSS_CLASS, cssButtonSubClass);
@@ -295,7 +324,12 @@ public class MainController implements Initializable {
         btn.setTooltip(tooltip);
         return btn;
     }
-
+    /**
+     * Method for the buttons fire event of the main screen.
+     * Button for changing map are excluded.
+     * 
+     * @param event 
+     */
     private void buttonClickActionEvent(ActionEvent event) {
         JFXButton btn = (JFXButton) event.getSource();
         String id = btn.getId();
@@ -370,6 +404,9 @@ public class MainController implements Initializable {
         JFXTextField name = new JFXTextField();
         JFXPasswordField password = new JFXPasswordField();
         JFXPasswordField passwordReTyped = new JFXPasswordField();
+        name.setLabelFloat(true);
+        password.setLabelFloat(true);
+        passwordReTyped.setLabelFloat(true);
         name.setPromptText("Ime");
         password.setPromptText("Lozinka");
         grid.add(new Label("Korisničko ime:"), 0, 0);
@@ -378,8 +415,8 @@ public class MainController implements Initializable {
         grid.add(password, 1, 1);
         grid.add(new Label("Lozinka ponovo otkucana:"), 0, 2);
         grid.add(passwordReTyped, 1, 2);
-        grid.setHgap(10d);
-        grid.setVgap(10d);
+        grid.setHgap(13d);
+        grid.setVgap(13d);
         dialog.getDialogPane().setContent(grid);
         dialog.setResultConverter((param) -> {
             if (param == cancel || name.getText().isEmpty() || password.getText().isEmpty() || !password.getText().equals(passwordReTyped.getText())) {
@@ -389,7 +426,12 @@ public class MainController implements Initializable {
         });
         return dialog;
     }
-
+    /**
+     * Algorithm SHA-256 is used for hashing given text.
+     * 
+     * @param text String to be digested.
+     * @return Digested string.
+     */
     private String toSha256String(String text) {
         MessageDigest generator;
         try {
@@ -409,7 +451,11 @@ public class MainController implements Initializable {
         }
         return null;
     }
-
+    /**
+     * Method for fire event of the buttons that change the map.
+     * 
+     * @param event 
+     */
     private void buttonMapClickActionEvent(ActionEvent event) {
         JFXButton btn = (JFXButton) event.getSource();
         int id = (int) btn.getUserData();
@@ -444,7 +490,11 @@ public class MainController implements Initializable {
         }
         event.consume();
     }
-
+    /**
+     * Toggle button fire event for changing show/hide locations.
+     * 
+     * @param event 
+     */
     private void toggleShowLocations(ActionEvent event) {
         JFXToggleButton bt = (JFXToggleButton) event.getSource();
         if (bt.isSelected()) {
@@ -477,7 +527,14 @@ public class MainController implements Initializable {
     public boolean isShowLocationsSelected() {
         return toggleLocationsButton.isSelected();
     }
-
+    
+    /**
+     * Updates location number, text of the Text element representing location on the location pane,
+     * If text element with id id exists then text will be changed.
+     * 
+     * @param id id of the location
+     * @param newLocationAddressNumberText Address number to be replaced with
+     */
     public void updateLocationText(String id, String newLocationAddressNumberText) {
         FilteredList<Node> filtered = locationsPane.getChildren().filtered((t) -> {
             return t.getId().equals(id);
@@ -514,7 +571,7 @@ public class MainController implements Initializable {
     }
 
     /**
-     * Called on mouse left double click on any location Text element, to show
+     * Called on mouse left <b>double</b> click on any location Text element, to show
      * location recipients.
      *
      * @param event

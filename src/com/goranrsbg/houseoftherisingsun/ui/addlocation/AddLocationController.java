@@ -96,7 +96,7 @@ public class AddLocationController implements Initializable {
                     sendMessage("Vrednost polja ne sme da sadrži razmak.", MainController.MessageType.INFORMATION);
                 } else if (textNew.length() > 23) {
                     t = null;
-                    sendMessage("Vrednost polja mora da bude do 10 znakova.", MainController.MessageType.INFORMATION);
+                    sendMessage("Vrednost polja mora da bude do 23 znaka.", MainController.MessageType.INFORMATION);
                 } else if (!Character.isDigit(textNew.charAt(0))) {
                     t = null;
                     sendMessage("Broj mora da počne sa brojem.", MainController.MessageType.INFORMATION);
