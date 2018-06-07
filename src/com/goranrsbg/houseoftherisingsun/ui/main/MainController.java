@@ -608,7 +608,7 @@ public class MainController implements Initializable {
                 stage.setOnCloseRequest((event) -> {
                     Stage st = (Stage) event.getSource();
                     Object[] ud = (Object[]) st.getUserData();
-                    ((MainController) ud[0]).getShownLocations().remove((Integer) ud[1]);
+                    ((MainController) ud[0]).getShownLocationController().remove((Integer) ud[1]);
                 });
                 stage.setUserData(new Object[]{this, locationID});
                 stage.setScene(scene);
@@ -619,8 +619,14 @@ public class MainController implements Initializable {
         }
     }
 
-    public Map<Integer, ShowLocationController> getShownLocations() {
+    public Map<Integer, ShowLocationController> getShownLocationController() {
         return shownLocations;
+    }
+    
+    public void clearLocationFromLocationPane(String locationId) {
+        locationsPane.getChildren().removeIf((t) -> {
+            return t.getId().equals(locationId);
+        });
     }
 
     /**

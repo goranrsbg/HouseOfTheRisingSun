@@ -58,7 +58,8 @@ public class DBHandler {
         SEARCH_RECIPIENTS(16),
         UPDATE_LOCATION_NUMBER_PPSTEP(17),
         INSERT_USER(18),
-        DELETE_USER(19);
+        DELETE_USER(19),
+        DELETE_LOCATION(20);
         public final int I;
         private StatementType(int I) {
             this.I = I;
@@ -221,7 +222,7 @@ public class DBHandler {
             statements.add(connection.prepareStatement("UPDATE LOCATIONS SET LOCATION_ADDRESS_NO = ?, LOCATION_POSTMAN_PATH_STEP = ? WHERE LOCATION_ID = ?"));
             statements.add(connection.prepareStatement("INSERT INTO USERS VALUES (DEFAULT, ?, ?)"));
             statements.add(connection.prepareStatement("DELETE FROM USERS AS U WHERE U.USER_NAME = ? AND U.USER_PASSWORD = ?"));
-            
+            statements.add(connection.prepareStatement("DELETE FROM LOCATIONS AS L WHERE L.LOCATION_ID = ?"));
         } catch (SQLException e) {
             LOGGER.log(Level.INFO, "Failed to initiate prepared statements.\nError: {0}", e.getSQLState());
         }

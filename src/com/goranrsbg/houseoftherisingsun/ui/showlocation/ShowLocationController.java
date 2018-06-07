@@ -250,7 +250,20 @@ public class ShowLocationController implements Initializable {
 
     @FXML
     private void deleteLocationOnAction(ActionEvent event) {
-         sendMessage("Delete location is not yet implemented.", MainController.MessageType.INFORMATION);
+        if(!recipients.isEmpty()) {
+            sendMessage("Lokacija mora da bude bez primaoca da bi brisanje bilo moguće.", MainController.MessageType.INFORMATION);
+            return;
+        } 
+        try {
+            PreparedStatement ps = db.getStatement(DBHandler.StatementType.DELETE_LOCATION);
+            ps.setInt(1, getLocationID());
+            ps.executeUpdate();
+            MainController.getInstance().clearLocationFromLocationPane(getLocationID() + "");
+            sendMessage("Lokacije " + addressNameLabel.getText() + " uspešno obrisana.", MainController.MessageType.INFORMATION);
+            idLabel.getScene().getWindow().hide();
+        } catch (SQLException ex) {
+            sendMessage("Neuspelo brisanje lokacije.\nError: " + ex.getMessage(), MainController.MessageType.ERROR);
+        }
     }
 
     @FXML
