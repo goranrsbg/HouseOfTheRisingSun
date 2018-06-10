@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane id="AnchorPane" prefHeight="677.0" prefWidth="499.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.goranrsbg.houseoftherisingsun.ui.retireonly.RetireonlyController">
+    <stylesheets>
+        <URL value="@retireonly.css" />
+    </stylesheets>
+    <children>
+        <TableView fx:id="table" prefHeight="200.0" prefWidth="200.0" tableMenuButtonVisible="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <placeholder>
+                <Label text="Pretraga nije dala rezultate." />
+            </placeholder>
+            <columns>
+            <TableColumn fx:id="noCol" editable="false" maxWidth="51.0" minWidth="41.0" prefWidth="47.0" sortable="false" text="#" />
+                <TableColumn fx:id="lastNameCol" prefWidth="119.0" text="Prezime" />
+                <TableColumn fx:id="firstNameCol" prefWidth="75.0" text="Ime" />
+                <TableColumn fx:id="idCardNumberCol" prefWidth="75.0" text="ID" />
+                <TableColumn fx:id="policeDepartmentCol" prefWidth="75.0" text="PU" />
+                <TableColumn fx:id="detailsCol" prefWidth="75.0" text="Detalj" />
+            </columns>
+            <columnResizePolicy>
+                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+            </columnResizePolicy>
+        </TableView>
+    </children>
+</AnchorPane>

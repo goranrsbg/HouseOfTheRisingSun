@@ -12,7 +12,8 @@
     <children>
         <TableView fx:id="tableStreets" styleClass="mainFxmlClass" tableMenuButtonVisible="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <columns>
-                <TableColumn fx:id="colPak" prefWidth="62.0" styleClass="pak-column" text="PAK" />
+            <TableColumn fx:id="numCol" editable="false" prefWidth="33.0" sortable="false" text="#" />
+                <TableColumn fx:id="colPak" prefWidth="104.0" styleClass="pak-column" text="PAK" />
                 <TableColumn fx:id="colName" prefWidth="204.0" text="Ulica" />
                 <TableColumn fx:id="colInitial" prefWidth="63.0" styleClass="initial-column" text="Naselje" />
             </columns>

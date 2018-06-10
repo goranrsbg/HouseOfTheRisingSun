@@ -22,6 +22,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ResourceBundle;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -39,6 +40,8 @@ public class ShowStreetsController implements Initializable {
 
     @FXML
     private TableView<StreetTable> tableStreets;
+    @FXML
+    private TableColumn<StreetTable, Integer> numCol;
     @FXML
     private TableColumn<StreetTable, Integer> colPak;
     @FXML
@@ -64,6 +67,11 @@ public class ShowStreetsController implements Initializable {
     }
 
     private void initColumns() {
+        numCol.setCellValueFactory((param) -> {
+            return new ReadOnlyObjectWrapper<>(tableStreets.getItems().indexOf(param.getValue()) + 1);
+        });
+        numCol.setSortable(false);
+        numCol.setStyle("-fx-alignment: CENTER;");
         colPak.setCellValueFactory(new PropertyValueFactory<>("pak"));
         colName.setCellValueFactory(new PropertyValueFactory<>("name"));
         colInitial.setCellValueFactory(new PropertyValueFactory<>("settlementInitial"));

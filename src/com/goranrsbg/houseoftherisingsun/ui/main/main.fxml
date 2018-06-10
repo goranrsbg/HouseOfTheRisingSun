@@ -7,6 +7,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -17,7 +18,7 @@
 
 <AnchorPane xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.goranrsbg.houseoftherisingsun.ui.main.MainController">
    <children>
-      <StackPane fx:id="rootPane" prefHeight="36.0" prefWidth="36.0" stylesheets="@main.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <StackPane fx:id="rootPane" prefHeight="480.0" prefWidth="640.0" stylesheets="@main.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
             <ScrollPane fx:id="rootScrollPane" pannable="true" styleClass="theMap">
                <content>
@@ -49,13 +50,20 @@
                         </JFXButton>
                      </children>
                   </HBox>
-                  <TableView fx:id="searchRecipientsTable" maxHeight="257.0" maxWidth="719.0" styleClass="search-table">
+                  <TableView fx:id="searchRecipientsTable" maxHeight="257.0" maxWidth="719.0" styleClass="search-table" tableMenuButtonVisible="true">
                       <placeholder>
                           <Label text="Pretraga nije dala rezultate." />
                       </placeholder>
-                      <columnResizePolicy>
+                     <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                      </columnResizePolicy>
+                     <columns>
+                        <TableColumn fx:id="numCol" editable="false" maxWidth="51.0" minWidth="27.0" prefWidth="41.0" sortable="false" text="#" />
+                        <TableColumn fx:id="lastNameCol" editable="false" prefWidth="75.0" text="Prezime" />
+                        <TableColumn fx:id="firstNameCol" editable="false" prefWidth="75.0" text="Ime" />
+                        <TableColumn fx:id="detailsCol" editable="false" prefWidth="75.0" text="Detalj" />
+                        <TableColumn fx:id="addressCol" editable="false" prefWidth="75.0" text="Adresa" />
+                     </columns>
                   </TableView>
                </children>
             </VBox>

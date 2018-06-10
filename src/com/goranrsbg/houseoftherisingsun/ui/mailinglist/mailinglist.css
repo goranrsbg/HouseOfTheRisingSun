@@ -1,0 +1,50 @@
+/*
+ * Empty Stylesheet file.
+ */
+.root {
+    -fx-background-color: transparent;
+}
+
+.mainFxmlClass {
+    -fx-background-color: transparent;
+}
+
+.search-table {
+    -fx-background-color: rgba(255, 255, 255, .51);
+}
+
+.search-table .text {
+    -fx-font: 12pt "Source Sans Pro";
+    -fx-fill: black;
+}
+
+.search-table .table-row-cell {
+    -fx-background-color: rgba(255, 255, 255, .51);
+}
+
+.search-table .table-row-cell:odd {
+    -fx-background-color: rgba(217, 217, 217, .51);
+}
+
+.search-table .table-row-cell:selected {
+    -fx-background-color: rgba(24, 199, 65, .51);
+    -fx-font-weight: bold;
+}
+
+.search-table .table-row-cell:retire {
+    -fx-background-color: greenyellow;
+}
+
+.search-table .column-header {
+    -fx-background-color: orange;
+}
+.search-table .filler {
+    -fx-background-color: rgb(227, 227, 227);
+}
+.search-table .column-header .text {
+    -fx-font-weight: bold;
+}
+
+.search-table .column-header .text:hover {
+    -fx-fill: green;
+}

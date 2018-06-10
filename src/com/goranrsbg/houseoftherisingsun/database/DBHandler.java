@@ -59,7 +59,8 @@ public class DBHandler {
         UPDATE_LOCATION_NUMBER_PPSTEP(17),
         INSERT_USER(18),
         DELETE_USER(19),
-        DELETE_LOCATION(20);
+        DELETE_LOCATION(20),
+        SELECT_RETIRE_RECIPIENTS(21);
         public final int I;
         private StatementType(int I) {
             this.I = I;
@@ -223,6 +224,11 @@ public class DBHandler {
             statements.add(connection.prepareStatement("INSERT INTO USERS VALUES (DEFAULT, ?, ?)"));
             statements.add(connection.prepareStatement("DELETE FROM USERS AS U WHERE U.USER_NAME = ? AND U.USER_PASSWORD = ?"));
             statements.add(connection.prepareStatement("DELETE FROM LOCATIONS AS L WHERE L.LOCATION_ID = ?"));
+            statements.add(connection.prepareStatement("SELECT R.RECIPIENT_ID, R.RECIPIENT_LAST_NAME, R.RECIPIENT_FIRST_NAME, R.RECIPIENT_DETAILS, "
+                    + "R.RECIPIENT_IS_RETIREE, R.RECIPIENT_ID_CARD_NUMBER, R.RECIPIENT_ID_CARD_POLICE_DEPARTMENT, L.LOCATION_ID, S.STREET_NAME, L.LOCATION_ADDRESS_NO, L.LOCATION_POSTMAN_PATH_STEP FROM RECIPIENTS AS R "
+                    + "JOIN LOCATIONS AS L ON R.LOCATION_ID = L.LOCATION_ID "
+                    + "JOIN STREETS AS S ON L.STREET_ID = S.STREET_ID "
+                    + "WHERE S.SETTLEMENT_ID = ? AND R.RECIPIENT_IS_RETIREE = true"));
         } catch (SQLException e) {
             LOGGER.log(Level.INFO, "Failed to initiate prepared statements.\nError: {0}", e.getSQLState());
         }

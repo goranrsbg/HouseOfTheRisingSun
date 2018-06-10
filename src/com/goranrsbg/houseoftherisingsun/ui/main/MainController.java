@@ -18,6 +18,7 @@ package com.goranrsbg.houseoftherisingsun.ui.main;
 import com.goranrsbg.houseoftherisingsun.LocatorApp;
 import com.goranrsbg.houseoftherisingsun.database.DBHandler;
 import com.goranrsbg.houseoftherisingsun.ui.addlocation.AddLocationController;
+import com.goranrsbg.houseoftherisingsun.ui.mailinglist.MailinglistController;
 import com.goranrsbg.houseoftherisingsun.ui.showlocation.ShowLocationController;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXNodesList;
@@ -44,6 +45,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -109,10 +111,20 @@ public class MainController implements Initializable {
     private VBox searchLine;
     @FXML
     private TableView<SearchRecipient> searchRecipientsTable;
+    @FXML
+    private TableColumn<SearchRecipient, Integer> numCol;
+    @FXML
+    private TableColumn<SearchRecipient, String> lastNameCol;
+    @FXML
+    private TableColumn<SearchRecipient, String> firstNameCol;
+    @FXML
+    private TableColumn<SearchRecipient, String> detailsCol;
+    @FXML
+    private TableColumn<SearchRecipient, String> addressCol;
 
     private final DBHandler db;
     private static MainController instance;
-
+    
     public enum MessageType {
         CONFIRM,
         ERROR,
@@ -122,8 +134,9 @@ public class MainController implements Initializable {
 
     public enum DefaultButtonType {
         ADD_LOCATION,
-        SHOW_LOCATION,
+        MAILING_LIST,
         SHOW_STREETS_TABLE,
+        SHOW_RETIRE_TABLE,
         CREATE_USER;
     }
 
@@ -133,7 +146,7 @@ public class MainController implements Initializable {
     private static final Logger LOGGER = Logger.getLogger(LocatorApp.class.getName());
     private final Map<Integer, ShowLocationController> shownLocations;
     private final Pattern recipientPattern;
-    private final ObservableList showRecipientsData;
+    private final ObservableList<SearchRecipient> showRecipientsData;
     private SearchRunnable searchRunnable;
 
     public MainController() {
@@ -168,19 +181,22 @@ public class MainController implements Initializable {
     }
 
     private void initSearch() {
-        TableColumn<SearchRecipient, String> lastName = new TableColumn<>("Prezime");
-        lastName.setCellValueFactory(new PropertyValueFactory<>("lastName"));
-        TableColumn<SearchRecipient, String> firstName = new TableColumn<>("Ime");
-        firstName.setCellValueFactory(new PropertyValueFactory<>("firstName"));
-        TableColumn<SearchRecipient, String> details = new TableColumn<>("Detalj");
-        details.setCellValueFactory(new PropertyValueFactory<>("details"));
-        TableColumn<SearchRecipient, String> locationAddress = new TableColumn<>("Adresa");
-        locationAddress.setCellValueFactory(new PropertyValueFactory<>("locationAddress"));
-        searchRecipientsTable.getColumns().addAll(lastName, firstName, details, locationAddress);
+        numCol.setCellValueFactory((param) -> {
+            return new ReadOnlyObjectWrapper<>(searchRecipientsTable.getItems().indexOf(param.getValue()) + 1);
+        });
+        numCol.setStyle("-fx-alignment: CENTER;");
+        lastNameCol.setCellValueFactory(new PropertyValueFactory<>("lastName"));
+        lastNameCol.setStyle("-fx-alignment: CENTER-LEFT;");
+        firstNameCol.setCellValueFactory(new PropertyValueFactory<>("firstName"));
+        firstNameCol.setStyle("-fx-alignment: CENTER-LEFT;");
+        detailsCol.setCellValueFactory(new PropertyValueFactory<>("details"));
+        detailsCol.setStyle("-fx-alignment: CENTER-LEFT;");
+        addressCol.setCellValueFactory(new PropertyValueFactory<>("locationAddress"));
+        addressCol.setStyle("-fx-alignment: CENTER-LEFT;");
         searchRecipientsTable.setItems(showRecipientsData);
         searchRecipientsTable.setVisible(false);
         searchRecipientsTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            if (oldValue != null) {
+            if (oldValue != null && oldValue != newValue) {
                 selectLocation(oldValue.getLocationId() + "", false);
             }
             if (newValue != null) {
@@ -188,32 +204,51 @@ public class MainController implements Initializable {
             }
         });
         searchRecipientsTable.setOnKeyPressed((event) -> {
-            if (event.getCode() == KeyCode.ESCAPE) {
+            KeyCode key = event.getCode();
+            if (key == KeyCode.ESCAPE) {
+                searchRecipientsTable.getSelectionModel().clearSelection();
+            } else if (key == KeyCode.UP && searchRecipientsTable.getSelectionModel().isSelected(0)) {
+                searchBox.requestFocus();
+            } else if (event.getCode() == KeyCode.ENTER) {
+                SearchRecipient recipient = searchRecipientsTable.getSelectionModel().getSelectedItem();
+                if (recipient != null) {
+                    Object userData = buttons.get(DefaultButtonType.MAILING_LIST).getUserData();
+                    if (userData != null) {
+                        MailinglistController controller = (MailinglistController) userData;
+                        controller.addRecipient(recipient);
+                    }
+                }
+            }
+        });
+        searchRecipientsTable.focusedProperty().addListener((observable, oldValue, newValue) -> {
+            if(!newValue) {
                 searchRecipientsTable.getSelectionModel().clearSelection();
             }
         });
         searchRecipientsTable.setRowFactory((param) -> {
             TableRow<SearchRecipient> row = new TableRow<>();
             row.setOnMouseClicked((event) -> {
-                if(event.getClickCount() == 2) {
-                    System.out.println("HERE");
+                if (event.getClickCount() == 2) {
                     SearchRecipient item = row.getItem();
-                    int locationId = item.getLocationId();
-                    FilteredList<Node> filtered = locationsPane.getChildren().filtered((t) -> {
-                        return t.getId().equals(locationId + "");
-                    });
-                    if(filtered.size() == 1) {
-                        System.out.println("HER2");
-                        Text loc = (Text)filtered.get(0);
-                        System.out.println("X: " + loc.getX() + "| Y: " + loc.getY());
-                        centerPointOnTheWindow(loc.getX(), loc.getY());
-                    }
+                    centerLocationOnTheScreen(item.getLocationId() + "");
+                }
+            });
+            row.itemProperty().addListener((obs, previous, current) -> {
+                if (current != null) {
+                    row.pseudoClassStateChanged(RETIRE_PSEUDO_CLASS, current.getIsRetire());
+                } else if (previous != null) {
+                    row.pseudoClassStateChanged(RETIRE_PSEUDO_CLASS, false);
                 }
             });
             return row;
         });
         searchBox.textProperty().addListener((observable, oldValue, newValue) -> {
             searchRunnable.setValueToSearchFor(newValue);
+        });
+        searchBox.setOnKeyPressed((event) -> {
+            if (event.getCode() == KeyCode.DOWN) {
+                searchRecipientsTable.requestFocus();
+            }
         });
     }
 
@@ -224,7 +259,7 @@ public class MainController implements Initializable {
      * @param id Id of the location text element
      * @param ON toggle switch show/hide true/false
      */
-    private void selectLocation(String id, boolean ON) {
+    public void selectLocation(String id, boolean ON) {
         FilteredList<Node> filtered = locationsPane.getChildren().filtered((t) -> {
             return t.getId().equals(id);
         });
@@ -269,13 +304,19 @@ public class MainController implements Initializable {
         buttons.put(DefaultButtonType.SHOW_STREETS_TABLE, btn);
         streetsJFXNodesList.addAnimatedNode(btn);
 
-        btn = createButton(null, new FontAwesomeIconView().setStyleClass("showlocation-icon"), DEFAULT_BUTTON_CSS_SUBCLASS + 1, "Prikaži primaoce na adresi.");
+        btn = createButton(null, new FontAwesomeIconView().setStyleClass("showmailinglist-icon"), DEFAULT_BUTTON_CSS_SUBCLASS + 1, "Prikaži listu primalaca.");
         btn.setOnAction(this::buttonClickActionEvent);
-        btn.setId(DefaultButtonType.SHOW_LOCATION.toString());
-        buttons.put(DefaultButtonType.SHOW_LOCATION, btn);
+        btn.setId(DefaultButtonType.MAILING_LIST.toString());
+        buttons.put(DefaultButtonType.MAILING_LIST, btn);
         recipientsJFXNodesList.addAnimatedNode(btn);
 
-        btn = createButton(null, new FontAwesomeIconView().setStyleClass("user-icon"), DEFAULT_BUTTON_CSS_SUBCLASS + 1, "Dodaj korisnika.");
+        btn = createButton(null, new FontAwesomeIconView().setStyleClass("retire-icon"), DEFAULT_BUTTON_CSS_SUBCLASS + 1, "Prikaži pen/neg/pom korisnike.");
+        btn.setOnAction(this::buttonClickActionEvent);
+        btn.setId(DefaultButtonType.SHOW_RETIRE_TABLE.toString());
+        buttons.put(DefaultButtonType.SHOW_RETIRE_TABLE, btn);
+        recipientsJFXNodesList.addAnimatedNode(btn);
+        
+        btn = createButton(null, new FontAwesomeIconView().setStyleClass("user-icon"), DEFAULT_BUTTON_CSS_SUBCLASS + 1, "Dodaj/Obriši korisnika.");
         btn.setOnAction(this::buttonClickActionEvent);
         btn.setId(DefaultButtonType.CREATE_USER.toString());
         buttons.put(DefaultButtonType.CREATE_USER, btn);
@@ -307,14 +348,15 @@ public class MainController implements Initializable {
         searchBox.addEventFilter(ContextMenuEvent.CONTEXT_MENU_REQUESTED, Event::consume);
         searchArrow.setText("");
     }
+
     /**
      * Creates button for the main screen.
-     * 
+     *
      * @param text
      * @param graphic
      * @param cssButtonSubClass
      * @param tooltipText
-     * @return 
+     * @return
      */
     private JFXButton createButton(String text, Node graphic, String cssButtonSubClass, String tooltipText) {
         JFXButton btn = new JFXButton(text, graphic);
@@ -324,11 +366,12 @@ public class MainController implements Initializable {
         btn.setTooltip(tooltip);
         return btn;
     }
+
     /**
-     * Method for the buttons fire event of the main screen.
-     * Button for changing map are excluded.
-     * 
-     * @param event 
+     * Method for the buttons fire event of the main screen. Button for changing
+     * map are excluded.
+     *
+     * @param event
      */
     private void buttonClickActionEvent(ActionEvent event) {
         JFXButton btn = (JFXButton) event.getSource();
@@ -346,9 +389,9 @@ public class MainController implements Initializable {
                     showMessage(TITLE, "Mapa nije odabrana.", MessageType.INFORMATION);
                 }
                 break;
-            case "SHOW_LOCATION":
+            case "MAILING_LIST":
                 try {
-                    LocatorApp.getInstance().LoadSubWindow("/com/goranrsbg/houseoftherisingsun/ui/showlocation/showlocation.fxml", btn, true, "Prikaži lokaciju.");
+                    LocatorApp.getInstance().LoadSubWindow("/com/goranrsbg/houseoftherisingsun/ui/mailinglist/mailinglist.fxml", btn, true, "Lista primalaca.");
                     btn.setDisable(true);
                 } catch (IOException ex) {
                     showMessage(TITLE, "Greška pri učitavanju .fxml faja.\n" + ex.getMessage(), MessageType.ERROR);
@@ -362,13 +405,20 @@ public class MainController implements Initializable {
                     showMessage(TITLE, "Greška pri učitavanju .fxml faja.\n" + ex.getMessage(), MessageType.ERROR);
                 }
                 break;
+            case "SHOW_RETIRE_TABLE":
+                try {
+                    LocatorApp.getInstance().LoadSubWindow("/com/goranrsbg/houseoftherisingsun/ui/retireonly/retireonly.fxml", btn, true, "Prikaz ulica.");
+                    btn.setDisable(true);
+                } catch (IOException ex) {
+                    showMessage(TITLE, "Greška pri učitavanju .fxml faja.\n" + ex.getMessage(), MessageType.ERROR);
+                }
+                break;
             case "CREATE_USER":
                 Dialog dialog = createDialog();
-                Optional<User> result = dialog.showAndWait();
+                Optional result = dialog.showAndWait();
                 if (result.isPresent()) {
-                    User user = result.get();
+                    User user = (User) result.get();
                     try {
-                        System.out.println("Name: " + user.getNAME() + "\nLozinka: " + user.getPASSWORD() + "\nDelete: " + user.isForDeletion());
                         PreparedStatement ps;
                         ps = user.isForDeletion() ? db.getStatement(DBHandler.StatementType.DELETE_USER) : db.getStatement(DBHandler.StatementType.INSERT_USER);
                         ps.setString(1, user.getNAME());
@@ -413,7 +463,7 @@ public class MainController implements Initializable {
         grid.add(name, 1, 0);
         grid.add(new Label("Korisnička lozinka:"), 0, 1);
         grid.add(password, 1, 1);
-        grid.add(new Label("Lozinka ponovo otkucana:"), 0, 2);
+        grid.add(new Label("Lozinka prekucana:"), 0, 2);
         grid.add(passwordReTyped, 1, 2);
         grid.setHgap(13d);
         grid.setVgap(13d);
@@ -426,9 +476,10 @@ public class MainController implements Initializable {
         });
         return dialog;
     }
+
     /**
      * Algorithm SHA-256 is used for hashing given text.
-     * 
+     *
      * @param text String to be digested.
      * @return Digested string.
      */
@@ -451,10 +502,11 @@ public class MainController implements Initializable {
         }
         return null;
     }
+
     /**
      * Method for fire event of the buttons that change the map.
-     * 
-     * @param event 
+     *
+     * @param event
      */
     private void buttonMapClickActionEvent(ActionEvent event) {
         JFXButton btn = (JFXButton) event.getSource();
@@ -490,10 +542,11 @@ public class MainController implements Initializable {
         }
         event.consume();
     }
+
     /**
      * Toggle button fire event for changing show/hide locations.
-     * 
-     * @param event 
+     *
+     * @param event
      */
     private void toggleShowLocations(ActionEvent event) {
         JFXToggleButton bt = (JFXToggleButton) event.getSource();
@@ -527,20 +580,19 @@ public class MainController implements Initializable {
     public boolean isShowLocationsSelected() {
         return toggleLocationsButton.isSelected();
     }
-    
+
     /**
-     * Updates location number, text of the Text element representing location on the location pane,
-     * If text element with id id exists then text will be changed.
-     * 
+     * Updates location number, text of the Text element representing location
+     * on the location pane, If text element with id id exists then text will be
+     * changed.
+     *
      * @param id id of the location
      * @param newLocationAddressNumberText Address number to be replaced with
      */
     public void updateLocationText(String id, String newLocationAddressNumberText) {
-        FilteredList<Node> filtered = locationsPane.getChildren().filtered((t) -> {
-            return t.getId().equals(id);
-        });
-        if (filtered.size() == 1) {
-            ((Text) filtered.get(0)).setText(newLocationAddressNumberText);
+        Node lookup = locationsPane.lookup("#" + id);
+        if(lookup != null) {
+            ((Text)lookup).setText(newLocationAddressNumberText);
         }
     }
 
@@ -571,8 +623,8 @@ public class MainController implements Initializable {
     }
 
     /**
-     * Called on mouse left <b>double</b> click on any location Text element, to show
-     * location recipients.
+     * Called on mouse left <b>double</b> click on any location Text element, to
+     * show location recipients.
      *
      * @param event
      */
@@ -622,11 +674,28 @@ public class MainController implements Initializable {
     public Map<Integer, ShowLocationController> getShownLocationController() {
         return shownLocations;
     }
-    
+    /**
+     * Removes text element from location pane.
+     * @param locationId Id of the text element.(location id)
+     */
     public void clearLocationFromLocationPane(String locationId) {
         locationsPane.getChildren().removeIf((t) -> {
             return t.getId().equals(locationId);
         });
+    }
+    /**
+     * If location with given id is present, method <I>canterPointOnTheWindow</I> is
+     * called with found location on screen position.
+     * @param locationId Id of the location.
+     */
+    public void centerLocationOnTheScreen(String locationId) {
+        Optional<Node> location = locationsPane.getChildren().stream().filter((t) -> {
+            return t.getId().equals(locationId);
+        }).findFirst();
+        if (location.isPresent()) {
+            Text loc = (Text) location.get();
+            centerPointOnTheWindow(loc.getX(), loc.getY());
+        }
     }
 
     /**
@@ -833,4 +902,5 @@ public class MainController implements Initializable {
     private final String DEFAULT_TOOLTIP_STYLE = "-fx-font: normal bold 15px 'Oxygen'; -fx-base: #AE3522; -fx-text-fill: orange;";
     private final String DEFAULT_LOCATION_CSS_CLASS = "location-text";
     private final PseudoClass MARKED_PSEUDO_CLASS = PseudoClass.getPseudoClass("mark");
+    private final PseudoClass RETIRE_PSEUDO_CLASS = PseudoClass.getPseudoClass("retire");
 }

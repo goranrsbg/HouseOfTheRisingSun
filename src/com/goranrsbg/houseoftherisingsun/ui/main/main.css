@@ -128,11 +128,11 @@ limitations under the License.
     -icons-color: #149c02;
 }
 
-.showlocation-icon{
+.showmailinglist-icon{
     -glyph-name: "TELEGRAM";
     -icons-color: #ff8102;
 }
-.animated-option-button:hover .showlocation-icon{
+.animated-option-button:hover .showmailinglist-icon{
     -icons-color: #de6f00;
 }
 
@@ -141,6 +141,14 @@ limitations under the License.
     -icons-color: #ff8102;
 }
 .animated-option-button:hover .user-icon{
+    -icons-color: #de6f00;
+}
+
+.retire-icon{
+    -glyph-name: "ID_CARD_ALT";
+    -icons-color: #ff8102;
+}
+.animated-option-button:hover .retire-icon{
     -icons-color: #de6f00;
 }
 
@@ -284,6 +292,10 @@ limitations under the License.
 
 .search-table .table-row-cell:selected {
     -fx-background-color: rgba(24, 199, 65, .51);
+}
+
+.search-table .table-row-cell:retire {
+    -fx-background-color: rgba(173, 255, 47, .51);
 }
 
 .search-table .column-header {

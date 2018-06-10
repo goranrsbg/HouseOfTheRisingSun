@@ -1,0 +1,19 @@
+/*
+ * Empty Stylesheet file.
+ */
+
+.mainFxmlClass {
+    -fx-font-size: 11pt;
+}
+.table-row-cell {
+    -fx-background-color: lightgreen;
+}
+.table-row-cell:odd {
+    -fx-background-color: greenyellow;
+}
+.table-row-cell:selected {
+    -fx-font-weight: bold;
+}
+.table-row-cell:selected .text {
+    -fx-fill: black;
+}

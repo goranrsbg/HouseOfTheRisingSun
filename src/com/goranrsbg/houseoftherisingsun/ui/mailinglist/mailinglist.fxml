@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane id="AnchorPane" prefHeight="406.0" prefWidth="521.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.goranrsbg.houseoftherisingsun.ui.mailinglist.MailinglistController">
+    <stylesheets>
+        <URL value="@mailinglist.css" />
+    </stylesheets>
+   <children>
+      <TableView fx:id="mailTable" styleClass="search-table" tableMenuButtonVisible="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <placeholder>
+          <Label text="Tabela je bez podataka." />
+        </placeholder>
+        <columns>
+          <TableColumn fx:id="numCol" editable="false" prefWidth="41.0" sortable="false" text="#" />
+            <TableColumn fx:id="ppCol" editable="false" prefWidth="41.0" text="p.p." />
+            <TableColumn fx:id="snCol" editable="false" prefWidth="101.0" sortable="false" text="Prezime" />
+            <TableColumn fx:id="nCol" editable="false" prefWidth="101.0" sortable="false" text="Ime" />
+            <TableColumn fx:id="dCol" editable="false" prefWidth="101.0" sortable="false" text="Detalj" />
+            <TableColumn fx:id="aCol" editable="false" prefWidth="131.0" sortable="false" text="Adresa" />
+        </columns>
+      </TableView>
+   </children>
+</AnchorPane>

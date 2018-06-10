@@ -15,38 +15,65 @@
  */
 package com.goranrsbg.houseoftherisingsun.ui.showstreets;
 
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+
 /**
  *
  * @author Goran
  */
 public class StreetTable {
     
-    private final int id;
-    private final int pak;
-    private final String name;
-    private final String settlementInitial;
+    private final IntegerProperty id;
+    private final IntegerProperty pak;
+    private final StringProperty name;
+    private final StringProperty settlementInitial;
 
     public StreetTable(int id, int pak, String name, String settlementInitial) {
-        this.id = id;
-        this.pak = pak;
-        this.name = name;
-        this.settlementInitial = settlementInitial;
+        this.id = new SimpleIntegerProperty(id);
+        this.pak = new SimpleIntegerProperty(pak);
+        this.name = new SimpleStringProperty(name);
+        this.settlementInitial = new SimpleStringProperty(settlementInitial);
     }
 
     public int getId() {
-        return id;
+        return id.get();
     }
 
     public int getPak() {
-        return pak;
+        return pak.get();
     }
 
     public String getName() {
-        return name;
+        return name.get();
     }
 
     public String getSettlementInitial() {
-        return settlementInitial;
+        return settlementInitial.get();
     }
 
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 59 * hash + this.id.get();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final StreetTable other = (StreetTable) obj;
+        return this.id == other.id;
+    }
+    
 }

@@ -103,7 +103,7 @@ public class SearchRunnable implements Runnable {
             if (!valueToSearchFor.equals(valueSearched)) {
                 try {
                     //search valuetoSearchFor
-                    System.out.println("Search for: " + valueToSearchFor);
+                    //System.out.println("Search for: " + valueToSearchFor);
                     showRecipientsData.clear();
                     String value = nameFirstLetterToUpperCase(valueToSearchFor.trim());
                     if(value.isEmpty()) {
@@ -145,9 +145,10 @@ public class SearchRunnable implements Runnable {
                 } catch (SQLException ex) {
                     mc.showMessage("Pretraživanje primalaca.", "Greška prilikom pokušaja pretrage.\nError: " + ex.getMessage(), MainController.MessageType.ERROR);
                 }
-            } else {
-                System.out.println("Do not search.");
-            }
+            } 
+            //else {
+            //    System.out.println("Do not search.");
+            //}
             try {
                 synchronized (lock) {
                     lock.wait(DELAY_IN_MILLISECONDS);
@@ -157,10 +158,11 @@ public class SearchRunnable implements Runnable {
             }
         }
     }
-    
+
     /**
-     * Changes name to start with uppercase letter. goran -> Goran kolari ->
-     * Kolari
+     * Changes name to start with uppercase letter. 
+     * <code>goran -> Goran 
+     * kolari -> Kolari</code>
      *
      * @param name name to be changed.
      * @return

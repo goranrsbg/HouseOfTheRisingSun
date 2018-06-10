@@ -37,7 +37,7 @@ public class SearchRecipient extends Recipient {
         this.locationAddress = new SimpleStringProperty(locationAddress);
         this.postmanPathStep = new SimpleIntegerProperty(postmanPathStep);
     }
-    
+
     public int getLocationId() {
         return locationId.get();
     }
@@ -61,5 +61,28 @@ public class SearchRecipient extends Recipient {
     public void setPostmanPathStep(int postmanPathStep) {
         this.postmanPathStep.set(postmanPathStep);
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 89 * hash + this.getId();
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final SearchRecipient other = (SearchRecipient) obj;
+        return getId() == other.getId();
+    }
+    
     
 }

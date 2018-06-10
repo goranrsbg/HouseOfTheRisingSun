@@ -88,7 +88,7 @@ public class ShowLocationController implements Initializable {
     private DBHandler db;
     private final String TITLE = "Prikaz lokacije.";
     private Pattern pattern;
-    
+
     private int postman_path_step;
 
     /**
@@ -119,11 +119,11 @@ public class ShowLocationController implements Initializable {
                 }
             });
             row.setOnDragDetected((event) -> {
-                TableRow<Recipient> source = (TableRow<Recipient>) event.getSource();
+                TableRow<?> source = (TableRow<?>) event.getSource();
                 Dragboard sourceStartDragAndDrop = source.startDragAndDrop(TransferMode.MOVE);
                 ClipboardContent clipboardContent = new ClipboardContent();
                 if (source.getItem() != null) {
-                    clipboardContent.putString("RID:" + source.getItem().getId() + ",LID:" + idLabel.getText());
+                    clipboardContent.putString("RID:" + ((Recipient) source.getItem()).getId() + ",LID:" + idLabel.getText());
                     sourceStartDragAndDrop.setContent(clipboardContent);
                     sourceStartDragAndDrop.setDragView(source.snapshot(null, null), source.getLayoutBounds().getWidth() / 2, source.getLayoutBounds().getHeight() / 2);
                 }
@@ -250,10 +250,10 @@ public class ShowLocationController implements Initializable {
 
     @FXML
     private void deleteLocationOnAction(ActionEvent event) {
-        if(!recipients.isEmpty()) {
+        if (!recipients.isEmpty()) {
             sendMessage("Lokacija mora da bude bez primaoca da bi brisanje bilo moguće.", MainController.MessageType.INFORMATION);
             return;
-        } 
+        }
         try {
             PreparedStatement ps = db.getStatement(DBHandler.StatementType.DELETE_LOCATION);
             ps.setInt(1, getLocationID());
@@ -337,10 +337,10 @@ public class ShowLocationController implements Initializable {
         String[] split = addressNameLabel.getText().split(" ");
         String addressNumber = split[split.length - 1];
         Dialog dialog = createDialog(addressNumber, postman_path_step + "");
-        Optional<LocationUpdate> locUpdate = dialog.showAndWait();
+        Optional locUpdate = dialog.showAndWait();
         if (locUpdate.isPresent()) {
             try {
-                LocationUpdate lu = locUpdate.get();
+                LocationUpdate lu = (LocationUpdate) locUpdate.get();
                 System.out.println(lu);
                 PreparedStatement ps = db.getStatement(DBHandler.StatementType.UPDATE_LOCATION_NUMBER_PPSTEP);
                 ps.setString(1, lu.getNumber());
@@ -356,12 +356,13 @@ public class ShowLocationController implements Initializable {
             }
         }
     }
+
     /**
      * Dialog for updating location number and postman path step.
-     * 
+     *
      * @param addressNumber Current number.
      * @param ppStep Current postman path step.
-     * @return 
+     * @return
      */
     private Dialog createDialog(String addressNumber, String ppStep) {
         Dialog<LocationUpdate> dialog = new Dialog<>();
@@ -413,16 +414,15 @@ public class ShowLocationController implements Initializable {
         pane.setVgap(13d);
         dialog.getDialogPane().setContent(pane);
         dialog.initStyle(StageStyle.UTILITY);
-        ButtonType save = new ButtonType("Sačucaj", ButtonBar.ButtonData.OK_DONE);
+        ButtonType save = new ButtonType("Sačuvaj", ButtonBar.ButtonData.OK_DONE);
         ButtonType cancel = new ButtonType("Otkaži", ButtonBar.ButtonData.CANCEL_CLOSE);
-        dialog.getDialogPane().getButtonTypes().addAll(save,  cancel);
+        dialog.getDialogPane().getButtonTypes().addAll(save, cancel);
         dialog.setResultConverter((param) -> {
-            if(param == save && !number.getText().isEmpty()) {
+            if (param == save && !number.getText().isEmpty()) {
                 return new LocationUpdate(number.getText(), Integer.parseInt(pStep.getText()));
             }
             return null;
         });
-        
         return dialog;
     }
 
