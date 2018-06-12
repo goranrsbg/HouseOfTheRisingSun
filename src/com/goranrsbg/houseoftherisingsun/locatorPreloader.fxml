@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import com.jfoenix.controls.JFXSpinner?>
 <?import java.net.URL?>
 <?import javafx.scene.layout.AnchorPane?>

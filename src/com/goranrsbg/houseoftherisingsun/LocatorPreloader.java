@@ -24,7 +24,8 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 /**
- *
+ * Main <code>simple preloader class</code> of the application. Hides it self
+ * just before the main application is about to execute start method.
  * @author Goran
  */
 public class LocatorPreloader extends Preloader {

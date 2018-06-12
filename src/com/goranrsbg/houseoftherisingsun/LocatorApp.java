@@ -22,20 +22,30 @@ import javafx.stage.StageStyle;
  * @author Goran
  */
 public class LocatorApp extends Application {
-
+    /**
+     * The application title.
+     */
     private final String TITLE = "BB-BB-lokator";
-
+    /**
+     * The main logger.
+     */
     private static final Logger LOGGER = Logger.getLogger(LocatorApp.class.getName());
-
+    /**
+     * Instance of the application to be shared.
+     */
     private static LocatorApp instance;
-
+    /**
+     * Main stage.
+     */
     private Stage stage;
 
     public LocatorApp() {
         instance = this;
         initLogger();
     }
-
+    /**
+     * Initializes the main logger.
+     */
     private void initLogger() {
         String uri = System.getProperty("user.dir") + File.separator + "locator%u.log";
         try {
@@ -47,11 +57,17 @@ public class LocatorApp extends Application {
             System.err.println("Failed to initialize logger.\n" + ex.getMessage());
         }
     }
-
+    /**
+     * Instance of the applications starting class.
+     * @return Instance of the LocatorApp class.
+     */
     public static LocatorApp getInstance() {
         return instance;
     }
-
+    /**
+     * Creates the application title in form of <code>TITLE - subtitle</code>
+     * @param subtitle String to be added to the main title.
+     */
     public void setSubTitle(String subtitle) {
         stage.setTitle(TITLE + " - " + subtitle);
     }
@@ -82,7 +98,10 @@ public class LocatorApp extends Application {
         DBHandler.getInstance().closeConnection();
         LOGGER.info("App closed.");
     }
-
+    /**
+     * Loads main window after successful logging.
+     * @throws IOException 
+     */
     public void loadMain() throws IOException {
         Parent parent = FXMLLoader.load(getClass().getResource("/com/goranrsbg/houseoftherisingsun/ui/main/main.fxml"));
         Scene scene = stage.getScene();
@@ -91,7 +110,14 @@ public class LocatorApp extends Application {
         stage.setResizable(true);
         LOGGER.info("App started.");
     }
-
+    /**
+     * Creates the applications sub window that is called with the button press.
+     * @param pathToFxml Path to sub windows <code>.fxml</code> file.
+     * @param btn Button that was cause for opening sub window.
+     * @param resizable Can window be resized by the user.
+     * @param title Sub window title.
+     * @throws IOException 
+     */
     public void LoadSubWindow(String pathToFxml, JFXButton btn, boolean resizable, String title) throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource(pathToFxml));
         Parent parent = loader.load();
@@ -113,6 +139,7 @@ public class LocatorApp extends Application {
     }
 
     /**
+     * Launches the application with <code>preloader</code> class.
      * @param args the command line arguments
      */
     public static void main(String[] args) {

@@ -121,6 +121,7 @@ public class DBHandler {
                     connection = DriverManager.getConnection(props.getProperty("jdbc.protocol") + props.getProperty("jdbc.name") + ";create=true");
                     connection.setSchema(props.getProperty("jdbc.default.shema"));
                     try (Statement st = connection.createStatement()) {
+                        // enable some type of security calls, userneme: posta password: 11431 can only access database.
                         st.executeUpdate("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.user.posta', '11431')");
                         st.executeUpdate("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.connection.requireAuthentication', 'true')");
                         st.executeUpdate("CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.authentication.provider', 'BUILTIN')");
@@ -159,11 +160,13 @@ public class DBHandler {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(props.getProperty("jdbc.default.sql"))))) {
             String s;
             StringBuilder sb = new StringBuilder();
+            // reads entire file and puts all lines if not empty in to string builder
             while ((s = reader.readLine()) != null) {
                 if (!s.isEmpty()) {
                     sb.append(s);
                 }
             }
+            // all substrings ending with comma should be valid sql query.
             for (String st : sb.toString().split(";")) {
                 if (!st.isEmpty()) {
                     try {
@@ -181,49 +184,70 @@ public class DBHandler {
     }
 
     /**
-     * Initializes all prepared statements and queries.
+     * Initializes all prepared statements.
      */
     private void prepareStatements() {
         try {
+            // 0 SELECT_MAP_WITH_ID
             statements.add(connection.prepareStatement("SELECT SETTLEMENT_NAME, SETTLEMENT_FILE_NAME FROM SETTLEMENTS WHERE SETTLEMENT_ID = ?"));
+            // 1 SELECT_USER_ID_WITH_NAME
             statements.add(connection.prepareStatement("SELECT USER_ID FROM USERS WHERE USER_NAME = ?"));
+            // 2 SELECT_USER_PASSWORD_WITH_ID
             statements.add(connection.prepareStatement("SELECT USER_PASSWORD FROM USERS WHERE USER_ID = ?"));
+            // 3 SELECT_STREETS_WITH_SETTLEMENT_ID
             statements.add(connection.prepareStatement("SELECT STREET_ID, STREET_NAME FROM STREETS WHERE SETTLEMENT_ID = ?"));
+            // 4 INSERT_LOCATION
             statements.add(connection.prepareStatement("INSERT INTO LOCATIONS VALUES (DEFAULT, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS));
+            // 5 SELECT_LOCATONS_WITH_SETTLEMENT_ID
             statements.add(connection.prepareStatement("SELECT L.LOCATION_ID, L.LOCATION_POINT_X, L.LOCATION_POINT_Y, L.LOCATION_ADDRESS_NO, L.LOCATION_NOTE FROM LOCATIONS AS L "
                     + "JOIN STREETS AS S ON L.STREET_ID = S.STREET_ID WHERE S.SETTLEMENT_ID = ?"));
+            // 6 SELECT_ALL_STREETS
             statements.add(connection.prepareStatement("SELECT ST.STREET_ID, ST.STREET_PAK, ST.STREET_NAME, SE.SETTLEMENT_INITIALS FROM STREETS AS ST "
                     + "JOIN SETTLEMENTS AS SE ON ST.SETTLEMENT_ID = SE.SETTLEMENT_ID ORDER BY SE.SETTLEMENT_INITIALS"));
+            // 7 UPDATE_LOCATON_XY
             statements.add(connection.prepareStatement("UPDATE LOCATIONS SET LOCATION_POINT_X = ?, LOCATION_POINT_Y = ? WHERE LOCATION_ID = ?"));
+            // 8 SELECT_STREET_NAME_LOCATION_NUMBER_LOCATION_PPSTEP
             statements.add(connection.prepareStatement("SELECT S.STREET_NAME, L.LOCATION_ADDRESS_NO, L.LOCATION_POSTMAN_PATH_STEP FROM LOCATIONS AS L JOIN STREETS AS S ON L.STREET_ID = S.STREET_ID "
                     + "WHERE L.LOCATION_ID = ?"));
+            // 9 INSERT_RECIPIENT
             statements.add(connection.prepareStatement("INSERT INTO RECIPIENTS VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS));
+            // 10 SELECT_RECIPIENTS_ON_LOCATION_ID
             statements.add(connection.prepareStatement("SELECT R.RECIPIENT_ID, R.RECIPIENT_LAST_NAME, R.RECIPIENT_FIRST_NAME, R.RECIPIENT_DETAILS, "
                     + "R.RECIPIENT_IS_RETIREE, R.RECIPIENT_ID_CARD_NUMBER, R.RECIPIENT_ID_CARD_POLICE_DEPARTMENT FROM RECIPIENTS AS R WHERE R.LOCATION_ID = ?"));
+            // 11 DELETE_RECIPIENT_WITH_ID
             statements.add(connection.prepareStatement("DELETE FROM RECIPIENTS AS R WHERE R.RECIPIENT_ID = ?"));
+            // 12 UPDATE_RECIPIENT
             statements.add(connection.prepareStatement("UPDATE RECIPIENTS AS R SET R.RECIPIENT_LAST_NAME = ?, R.RECIPIENT_FIRST_NAME = ?, R.RECIPIENT_DETAILS = ?, R.RECIPIENT_IS_RETIREE = ?, "
                     + "R.RECIPIENT_ID_CARD_NUMBER = ?, R.RECIPIENT_ID_CARD_POLICE_DEPARTMENT = ? WHERE R.RECIPIENT_ID = ?"));
+            // 13 UPDATE_RECIPIENT_LOCATION
             statements.add(connection.prepareStatement("UPDATE RECIPIENTS AS R SET R.LOCATION_ID = ? WHERE R.RECIPIENT_ID = ?"));
-            // search recipients
+            // 14 SEARCH_RECIPIENTS_WITH_NAME
             statements.add(connection.prepareStatement("SELECT R.RECIPIENT_ID, R.RECIPIENT_LAST_NAME, R.RECIPIENT_FIRST_NAME, R.RECIPIENT_DETAILS, "
                     + "R.RECIPIENT_IS_RETIREE, R.RECIPIENT_ID_CARD_NUMBER, R.RECIPIENT_ID_CARD_POLICE_DEPARTMENT, L.LOCATION_ID, S.STREET_NAME, L.LOCATION_ADDRESS_NO, L.LOCATION_POSTMAN_PATH_STEP FROM RECIPIENTS AS R "
                     + "JOIN LOCATIONS AS L ON R.LOCATION_ID = L.LOCATION_ID "
                     + "JOIN STREETS AS S ON L.STREET_ID = S.STREET_ID "
                     + "WHERE S.SETTLEMENT_ID = ? AND (R.RECIPIENT_LAST_NAME LIKE ? OR R.RECIPIENT_FIRST_NAME LIKE ?)"));
+            // 15 SEARCH_RECIPIENTS_WITH_NAME_X2
             statements.add(connection.prepareStatement("SELECT R.RECIPIENT_ID, R.RECIPIENT_LAST_NAME, R.RECIPIENT_FIRST_NAME, R.RECIPIENT_DETAILS, "
                     + "R.RECIPIENT_IS_RETIREE, R.RECIPIENT_ID_CARD_NUMBER, R.RECIPIENT_ID_CARD_POLICE_DEPARTMENT, L.LOCATION_ID, S.STREET_NAME, L.LOCATION_ADDRESS_NO, L.LOCATION_POSTMAN_PATH_STEP FROM RECIPIENTS AS R "
                     + "JOIN LOCATIONS AS L ON R.LOCATION_ID = L.LOCATION_ID "
                     + "JOIN STREETS AS S ON L.STREET_ID = S.STREET_ID "
                     + "WHERE S.SETTLEMENT_ID = ? AND ((R.RECIPIENT_LAST_NAME LIKE ? AND R.RECIPIENT_FIRST_NAME LIKE ?) OR (R.RECIPIENT_FIRST_NAME LIKE ? AND R.RECIPIENT_LAST_NAME LIKE ?))"));
+            // 16 SEARCH_RECIPIENTS
             statements.add(connection.prepareStatement("SELECT R.RECIPIENT_ID, R.RECIPIENT_LAST_NAME, R.RECIPIENT_FIRST_NAME, R.RECIPIENT_DETAILS, "
                     + "R.RECIPIENT_IS_RETIREE, R.RECIPIENT_ID_CARD_NUMBER, R.RECIPIENT_ID_CARD_POLICE_DEPARTMENT, L.LOCATION_ID, S.STREET_NAME, L.LOCATION_ADDRESS_NO, L.LOCATION_POSTMAN_PATH_STEP FROM RECIPIENTS AS R "
                     + "JOIN LOCATIONS AS L ON R.LOCATION_ID = L.LOCATION_ID "
                     + "JOIN STREETS AS S ON L.STREET_ID = S.STREET_ID "
                     + "WHERE S.SETTLEMENT_ID = ?"));
+            // 17 UPDATE_LOCATION_NUMBER_PPSTEP
             statements.add(connection.prepareStatement("UPDATE LOCATIONS SET LOCATION_ADDRESS_NO = ?, LOCATION_POSTMAN_PATH_STEP = ? WHERE LOCATION_ID = ?"));
+            // 18 INSERT_USER
             statements.add(connection.prepareStatement("INSERT INTO USERS VALUES (DEFAULT, ?, ?)"));
+            // 19 DELETE_USER
             statements.add(connection.prepareStatement("DELETE FROM USERS AS U WHERE U.USER_NAME = ? AND U.USER_PASSWORD = ?"));
+            // 20 DELETE_LOCATION
             statements.add(connection.prepareStatement("DELETE FROM LOCATIONS AS L WHERE L.LOCATION_ID = ?"));
+            // 21 SELECT_RETIRE_RECIPIENTS
             statements.add(connection.prepareStatement("SELECT R.RECIPIENT_ID, R.RECIPIENT_LAST_NAME, R.RECIPIENT_FIRST_NAME, R.RECIPIENT_DETAILS, "
                     + "R.RECIPIENT_IS_RETIREE, R.RECIPIENT_ID_CARD_NUMBER, R.RECIPIENT_ID_CARD_POLICE_DEPARTMENT, L.LOCATION_ID, S.STREET_NAME, L.LOCATION_ADDRESS_NO, L.LOCATION_POSTMAN_PATH_STEP FROM RECIPIENTS AS R "
                     + "JOIN LOCATIONS AS L ON R.LOCATION_ID = L.LOCATION_ID "
@@ -246,11 +270,19 @@ public class DBHandler {
             return stmt.executeUpdate(query);
         }
     }
-
+    /**
+     * The database connection.
+     * @return 
+     */
     public Connection getConnection() {
         return connection;
     }
-
+    /**
+     * This is the main way to communicate with database.
+     * @param type Type or one of many prepared statements design for communication
+     * with the database.
+     * @return Prepared statement for executing query to the database.
+     */
     public PreparedStatement getStatement(StatementType type) {
         return statements.get(type.I);
     }
