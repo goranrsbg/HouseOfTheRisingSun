@@ -61,7 +61,7 @@ public class AddLocationController implements Initializable {
         streetsData = FXCollections.observableArrayList();
         mc = MainController.getInstance();
     }
-    
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         TextFormatter<String> formatterX = new TextFormatter<>((t) -> {
@@ -135,6 +135,9 @@ public class AddLocationController implements Initializable {
         comboBoxLoadStreets();
     }
 
+    /**
+     * Fill combo box with streets from current map.
+     */
     public void comboBoxLoadStreets() {
         streetsData.clear();
         if (mc.isMapLoaded()) {
@@ -152,16 +155,28 @@ public class AddLocationController implements Initializable {
         }
     }
 
+    /**
+     * Clear point fields of the location.
+     */
     public void clearLocationXY() {
         xTextField.clear();
         yTextField.clear();
     }
 
+    /**
+     * Set location coordinates.
+     *
+     * @param x coordinate X
+     * @param y coordinate Y
+     */
     public void setLocationXY(double x, double y) {
         xTextField.setText(Double.toString(x));
         yTextField.setText(Double.toString(y));
     }
 
+    /**
+     * Store location data in to database.
+     */
     @FXML
     private void saveButtonAction() {
         final Street s = streetCombo.getValue();
@@ -184,11 +199,11 @@ public class AddLocationController implements Initializable {
                 ps.setDouble(2, pY);
                 ps.setString(3, houseNumber);
                 String ppText = postmanPathTextField.getText();
-                ps.setInt(4, ppText.isEmpty()? Integer.MAX_VALUE: Integer.parseInt(ppText));
-                ps.setString(5, note.isEmpty()? null : note);
+                ps.setInt(4, ppText.isEmpty() ? Integer.MAX_VALUE : Integer.parseInt(ppText));
+                ps.setString(5, note.isEmpty() ? null : note);
                 ps.setInt(6, s.getId());
                 ps.executeUpdate();
-                if(mc.isShowLocationsSelected()) {
+                if (mc.isShowLocationsSelected()) {
                     try (ResultSet rs = ps.getGeneratedKeys()) {
                         rs.next();
                         int id = rs.getInt(1);
@@ -203,6 +218,15 @@ public class AddLocationController implements Initializable {
         }
     }
 
+    /**
+     * Before storing location data into database, all fields must fulfill
+     *
+     * @param s Street for this location.
+     * @param x Point.x
+     * @param y Point.y
+     * @param houseNumber Number for the location.
+     * @return All location data are valid.
+     */
     private boolean validateFields(final Street s, final String x, final String y, final String houseNumber) {
         boolean valid;
         valid = true;
@@ -221,10 +245,18 @@ public class AddLocationController implements Initializable {
         return valid;
     }
 
+    /**
+     * Show message to the user.
+     *
+     * @param message Message to be shown.
+     * @param type Type of the message INFORMATION/ERROR/WARNING/CONFIRM
+     */
     private void sendMessage(final String message, MainController.MessageType type) {
         MainController.getInstance().showMessage(TITLE, message, type);
     }
-
+    /**
+     * Title of this sub window.
+     */
     public static final String TITLE = "Dodaj adresu.";
 
 }

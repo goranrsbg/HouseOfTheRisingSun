@@ -96,6 +96,11 @@ public class AddRecipientController implements Initializable {
         recipient = null;
     }
 
+    /**
+     * Disable / enable retire details.
+     *
+     * @param event
+     */
     private void isRetireActionEvent(ActionEvent event) {
         if (isRetireCheckBox.isSelected()) {
             retireDetails.setDisable(false);
@@ -104,15 +109,32 @@ public class AddRecipientController implements Initializable {
         }
     }
 
+    /**
+     * Set ID of the location bounded to this windows controller.
+     *
+     * @param locationID
+     * @return
+     */
     public AddRecipientController setLocationID(int locationID) {
         this.locationID = locationID;
         return this;
     }
 
+    /**
+     * Connect show location controller. So when recipient is added location
+     * recipients can be refreshed.
+     *
+     * @param slc
+     */
     public void setShowLocationController(ShowLocationController slc) {
         this.slc = slc;
     }
 
+    /**
+     * Initialize all fields with the recipients data.
+     *
+     * @param recipient Recipient to be shown.
+     */
     public void setRecipient(Recipient recipient) {
         lastNameTextField.setText(recipient.getLastName());
         firstNameTextField.setText(recipient.getFirstName());
@@ -136,6 +158,11 @@ public class AddRecipientController implements Initializable {
         });
     }
 
+    /**
+     * If all fields are valid save or update recipient data to the database.
+     *
+     * @param event
+     */
     @FXML
     private void saveButtonOnAction(ActionEvent event) {
         String lastName = nameFirstLetterToUpperCase(lastNameTextField.getText());
@@ -185,12 +212,26 @@ public class AddRecipientController implements Initializable {
         }
     }
 
+    /**
+     * Close window on cancel button action.
+     *
+     * @param event
+     */
     @FXML
     private void cancelButtonOnAction(ActionEvent event) {
         Stage stage = (Stage) rootPane.getScene().getWindow();
         stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
     }
 
+    /**
+     * Validate all fields before update call.
+     *
+     * @param lastName
+     * @param isRetire
+     * @param idCardNumber
+     * @param policeDepartment
+     * @return
+     */
     private boolean validateFields(String lastName, boolean isRetire, String idCardNumber, String policeDepartment) {
         boolean valid = true;
         if (locationID < 1) {
@@ -208,6 +249,10 @@ public class AddRecipientController implements Initializable {
         return valid;
     }
 
+    /**
+     * Clears first name if first name is not empty, otherwise last name is
+     * cleared.
+     */
     private void clearName() {
         if (firstNameTextField.getText().isEmpty()) {
             lastNameTextField.setText("");
@@ -224,11 +269,12 @@ public class AddRecipientController implements Initializable {
     }
 
     /**
-     * Changes name to start with uppercase letter. goran -> Goran kolari ->
-     * Kolari
+     * Changes name to start with uppercase letter. <br>     
+     * <code>goran -> Goran <br>
+     * kolari -> Kolari</code>
      *
      * @param name name to be changed.
-     * @return
+     * @return name with first letter uppercase.
      */
     private String nameFirstLetterToUpperCase(String name) {
         if (!name.isEmpty()) {

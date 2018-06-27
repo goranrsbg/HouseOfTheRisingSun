@@ -54,13 +54,11 @@ public class LoginController implements Initializable {
     @FXML
     private HBox buttonsBox;
     @FXML
-    private JFXButton buttonOk;
-    @FXML
     private JFXButton buttonBack;
-    
+
     private boolean validateUname;
     private int validUserId;
-    
+
     private Window window;
     private MessageDigest generator;
     private DBHandler db;
@@ -90,15 +88,24 @@ public class LoginController implements Initializable {
         });
     }
 
+    /**
+     * Keyboard event for enter and escape.
+     *
+     * @param event
+     */
     @FXML
     private void onKeyReleased(KeyEvent event) {
-        if(event.getCode() == KeyCode.ENTER) {
-            buttonOk.fire();
-        } else if(event.getCode() == KeyCode.ESCAPE && !validateUname) {
+        if (event.getCode() == KeyCode.ESCAPE && !validateUname) {
             buttonBack.fire();
         }
     }
 
+    /**
+     * If validate user name is active validates it and if it is valid swaps
+     * user name text field with user password password field.
+     *
+     * @throws IOException
+     */
     @FXML
     private void onOKAction() throws IOException {
         if (validateUname) {
@@ -119,6 +126,9 @@ public class LoginController implements Initializable {
         }
     }
 
+    /**
+     * Loads validate user name.
+     */
     @FXML
     private void onBackAction() {
         root.getChildren().remove(password);
@@ -129,13 +139,19 @@ public class LoginController implements Initializable {
         window.sizeToScene();
     }
 
+    /**
+     * Compares user name with user names from user table.
+     *
+     * @param uname User name to compare to.
+     * @return If users table contains row with given user name.
+     */
     private boolean validateUserName(String uname) {
         try {
             PreparedStatement ps = db.getStatement(DBHandler.StatementType.SELECT_USER_ID_WITH_NAME);
             ps.setString(1, toSha256String(uname));
             try (ResultSet rs = ps.executeQuery()) {
                 ps.clearParameters();
-                if(rs.next()) {
+                if (rs.next()) {
                     validUserId = rs.getInt("USER_ID");
                     return true;
                 }
@@ -148,13 +164,21 @@ public class LoginController implements Initializable {
         return false;
     }
 
+    /**
+     * Compares user password converted to hash string with database password
+     * for given user id.
+     *
+     * @param pword Password to validate.
+     * @param userId Id of the user.
+     * @return If password is valid.
+     */
     private boolean validateUserPassword(String pword, int userId) {
         try {
             PreparedStatement ps = db.getStatement(DBHandler.StatementType.SELECT_USER_PASSWORD_WITH_ID);
             ps.setInt(1, userId);
             try (ResultSet rs = ps.executeQuery()) {
                 rs.next();
-                if(rs.getString("USER_PASSWORD").equals(toSha256String(pword))) {
+                if (rs.getString("USER_PASSWORD").equals(toSha256String(pword))) {
                     rs.close();
                     return true;
                 }
@@ -165,9 +189,14 @@ public class LoginController implements Initializable {
         return false;
     }
 
+    /**
+     * Hash string with SHA-256 algorithm.
+     *
+     * @param text String to be hashed.
+     * @return digested text as full size hex string 64 characters
+     */
     private String toSha256String(String text) {
         byte[] digestedText = generator.digest(text.getBytes());
-        // digestedText to full size hex string
         StringBuilder sb = new StringBuilder(64);
         for (int i = 0; i < digestedText.length; i++) {
             String val = Integer.toHexString(digestedText[i] & 0xff);

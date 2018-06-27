@@ -16,7 +16,7 @@
 package com.goranrsbg.houseoftherisingsun.ui.addlocation;
 
 /**
- *
+ * Entity class for streets table.
  * @author Goran
  */
 public class Street {

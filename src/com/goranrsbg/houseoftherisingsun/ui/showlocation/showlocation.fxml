@@ -40,13 +40,13 @@
                   <FontAwesomeIconView glyphName="USER_SECRET" size="23.0" />
                </graphic>
             </JFXButton>
-            <JFXButton fx:id="deleteRecipient" buttonType="RAISED" onAction="#deleteRecipientOnAction" prefHeight="62.0" prefWidth="131.0" text="Ukloni">
+            <JFXButton buttonType="RAISED" onAction="#deleteRecipientOnAction" prefHeight="62.0" prefWidth="131.0" text="Ukloni">
                <graphic>
                   <FontAwesomeIconView glyphName="USER_TIMES" size="23.0" />
                </graphic>
             </JFXButton>
-            <JFXButton fx:id="updateLocation" buttonType="RAISED" layoutX="10.0" layoutY="196.0" onAction="#changeLocationNumberOnAction" prefHeight="62.0" prefWidth="131.0" text="Izmeni lokaciju" />
-            <JFXButton fx:id="deleteLocation" buttonType="RAISED" onAction="#deleteLocationOnAction" prefHeight="62.0" prefWidth="131.0" text="Obriši lokaciju" />
+            <JFXButton buttonType="RAISED" layoutX="10.0" layoutY="196.0" onAction="#changeLocationNumberOnAction" prefHeight="62.0" prefWidth="131.0" text="Izmeni lokaciju" />
+            <JFXButton buttonType="RAISED" onAction="#deleteLocationOnAction" prefHeight="62.0" prefWidth="131.0" text="Obriši lokaciju" />
          </children>
       </VBox>
    </right>

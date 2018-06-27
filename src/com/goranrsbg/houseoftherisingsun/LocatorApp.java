@@ -14,6 +14,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
@@ -22,6 +23,7 @@ import javafx.stage.StageStyle;
  * @author Goran
  */
 public class LocatorApp extends Application {
+
     /**
      * The application title.
      */
@@ -43,6 +45,7 @@ public class LocatorApp extends Application {
         instance = this;
         initLogger();
     }
+
     /**
      * Initializes the main logger.
      */
@@ -57,15 +60,19 @@ public class LocatorApp extends Application {
             System.err.println("Failed to initialize logger.\n" + ex.getMessage());
         }
     }
+
     /**
      * Instance of the applications starting class.
+     *
      * @return Instance of the LocatorApp class.
      */
     public static LocatorApp getInstance() {
         return instance;
     }
+
     /**
      * Creates the application title in form of <code>TITLE - subtitle</code>
+     *
      * @param subtitle String to be added to the main title.
      */
     public void setSubTitle(String subtitle) {
@@ -98,9 +105,11 @@ public class LocatorApp extends Application {
         DBHandler.getInstance().closeConnection();
         LOGGER.info("App closed.");
     }
+
     /**
      * Loads main window after successful logging.
-     * @throws IOException 
+     *
+     * @throws IOException
      */
     public void loadMain() throws IOException {
         Parent parent = FXMLLoader.load(getClass().getResource("/com/goranrsbg/houseoftherisingsun/ui/main/main.fxml"));
@@ -110,13 +119,15 @@ public class LocatorApp extends Application {
         stage.setResizable(true);
         LOGGER.info("App started.");
     }
+
     /**
      * Creates the applications sub window that is called with the button press.
+     *
      * @param pathToFxml Path to sub windows <code>.fxml</code> file.
      * @param btn Button that was cause for opening sub window.
      * @param resizable Can window be resized by the user.
      * @param title Sub window title.
-     * @throws IOException 
+     * @throws IOException
      */
     public void LoadSubWindow(String pathToFxml, JFXButton btn, boolean resizable, String title) throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource(pathToFxml));
@@ -140,6 +151,7 @@ public class LocatorApp extends Application {
 
     /**
      * Launches the application with <code>preloader</code> class.
+     *
      * @param args the command line arguments
      */
     public static void main(String[] args) {

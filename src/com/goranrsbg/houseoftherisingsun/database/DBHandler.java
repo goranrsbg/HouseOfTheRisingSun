@@ -62,6 +62,7 @@ public class DBHandler {
         DELETE_LOCATION(20),
         SELECT_RETIRE_RECIPIENTS(21);
         public final int I;
+
         private StatementType(int I) {
             this.I = I;
         }
@@ -88,10 +89,18 @@ public class DBHandler {
         this.statements = new ArrayList<>();
     }
 
+    /**
+     * Is not connection null.
+     *
+     * @return
+     */
     public boolean isConnected() {
         return connection != null;
     }
 
+    /**
+     * Create then connect.
+     */
     public static void ceateInstance() {
         if (instance == null) {
             instance = new DBHandler();
@@ -99,6 +108,11 @@ public class DBHandler {
         }
     }
 
+    /**
+     * One and only instance.
+     *
+     * @return
+     */
     public static DBHandler getInstance() {
         return instance;
     }
@@ -270,17 +284,21 @@ public class DBHandler {
             return stmt.executeUpdate(query);
         }
     }
+
     /**
      * The database connection.
-     * @return 
+     *
+     * @return
      */
     public Connection getConnection() {
         return connection;
     }
+
     /**
      * This is the main way to communicate with database.
-     * @param type Type or one of many prepared statements design for communication
-     * with the database.
+     *
+     * @param type Type or one of many prepared statements design for
+     * communication with the database.
      * @return Prepared statement for executing query to the database.
      */
     public PreparedStatement getStatement(StatementType type) {

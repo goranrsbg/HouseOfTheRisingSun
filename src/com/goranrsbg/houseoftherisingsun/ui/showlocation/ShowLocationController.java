@@ -70,12 +70,6 @@ public class ShowLocationController implements Initializable {
     @FXML
     private JFXButton changeRecipient;
     @FXML
-    private JFXButton deleteRecipient;
-    @FXML
-    private JFXButton updateLocation;
-    @FXML
-    private JFXButton deleteLocation;
-    @FXML
     private TableView<Recipient> recipientsTableView;
     @FXML
     private TableColumn<Recipient, String> firstNameTableColumn;

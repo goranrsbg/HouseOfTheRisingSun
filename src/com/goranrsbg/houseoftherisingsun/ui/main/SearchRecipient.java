@@ -22,7 +22,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 /**
- *
+ * Entity class for recipient used in searching.
  * @author Goran
  */
 public class SearchRecipient extends Recipient {

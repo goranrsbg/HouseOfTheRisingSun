@@ -24,28 +24,71 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javafx.collections.ObservableList;
 
 /**
- *
+ * Runnable class used for query database for recipient. Database query is execute
+ * in intervals. Interval can be interrupted and call search early.
  * @author Goran
  */
 public class SearchRunnable implements Runnable {
-
+    /**
+     * Default delay between searches.
+     */
     private final long DELAY_IN_MILLISECONDS = 2011;
+    /**
+     * Starting searching value;
+     */
     private final String DEFAULT_SEARCH_VALUE = "Seach is about to begin.";
+    /**
+     * Value that is searched last time.
+     */
     private String valueSearched;
+    /**
+     * Next value to search for.
+     */
     private String valueToSearchFor;
-
+    /**
+    * Collection for storing last database query results.
+    */
     private final ObservableList<SearchRecipient> showRecipientsData;
+    /**
+    * Thread that is running instance of this class.
+    */
     private Thread currentThread;
-    
+    /**
+     * Main controller instance.
+     */
     private final MainController mc;
+    /**
+     * Lock for concurrent access to this class.
+     */
     private final ReentrantReadWriteLock rwl;
+    /**
+     * Read lock of the lock. Do not have purpose yet.
+     */
     private final Lock readLock;
+    /**
+     * Lock method for write.
+     */
     private final Lock writeLock;
+    /**
+     * One and only instance of this class.
+     */
     private final SearchRunnable lock;
-    
+    /**
+     * Prepared statement pointer that changes value based of the search needed.
+     */
     private PreparedStatement ps;
+    /**
+     * Select all recipients the settlement.
+     */
     private final PreparedStatement ps_selectAll;
+    /**
+     * Select recipients whose first name of last name starts with given value.
+     */
     private final PreparedStatement ps_selectName;
+    /**
+     * Select recipients whose first name and last name or last name and first name
+     * starts with given value.
+     */
     private final PreparedStatement ps_selectNameX2;
     
     /**
@@ -65,7 +108,10 @@ public class SearchRunnable implements Runnable {
         ps_selectNameX2 = DBHandler.getInstance().getStatement(DBHandler.StatementType.SEARCH_RECIPIENTS_WITH_NAME_X2);
         lock = this;
     }
-
+    /**
+     * Setter for the next search value.
+     * @param valueToSearchFor Next value to search for.
+     */
     public void setValueToSearchFor(String valueToSearchFor) {
         writeLock.lock();
         try {
@@ -74,7 +120,9 @@ public class SearchRunnable implements Runnable {
             writeLock.unlock();
         }
     }
-
+    /**
+     * Start this class in a separate thread.
+     */
     public void start() {
         if (currentThread == null) {
             currentThread = new Thread(this);
@@ -82,28 +130,38 @@ public class SearchRunnable implements Runnable {
             currentThread.start();
         }
     }
-
+    /**
+     * Interrupt this thread if running.
+     */
     public void stop() {
         if (currentThread != null) {
             currentThread.interrupt();
         }
     }
-
+    /**
+     * Notify thread if it is waiting.
+     */
     public void resume() {
         synchronized(lock) {
             lock.notify();
         }    
     }
-
+    /**
+     * Search database for recipients if value to search for is different then
+     * previous one. Search can be executed with three different prepared 
+     * statements. First one is search all recipients if value to search for
+     * is empty. Second is search for first name or second name if value is 
+     * single word (without space). Third is chosen if value to search for 
+     * contains more than one word, value is split into two words by the first 
+     * space in the value, then search is performed comparing first name and 
+     * second name with those values.
+     * After database query thread is waiting for the given wait time.
+     */
     @Override
     public void run() {
-
-        // Lock or not lock readlock and writelock how to do it...
         while (!currentThread.isInterrupted()) {
             if (!valueToSearchFor.equals(valueSearched)) {
                 try {
-                    //search valuetoSearchFor
-                    //System.out.println("Search for: " + valueToSearchFor);
                     showRecipientsData.clear();
                     String value = nameFirstLetterToUpperCase(valueToSearchFor.trim());
                     if(value.isEmpty()) {
@@ -146,9 +204,6 @@ public class SearchRunnable implements Runnable {
                     mc.showMessage("Pretraživanje primalaca.", "Greška prilikom pokušaja pretrage.\nError: " + ex.getMessage(), MainController.MessageType.ERROR);
                 }
             } 
-            //else {
-            //    System.out.println("Do not search.");
-            //}
             try {
                 synchronized (lock) {
                     lock.wait(DELAY_IN_MILLISECONDS);

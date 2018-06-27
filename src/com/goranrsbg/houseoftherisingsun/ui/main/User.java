@@ -16,7 +16,7 @@
 package com.goranrsbg.houseoftherisingsun.ui.main;
 
 /**
- *
+ * User that is logged in or is for the deletion.
  * @author Goran
  */
 public class User {

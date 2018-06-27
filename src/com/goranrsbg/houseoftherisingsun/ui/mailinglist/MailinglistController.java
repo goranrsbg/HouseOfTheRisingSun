@@ -55,7 +55,7 @@ public class MailinglistController implements Initializable {
 
     private ObservableList<SearchRecipient> data;
     private MainController mc;
-    
+
     /**
      * Initializes the controller class.
      *
@@ -69,6 +69,10 @@ public class MailinglistController implements Initializable {
         initTable();
     }
 
+    /**
+     * Initialize table and table rows. Retire highlight, delete key press,
+     * double click.
+     */
     private void initTable() {
         numCol.setCellValueFactory((param) -> {
             return new ReadOnlyObjectWrapper<>(mailTable.getItems().indexOf(param.getValue()) + 1);
@@ -87,41 +91,47 @@ public class MailinglistController implements Initializable {
         mailTable.setRowFactory((tableView) -> {
             TableRow<SearchRecipient> row = new TableRow<>();
             row.itemProperty().addListener((obs, previous, current) -> {
-                if(current != null) {
+                if (current != null) {
                     row.pseudoClassStateChanged(RETIRE_PSEUDO_CLASS, current.getIsRetire());
-                } else if(previous != null) {
+                } else if (previous != null) {
                     row.pseudoClassStateChanged(RETIRE_PSEUDO_CLASS, false);
                 }
             });
             row.setOnMouseClicked((event) -> {
-                if(event.getClickCount() == 2) {
+                if (event.getClickCount() == 2) {
                     mc.centerLocationOnTheScreen(row.getItem().getLocationId() + "");
                 }
             });
             return row;
         });
         mailTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            if(oldValue != null) {
+            if (oldValue != null) {
                 mc.selectLocation(oldValue.getLocationId() + "", false);
             }
-            if(newValue != null) {
+            if (newValue != null) {
                 mc.selectLocation(newValue.getLocationId() + "", true);
             }
         });
         mailTable.setOnKeyPressed((event) -> {
-            if(event.getCode() == KeyCode.DELETE) {
-                    ObservableList<SearchRecipient> selectedItems = mailTable.getSelectionModel().getSelectedItems();
-                    data.removeAll(selectedItems);
-                }
+            if (event.getCode() == KeyCode.DELETE) {
+                ObservableList<SearchRecipient> selectedItems = mailTable.getSelectionModel().getSelectedItems();
+                data.removeAll(selectedItems);
+            }
         });
         mailTable.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if(!newValue) {
+            if (!newValue) {
                 mailTable.getSelectionModel().clearSelection();
             }
         });
         mailTable.setItems(data);
     }
 
+    /**
+     * Add recipients to the list if not present.
+     *
+     * @param recipient Recipient to be added.
+     * @return
+     */
     public boolean addRecipient(SearchRecipient recipient) {
         boolean success = false;
         if (!data.contains(recipient)) {

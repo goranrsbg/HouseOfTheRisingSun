@@ -15,7 +15,7 @@
             <JFXPasswordField id="upass" fx:id="password" labelFloat="true" promptText="Lozinka" />
             <HBox fx:id="buttonsBox" alignment="CENTER" spacing="13.0">
                <children>
-                  <JFXButton fx:id="buttonOk" alignment="CENTER" buttonType="RAISED" contentDisplay="CENTER" onAction="#onOKAction" prefWidth="61.0" ripplerFill="#17e809" text="OK" />
+                  <JFXButton alignment="CENTER" buttonType="RAISED" contentDisplay="CENTER" defaultButton="true" onAction="#onOKAction" prefWidth="61.0" ripplerFill="#17e809" text="OK" />
                   <JFXButton id="bback" fx:id="buttonBack" alignment="CENTER" buttonType="RAISED" contentDisplay="CENTER" onAction="#onBackAction" ripplerFill="#f80505" />
                </children>
             </HBox>

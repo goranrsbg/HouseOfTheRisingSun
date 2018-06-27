@@ -124,7 +124,7 @@ public class MainController implements Initializable {
 
     private final DBHandler db;
     private static MainController instance;
-    
+
     public enum MessageType {
         CONFIRM,
         ERROR,
@@ -221,7 +221,7 @@ public class MainController implements Initializable {
             }
         });
         searchRecipientsTable.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if(!newValue) {
+            if (!newValue) {
                 searchRecipientsTable.getSelectionModel().clearSelection();
             }
         });
@@ -315,7 +315,7 @@ public class MainController implements Initializable {
         btn.setId(DefaultButtonType.SHOW_RETIRE_TABLE.toString());
         buttons.put(DefaultButtonType.SHOW_RETIRE_TABLE, btn);
         recipientsJFXNodesList.addAnimatedNode(btn);
-        
+
         btn = createButton(null, new FontAwesomeIconView().setStyleClass("user-icon"), DEFAULT_BUTTON_CSS_SUBCLASS + 1, "Dodaj/Obriši korisnika.");
         btn.setOnAction(this::buttonClickActionEvent);
         btn.setId(DefaultButtonType.CREATE_USER.toString());
@@ -407,7 +407,7 @@ public class MainController implements Initializable {
                 break;
             case "SHOW_RETIRE_TABLE":
                 try {
-                    LocatorApp.getInstance().LoadSubWindow("/com/goranrsbg/houseoftherisingsun/ui/retireonly/retireonly.fxml", btn, true, "Prikaz ulica.");
+                    LocatorApp.getInstance().LoadSubWindow("/com/goranrsbg/houseoftherisingsun/ui/retireonly/retireonly.fxml", btn, true, "Prikaz pen/neg/pom.");
                     btn.setDisable(true);
                 } catch (IOException ex) {
                     showMessage(TITLE, "Greška pri učitavanju .fxml faja.\n" + ex.getMessage(), MessageType.ERROR);
@@ -591,8 +591,8 @@ public class MainController implements Initializable {
      */
     public void updateLocationText(String id, String newLocationAddressNumberText) {
         Node lookup = locationsPane.lookup("#" + id);
-        if(lookup != null) {
-            ((Text)lookup).setText(newLocationAddressNumberText);
+        if (lookup != null) {
+            ((Text) lookup).setText(newLocationAddressNumberText);
         }
     }
 
@@ -670,12 +670,18 @@ public class MainController implements Initializable {
             }
         }
     }
-
+    /**
+     * Map containing controllers of all open <code>showLocationSubwindow</code>.
+     * 
+     * @return 
+     */
     public Map<Integer, ShowLocationController> getShownLocationController() {
         return shownLocations;
     }
+
     /**
      * Removes text element from location pane.
+     *
      * @param locationId Id of the text element.(location id)
      */
     public void clearLocationFromLocationPane(String locationId) {
@@ -683,9 +689,12 @@ public class MainController implements Initializable {
             return t.getId().equals(locationId);
         });
     }
+
     /**
-     * If location with given id is present, method <I>canterPointOnTheWindow</I> is
-     * called with found location on screen position.
+     * If location with given id is present, method
+     * <I>canterPointOnTheWindow</I> is called with found location on screen
+     * position.
+     *
      * @param locationId Id of the location.
      */
     public void centerLocationOnTheScreen(String locationId) {
@@ -762,12 +771,23 @@ public class MainController implements Initializable {
         event.consume();
     }
 
+    /**
+     * Reload all recipients of the location.
+     *
+     * @param locationId
+     */
     public void refreshRecipients(Integer locationId) {
         if (shownLocations.containsKey(locationId)) {
             shownLocations.get(locationId).loadRecipients();
         }
     }
 
+    /**
+     * On return key typed in <code>searchBox<code>. Resume searchRunnable
+     * and immediately query database.
+     *
+     * @param event
+     */
     @FXML
     private void onSearchBoxAction(ActionEvent event) {
         searchRunnable.setValueToSearchFor(searchBox.getText());
@@ -775,7 +795,7 @@ public class MainController implements Initializable {
     }
 
     /**
-     * Text element of the location.
+     * Text element of the location drag over locations pane.
      *
      * @param event
      */
@@ -788,7 +808,7 @@ public class MainController implements Initializable {
     }
 
     /**
-     * `
+     *
      * Handles location on drag dropped on locationsPane. Location is moved only
      * after successful database update.
      *
@@ -823,7 +843,7 @@ public class MainController implements Initializable {
     }
 
     /**
-     * Toggles between show/hide searchRecipientsTable.
+     * Toggles between show/hide searchRecipientsTable table.
      *
      * @param event
      */
@@ -832,6 +852,11 @@ public class MainController implements Initializable {
         searchRecipientsTable.setVisible(!searchRecipientsTable.isVisible());
     }
 
+    /**
+     * Default mouse click event of the main window.
+     *
+     * @param event
+     */
     @FXML
     private void mouseClicked(MouseEvent event) {
         if (isMapLoaded()) {
@@ -895,12 +920,34 @@ public class MainController implements Initializable {
                 notification.showConfirm();
         }
     }
-
+    /**
+     * Main window title.
+     */
     public static final String TITLE = "Glavni prikaz.";
+    /**
+     * Relative path to all maps used by the application.
+     */
     private final String PATH_TO_MAPS = "res/maps/";
+    /**
+     * Default cascade style sheet class for all buttons in the main window.
+     */
     private final String DEFAULT_BUTTON_CSS_CLASS = "animated-option-button";
+    /**
+     * Tool tip style for all nodes.
+     */
     private final String DEFAULT_TOOLTIP_STYLE = "-fx-font: normal bold 15px 'Oxygen'; -fx-base: #AE3522; -fx-text-fill: orange;";
+    /**
+     * Default cascade style sheet class for all text elements representing
+     * location on the map.
+     */
     private final String DEFAULT_LOCATION_CSS_CLASS = "location-text";
+    /**
+     * <i>Marked</i> location text element.
+     */
     private final PseudoClass MARKED_PSEUDO_CLASS = PseudoClass.getPseudoClass("mark");
+    /**
+     * Pseudo class to mark table row containing recipient data that is in
+     * retirement.
+     */
     private final PseudoClass RETIRE_PSEUDO_CLASS = PseudoClass.getPseudoClass("retire");
 }

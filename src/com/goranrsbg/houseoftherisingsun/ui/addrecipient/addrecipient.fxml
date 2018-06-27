@@ -27,8 +27,8 @@
             </HBox>
             <HBox alignment="CENTER" prefWidth="275.0">
                <children>
-                  <JFXButton buttonType="RAISED" onAction="#saveButtonOnAction" prefWidth="130.0" ripplerFill="#06ee28" styleClass="saveBackground" text="Sačuvaj" />
-                  <JFXButton fx:id="cancelButton" buttonType="RAISED" onAction="#cancelButtonOnAction" prefWidth="130.0" ripplerFill="#f21804" text="Otkaži" />
+                  <JFXButton buttonType="RAISED" defaultButton="true" onAction="#saveButtonOnAction" prefWidth="130.0" ripplerFill="#06ee28" styleClass="saveBackground" text="Sačuvaj" />
+                  <JFXButton fx:id="cancelButton" buttonType="RAISED" cancelButton="true" onAction="#cancelButtonOnAction" prefWidth="130.0" ripplerFill="#f21804" text="Otkaži" />
                </children>
             </HBox>
          </children>
