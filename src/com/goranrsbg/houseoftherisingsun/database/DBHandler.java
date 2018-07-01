@@ -171,7 +171,7 @@ public class DBHandler {
         } catch (IOException ex) {
             LOGGER.log(Level.INFO, "File {0} is not accessible.\nError: {1}", new String[]{"database.properties", ex.getMessage()});
         }
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(props.getProperty("jdbc.default.sql"))))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(props.getProperty("jdbc.default.sql")), "UTF-8"))) {
             String s;
             StringBuilder sb = new StringBuilder();
             // reads entire file and puts all lines if not empty in to string builder

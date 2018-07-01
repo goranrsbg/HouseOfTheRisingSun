@@ -77,7 +77,9 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.TransferMode;
+import javafx.scene.input.ZoomEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -670,10 +672,12 @@ public class MainController implements Initializable {
             }
         }
     }
+
     /**
-     * Map containing controllers of all open <code>showLocationSubwindow</code>.
-     * 
-     * @return 
+     * Map containing controllers of all open
+     * <code>showLocationSubwindow</code>.
+     *
+     * @return
      */
     public Map<Integer, ShowLocationController> getShownLocationController() {
         return shownLocations;
@@ -902,23 +906,25 @@ public class MainController implements Initializable {
      * @param type MessageType ERROR/WARNING/INFORMATION/CONFIRM
      */
     public void showMessage(String title, String message, MessageType type) {
-        if (rootPane == null) {
-            return;
-        }
-        Notifications notification = Notifications.create().title(title).text(message);
-        switch (type) {
-            case ERROR:
-                notification.showError();
-                break;
-            case WARNING:
-                notification.showWarning();
-                break;
-            case INFORMATION:
-                notification.showInformation();
-                break;
-            case CONFIRM:
-                notification.showConfirm();
-        }
+        Platform.runLater(() -> {
+            if (rootPane == null) {
+                return;
+            }
+            Notifications notification = Notifications.create().title(title).text(message);
+            switch (type) {
+                case ERROR:
+                    notification.showError();
+                    break;
+                case WARNING:
+                    notification.showWarning();
+                    break;
+                case INFORMATION:
+                    notification.showInformation();
+                    break;
+                case CONFIRM:
+                    notification.showConfirm();
+            }
+        });
     }
     /**
      * Main window title.

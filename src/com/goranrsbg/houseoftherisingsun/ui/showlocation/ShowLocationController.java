@@ -83,7 +83,7 @@ public class ShowLocationController implements Initializable {
     private final String TITLE = "Prikaz lokacije.";
     private Pattern pattern;
 
-    private int postman_path_step;
+    private Address address;
 
     /**
      * Initializes the controller class.
@@ -171,12 +171,13 @@ public class ShowLocationController implements Initializable {
                     if (rs.next()) {
                         String streetName = rs.getString("STREET_NAME");
                         String locationNumber = rs.getString("LOCATION_ADDRESS_NO");
-                        postman_path_step = rs.getInt("LOCATION_POSTMAN_PATH_STEP");
+                        int postman_path_step = rs.getInt("LOCATION_POSTMAN_PATH_STEP");
+                        this.address = new Address(streetName, locationNumber, postman_path_step);
                         idLabel.setText(String.format("%06d", locationId));
-                        addressNameLabel.setText(streetName + " " + locationNumber);
-                        setTitle(streetName + " " + locationNumber);
+                        addressNameLabel.setText(address.toString());
+                        setTitle(address.toString());
                         result = true;
-                        MainController.getInstance().showMessage(TITLE, "Lokacija " + streetName + " " + locationNumber + " je prikazana.", MainController.MessageType.INFORMATION);
+                        MainController.getInstance().showMessage(TITLE, "Lokacija " + address.toString() + " je prikazana.", MainController.MessageType.INFORMATION);
                     } else {
                         setTitle("prazna");
                         MainController.getInstance().showMessage(TITLE, "Lokacija sa identifikacionim brojem #" + locationId + " ne postoji.", MainController.MessageType.ERROR);
@@ -248,16 +249,23 @@ public class ShowLocationController implements Initializable {
             sendMessage("Lokacija mora da bude bez primaoca da bi brisanje bilo moguće.", MainController.MessageType.INFORMATION);
             return;
         }
-        try {
-            PreparedStatement ps = db.getStatement(DBHandler.StatementType.DELETE_LOCATION);
-            ps.setInt(1, getLocationID());
-            ps.executeUpdate();
-            MainController.getInstance().clearLocationFromLocationPane(getLocationID() + "");
-            sendMessage("Lokacije " + addressNameLabel.getText() + " uspešno obrisana.", MainController.MessageType.INFORMATION);
-            idLabel.getScene().getWindow().hide();
-        } catch (SQLException ex) {
-            sendMessage("Neuspelo brisanje lokacije.\nError: " + ex.getMessage(), MainController.MessageType.ERROR);
-        }
+        ButtonType yes = new ButtonType("Da", ButtonBar.ButtonData.YES);
+        ButtonType no = new ButtonType("Ne", ButtonBar.ButtonData.NO);
+        Alert alert = new Alert(Alert.AlertType.NONE, "Da li si siguran?", yes, no);
+        alert.showAndWait().ifPresent((t) -> {
+            if (t == yes) {
+                try {
+                    PreparedStatement ps = db.getStatement(DBHandler.StatementType.DELETE_LOCATION);
+                    ps.setInt(1, getLocationID());
+                    ps.executeUpdate();
+                    MainController.getInstance().clearLocationFromLocationPane(getLocationID() + "");
+                    sendMessage("Lokacije " + addressNameLabel.getText() + " uspešno obrisana.", MainController.MessageType.INFORMATION);
+                    idLabel.getScene().getWindow().hide();
+                } catch (SQLException ex) {
+                    sendMessage("Neuspelo brisanje lokacije.\nError: " + ex.getMessage(), MainController.MessageType.ERROR);
+                }
+            }
+        });
     }
 
     @FXML
@@ -328,21 +336,20 @@ public class ShowLocationController implements Initializable {
 
     @FXML
     private void changeLocationNumberOnAction(ActionEvent event) {
-        String[] split = addressNameLabel.getText().split(" ");
-        String addressNumber = split[split.length - 1];
-        Dialog dialog = createDialog(addressNumber, postman_path_step + "");
+        Dialog dialog = createDialog(address.getAddressNumber(), address.getPostmanPathStep() + "");
         Optional locUpdate = dialog.showAndWait();
         if (locUpdate.isPresent()) {
             try {
                 LocationUpdate lu = (LocationUpdate) locUpdate.get();
-                System.out.println(lu);
                 PreparedStatement ps = db.getStatement(DBHandler.StatementType.UPDATE_LOCATION_NUMBER_PPSTEP);
                 ps.setString(1, lu.getNumber());
                 ps.setInt(2, lu.getPpStep());
                 ps.setInt(3, Integer.parseInt(idLabel.getText()));
                 ps.executeUpdate();
                 ps.clearParameters();
-                postman_path_step = lu.getPpStep();
+                address.setPostmanPathStep(lu.getPpStep());
+                address.setAddressNumber(lu.getNumber());
+                addressNameLabel.setText(address.toString());
                 MainController.getInstance().updateLocationText(idLabel.getText().replaceFirst("0*", ""), lu.getNumber());
                 sendMessage("Adresa lokacije uspešno promenjena.", MainController.MessageType.INFORMATION);
             } catch (SQLException ex) {
@@ -364,15 +371,9 @@ public class ShowLocationController implements Initializable {
         TextFormatter<String> formatterNumber = new TextFormatter<>((t) -> {
             String textNew = t.getControlNewText();
             if (!textNew.isEmpty()) {
-                if (textNew.contains(" ")) {
-                    t = null;
-                    sendMessage("Vrednost polja ne sme da sadrži razmak.", MainController.MessageType.INFORMATION);
-                } else if (textNew.length() > 23) {
+                if (textNew.length() > 23) {
                     t = null;
                     sendMessage("Vrednost polja mora da bude do 23 znaka.", MainController.MessageType.INFORMATION);
-                } else if (!Character.isDigit(textNew.charAt(0))) {
-                    t = null;
-                    sendMessage("Broj mora da počne sa brojem.", MainController.MessageType.INFORMATION);
                 }
             }
             return t;
