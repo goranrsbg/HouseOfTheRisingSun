@@ -18,11 +18,11 @@ limitations under the License.
     Author     : Goran
 */
 @font-face {
-    src: local("file:res/fonts/Oxygen-Regular.ttf");
+    src: url("/res/fonts/Oxygen-Regular.ttf");
 }
 @font-face {
-    src: local("file:res/fonts/SourceSansPro-Regular.ttf");
+    src: url("res/fonts/SourceSansPro-Regular.ttf");
 }
 @font-face {
-    src: local("file:res/fonts/SourceSansPro-Bold.ttf");
+    src: url("res/fonts/SourceSansPro-Bold.ttf");
 }

@@ -77,9 +77,7 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.TransferMode;
-import javafx.scene.input.ZoomEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -869,14 +867,15 @@ public class MainController implements Initializable {
             final double y = event.getY();
             if (mb == MouseButton.SECONDARY) {
                 centerPointOnTheWindow(x, y);
+                event.consume();
             } else if (mb == MouseButton.PRIMARY) {
                 AddLocationController ac = ((AddLocationController) buttons.get(DefaultButtonType.ADD_LOCATION).getUserData());
                 if (ac != null) {
                     ac.setLocationXY(x, y);
+                    event.consume();
                 }
             }
         }
-        event.consume();
     }
 
     /**
