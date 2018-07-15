@@ -44,8 +44,6 @@ public class AddLocationController implements Initializable {
     @FXML
     private JFXComboBox<Street> streetCombo;
     @FXML
-    private JFXTextField pathWayTextField;
-    @FXML
     private JFXTextField noTextField;
     @FXML
     private JFXTextField postmanPathTextField;
@@ -91,15 +89,9 @@ public class AddLocationController implements Initializable {
         TextFormatter<String> formatterNumber = new TextFormatter<>((t) -> {
             String textNew = t.getControlNewText();
             if (!textNew.isEmpty()) {
-                if (textNew.contains(" ")) {
-                    t = null;
-                    sendMessage("Vrednost polja ne sme da sadrži razmak.", MainController.MessageType.INFORMATION);
-                } else if (textNew.length() > 23) {
+                if (textNew.length() > 23) {
                     t = null;
                     sendMessage("Vrednost polja mora da bude do 23 znaka.", MainController.MessageType.INFORMATION);
-                } else if (!Character.isDigit(textNew.charAt(0))) {
-                    t = null;
-                    sendMessage("Broj mora da počne sa brojem.", MainController.MessageType.INFORMATION);
                 }
             }
             return t;
@@ -182,13 +174,7 @@ public class AddLocationController implements Initializable {
         final Street s = streetCombo.getValue();
         final String x = xTextField.getText();
         final String y = yTextField.getText();
-        final String pathWay = pathWayTextField.getText().trim();
-        final String houseNumber;
-        if (pathWay.isEmpty()) {
-            houseNumber = noTextField.getText().trim();
-        } else {
-            houseNumber = pathWay + '-' + noTextField.getText().trim();
-        }
+        final String houseNumber = noTextField.getText().trim();
         final String note = noteAreaField.getText().trim();
         if (validateFields(s, x, y, houseNumber)) {
             try {

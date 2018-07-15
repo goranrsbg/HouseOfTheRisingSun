@@ -14,6 +14,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
@@ -81,6 +82,9 @@ public class LocatorApp extends Application {
     @Override
     public void init() {
         DBHandler.ceateInstance();
+        Font.loadFont(getClass().getResourceAsStream("/res/fonts/Oxygen-Regular.ttf"), 9);
+        Font.loadFont(getClass().getResourceAsStream("/res/fonts/SourceSansPro-Regular.ttf"), 9);
+        Font.loadFont(getClass().getResourceAsStream("/res/fonts/SourceSansPro-Bold.ttf"), 9);
     }
 
     @Override

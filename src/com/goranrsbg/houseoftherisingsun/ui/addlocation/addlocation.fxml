@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <?import com.jfoenix.controls.JFXButton?>
 <?import com.jfoenix.controls.JFXComboBox?>
 <?import com.jfoenix.controls.JFXTextArea?>
@@ -16,7 +17,7 @@
     <children>
       <VBox layoutY="1.0" prefHeight="381.0" prefWidth="351.0" spacing="21.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
-            <HBox spacing="20.0">
+            <HBox spacing="19.0">
                <children>
                   <JFXTextField labelFloat="true" promptText="X" styleClass="textfield-number" fx:id="xTextField" />
                   <JFXTextField fx:id="yTextField" labelFloat="true" promptText="Y" styleClass="textfield-number" />
@@ -30,11 +31,10 @@
                   <Insets left="20.0" right="20.0" top="10.0" />
                </VBox.margin>
             </JFXComboBox>
-            <HBox spacing="11.0">
+            <HBox spacing="19.0">
                <children>
-                  <JFXTextField fx:id="pathWayTextField" labelFloat="true" promptText="Sokak (VS, DS, 1, 2...)" />
                   <JFXTextField fx:id="noTextField" labelFloat="true" prefWidth="117.0" promptText="br." styleClass="textfield-no" />
-                  <JFXTextField fx:id="postmanPathTextField" labelFloat="true" prefWidth="117.0" promptText="Poštarev Put" />
+                  <JFXTextField fx:id="postmanPathTextField" labelFloat="true" prefWidth="97.0" promptText="Poštarev Put" />
                </children>
                <VBox.margin>
                   <Insets left="20.0" right="20.0" top="10.0" />
