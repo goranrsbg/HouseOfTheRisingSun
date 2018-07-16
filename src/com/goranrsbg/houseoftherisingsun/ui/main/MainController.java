@@ -588,11 +588,15 @@ public class MainController implements Initializable {
      *
      * @param id id of the location
      * @param newLocationAddressNumberText Address number to be replaced with
+     * @param note Location note
      */
-    public void updateLocationText(String id, String newLocationAddressNumberText) {
+    public void updateLocationText(String id, String newLocationAddressNumberText, String note) {
         Node lookup = locationsPane.lookup("#" + id);
         if (lookup != null) {
             ((Text) lookup).setText(newLocationAddressNumberText);
+            Tooltip tooltip = new Tooltip(note);
+            tooltip.setStyle(DEFAULT_TOOLTIP_STYLE);
+            Tooltip.install(lookup, tooltip);
         }
     }
 

@@ -20,13 +20,15 @@ package com.goranrsbg.houseoftherisingsun.ui.showlocation;
  * @author Goran
  */
 public class LocationUpdate {
-    
+
     private final String number;
     private final int ppStep;
+    private final String note;
 
-    public LocationUpdate(String number, int ppStep) {
+    public LocationUpdate(String number, int ppStep, String note) {
         this.number = number;
         this.ppStep = ppStep;
+        this.note = note;
     }
 
     public String getNumber() {
@@ -37,9 +39,13 @@ public class LocationUpdate {
         return ppStep;
     }
 
+    public String getNote() {
+        return note;
+    }
+
     @Override
     public String toString() {
-        return "LocationUpdate{" + "number=" + number + ", ppStep=" + ppStep + '}';
+        return "LocationUpdate{" + "number=" + number + ", ppStep=" + ppStep + ", note=" + note + '}';
     }
-    
+
 }

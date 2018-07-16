@@ -19,6 +19,7 @@ import com.goranrsbg.houseoftherisingsun.database.DBHandler;
 import com.goranrsbg.houseoftherisingsun.ui.addrecipient.AddRecipientController;
 import com.goranrsbg.houseoftherisingsun.ui.main.MainController;
 import com.jfoenix.controls.JFXButton;
+import com.jfoenix.controls.JFXTextArea;
 import com.jfoenix.controls.JFXTextField;
 import java.io.IOException;
 import java.net.URL;
@@ -84,6 +85,7 @@ public class ShowLocationController implements Initializable {
     private Pattern pattern;
 
     private Address address;
+    private String note;
 
     /**
      * Initializes the controller class.
@@ -165,13 +167,14 @@ public class ShowLocationController implements Initializable {
         boolean result = false;
         if (!addRecipient.isDisabled()) {
             try {
-                PreparedStatement ps = db.getStatement(DBHandler.StatementType.SELECT_STREET_NAME_LOCATION_NUMBER_LOCATION_PPSTEP);
+                PreparedStatement ps = db.getStatement(DBHandler.StatementType.SELECT_STREET_NAME_LOCATION_NUMBER_LOCATION_PPSTEP_LOCATION_NOTE);
                 ps.setInt(1, locationId);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         String streetName = rs.getString("STREET_NAME");
                         String locationNumber = rs.getString("LOCATION_ADDRESS_NO");
                         int postman_path_step = rs.getInt("LOCATION_POSTMAN_PATH_STEP");
+                        this.note = rs.getString("LOCATION_NOTE");
                         this.address = new Address(streetName, locationNumber, postman_path_step);
                         idLabel.setText(String.format("%06d", locationId));
                         addressNameLabel.setText(address.toString());
@@ -194,7 +197,7 @@ public class ShowLocationController implements Initializable {
     }
 
     /**
-     * Changes title of the window to Lokacija - <italic>title</italic>
+     * Changes title of the window to location - <italic>title</italic>
      *
      * @param title
      */
@@ -344,13 +347,15 @@ public class ShowLocationController implements Initializable {
                 PreparedStatement ps = db.getStatement(DBHandler.StatementType.UPDATE_LOCATION_NUMBER_PPSTEP);
                 ps.setString(1, lu.getNumber());
                 ps.setInt(2, lu.getPpStep());
-                ps.setInt(3, Integer.parseInt(idLabel.getText()));
+                ps.setString(3, lu.getNote());
+                ps.setInt(4, Integer.parseInt(idLabel.getText()));
                 ps.executeUpdate();
                 ps.clearParameters();
                 address.setPostmanPathStep(lu.getPpStep());
                 address.setAddressNumber(lu.getNumber());
                 addressNameLabel.setText(address.toString());
-                MainController.getInstance().updateLocationText(idLabel.getText().replaceFirst("0*", ""), lu.getNumber());
+                this.note = lu.getNote();
+                MainController.getInstance().updateLocationText(idLabel.getText().replaceFirst("0*", ""), lu.getNumber(), lu.getNote());
                 sendMessage("Adresa lokacije uspešno promenjena.", MainController.MessageType.INFORMATION);
             } catch (SQLException ex) {
                 sendMessage("Greška prilikom promene adrese.\nError: " + ex.getMessage(), MainController.MessageType.ERROR);
@@ -392,6 +397,9 @@ public class ShowLocationController implements Initializable {
         });
         JFXTextField number = new JFXTextField();
         JFXTextField pStep = new JFXTextField();
+        JFXTextArea noteArea = new JFXTextArea(this.note);
+        noteArea.setPrefColumnCount(19);
+        noteArea.setPrefRowCount(3);
         number.setLabelFloat(true);
         pStep.setLabelFloat(true);
         number.setPromptText("Broj adrese");
@@ -403,8 +411,10 @@ public class ShowLocationController implements Initializable {
         GridPane pane = new GridPane();
         pane.add(new Label("Broj:"), 0, 0);
         pane.add(new Label("Poštarev put:"), 0, 1);
+        pane.add(new Label("Detalj:"), 0, 2);
         pane.add(number, 1, 0);
         pane.add(pStep, 1, 1);
+        pane.add(noteArea, 1, 2);
         pane.setHgap(13d);
         pane.setVgap(13d);
         dialog.getDialogPane().setContent(pane);
@@ -414,7 +424,7 @@ public class ShowLocationController implements Initializable {
         dialog.getDialogPane().getButtonTypes().addAll(save, cancel);
         dialog.setResultConverter((param) -> {
             if (param == save && !number.getText().isEmpty()) {
-                return new LocationUpdate(number.getText(), Integer.parseInt(pStep.getText()));
+                return new LocationUpdate(number.getText(), Integer.parseInt(pStep.getText()), noteArea.getText());
             }
             return null;
         });

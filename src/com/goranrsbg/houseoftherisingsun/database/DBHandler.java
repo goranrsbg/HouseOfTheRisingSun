@@ -47,7 +47,7 @@ public class DBHandler {
         SELECT_LOCATONS_WITH_SETTLEMENT_ID(5),
         SELECT_ALL_STREETS(6),
         UPDATE_LOCATON_XY(7),
-        SELECT_STREET_NAME_LOCATION_NUMBER_LOCATION_PPSTEP(8),
+        SELECT_STREET_NAME_LOCATION_NUMBER_LOCATION_PPSTEP_LOCATION_NOTE(8),
         INSERT_RECIPIENT(9),
         SELECT_RECIPIENTS_ON_LOCATION_ID(10),
         DELETE_RECIPIENT_WITH_ID(11),
@@ -220,8 +220,8 @@ public class DBHandler {
                     + "JOIN SETTLEMENTS AS SE ON ST.SETTLEMENT_ID = SE.SETTLEMENT_ID ORDER BY SE.SETTLEMENT_INITIALS"));
             // 7 UPDATE_LOCATON_XY
             statements.add(connection.prepareStatement("UPDATE LOCATIONS SET LOCATION_POINT_X = ?, LOCATION_POINT_Y = ? WHERE LOCATION_ID = ?"));
-            // 8 SELECT_STREET_NAME_LOCATION_NUMBER_LOCATION_PPSTEP
-            statements.add(connection.prepareStatement("SELECT S.STREET_NAME, L.LOCATION_ADDRESS_NO, L.LOCATION_POSTMAN_PATH_STEP FROM LOCATIONS AS L JOIN STREETS AS S ON L.STREET_ID = S.STREET_ID "
+            // 8 SELECT_STREET_NAME_LOCATION_NUMBER_LOCATION_PPSTEP_LOCATION_NOTE
+            statements.add(connection.prepareStatement("SELECT S.STREET_NAME, L.LOCATION_ADDRESS_NO, L.LOCATION_POSTMAN_PATH_STEP, L.LOCATION_NOTE FROM LOCATIONS AS L JOIN STREETS AS S ON L.STREET_ID = S.STREET_ID "
                     + "WHERE L.LOCATION_ID = ?"));
             // 9 INSERT_RECIPIENT
             statements.add(connection.prepareStatement("INSERT INTO RECIPIENTS VALUES (DEFAULT, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS));
@@ -254,7 +254,7 @@ public class DBHandler {
                     + "JOIN STREETS AS S ON L.STREET_ID = S.STREET_ID "
                     + "WHERE S.SETTLEMENT_ID = ?"));
             // 17 UPDATE_LOCATION_NUMBER_PPSTEP
-            statements.add(connection.prepareStatement("UPDATE LOCATIONS SET LOCATION_ADDRESS_NO = ?, LOCATION_POSTMAN_PATH_STEP = ? WHERE LOCATION_ID = ?"));
+            statements.add(connection.prepareStatement("UPDATE LOCATIONS SET LOCATION_ADDRESS_NO = ?, LOCATION_POSTMAN_PATH_STEP = ?, LOCATION_NOTE = ? WHERE LOCATION_ID = ?"));
             // 18 INSERT_USER
             statements.add(connection.prepareStatement("INSERT INTO USERS VALUES (DEFAULT, ?, ?)"));
             // 19 DELETE_USER
