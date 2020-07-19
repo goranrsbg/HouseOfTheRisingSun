@@ -5,6 +5,7 @@
 **Password: _11_**
 
 JavaFX desktop app.
+Gives you option to store data on any point in picture. Data are basic post recipients informations.
 
 >Directory "binaries" contains fully testable application version.
 
